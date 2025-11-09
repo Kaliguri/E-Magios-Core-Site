@@ -200,8 +200,57 @@ function loadJSONFile(file, callback) {
   reader.readAsText(file);
 }
 
+/**
+ * Generate and inject sidebar navigation
+ */
+function initSidebar() {
+  const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+  
+  const sidebarHTML = `
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2><a href="index.html" style="color: var(--accent-emerald); text-decoration: none;">E'Magios Core</a></h2>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-section">
+          <h3>📄 Главная</h3>
+          <ul>
+            <li><a href="index.html" class="${currentPage === 'index.html' || currentPage === '' ? 'active' : ''}">Главная страница</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <h3>📚 Книги</h3>
+          <ul>
+            <li><a href="phb.html" class="${currentPage === 'phb.html' ? 'active' : ''}">Player's Handbook</a></li>
+            <li><a href="master.html" class="${currentPage === 'master.html' ? 'active' : ''}">Master's Handbook <span class="lock-icon">🔒</span></a></li>
+            <li><a href="spellbook.html" class="${currentPage === 'spellbook.html' ? 'active' : ''}">Spellbook <span class="lock-icon">🔒</span></a></li>
+            <li><a href="craftbook.html" class="${currentPage === 'craftbook.html' ? 'active' : ''}">Craftbook <span class="lock-icon">🔒</span></a></li>
+            <li><a href="rumors.html" class="${currentPage === 'rumors.html' ? 'active' : ''}">Compendium of Rumors <span class="lock-icon">🔒</span></a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <h3>🛠️ Инструменты</h3>
+          <ul>
+            <li><a href="character-editor.html" class="${currentPage === 'character-editor.html' ? 'active' : ''}">Редактор персонажей</a></li>
+            <li><a href="db.html" class="${currentPage === 'db.html' ? 'active' : ''}">База данных</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+  `;
+  
+  // Find the page-with-sidebar container and inject sidebar
+  const pageContainer = document.querySelector('.page-with-sidebar');
+  if (pageContainer) {
+    pageContainer.insertAdjacentHTML('afterbegin', sidebarHTML);
+  }
+}
+
 // Initialize common features on page load
 document.addEventListener('DOMContentLoaded', () => {
+  // Generate and inject sidebar
+  initSidebar();
+  
   // Setup TOC if it exists
   if (document.getElementById('toc')) {
     setupTOCLinks();
