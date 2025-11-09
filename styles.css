@@ -138,17 +138,85 @@ header .nav-links {
   list-style: none;
 }
 
+header .nav-links > li {
+  position: relative;
+}
+
 header .nav-links a {
   color: var(--text-secondary);
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-sm);
   transition: all 0.2s ease;
+  display: block;
 }
 
 header .nav-links a:hover {
   color: var(--text-primary);
   background: var(--bg-elevated);
   text-decoration: none;
+}
+
+/* Dropdown Menu */
+header .nav-links .dropdown {
+  position: relative;
+}
+
+header .nav-links .dropdown > a {
+  cursor: pointer;
+}
+
+header .nav-links .dropdown > a::after {
+  content: " ▾";
+  font-size: 0.8em;
+  margin-left: 0.3em;
+}
+
+header .nav-links .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  min-width: 220px;
+  padding: var(--spacing-xs) 0;
+  margin-top: 0.5rem;
+  margin-left: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  list-style: none;
+}
+
+header .nav-links .dropdown:hover .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+header .nav-links .dropdown-menu li {
+  margin-bottom: 0;
+  list-style: none;
+}
+
+header .nav-links .dropdown-menu a {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+header .nav-links .dropdown-menu a:hover {
+  background: var(--bg-elevated);
+}
+
+header .nav-links .dropdown-menu .lock-icon {
+  color: var(--text-muted);
+  font-size: 0.9em;
 }
 
 /* Cards */
@@ -496,8 +564,28 @@ strong {
   }
   
   header .nav-links {
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+  }
+
+  header .nav-links > li {
+    width: 100%;
+    text-align: center;
+  }
+
+  header .nav-links .dropdown-menu {
+    position: static;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    margin-top: var(--spacing-xs);
+    width: 100%;
+    display: none;
+  }
+
+  header .nav-links .dropdown:hover .dropdown-menu {
+    display: block;
   }
   
   h1 {

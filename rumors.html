@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compendium of Rumors — E'Magios Core</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <div class="logo">E'Magios Core</div>
+      <ul class="nav-links">
+        <li><a href="index.html">Главная</a></li>
+        <li class="dropdown">
+          <a>Книги</a>
+          <ul class="dropdown-menu">
+            <li><a href="phb.html">Player's Handbook</a></li>
+            <li><a href="master.html">Master's Handbook <span class="lock-icon">🔒</span></a></li>
+            <li><a href="spellbook.html">Spellbook <span class="lock-icon">🔒</span></a></li>
+            <li><a href="craftbook.html">Craftbook <span class="lock-icon">🔒</span></a></li>
+            <li><a href="rumors.html">Compendium of Rumors <span class="lock-icon">🔒</span></a></li>
+          </ul>
+        </li>
+        <li class="dropdown">
+          <a>Инструменты</a>
+          <ul class="dropdown-menu">
+            <li><a href="character-editor.html">Редактор персонажей</a></li>
+            <li><a href="db.html">База данных</a></li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="page-layout">
+    <aside id="toc">
+      <h3>Содержание</h3>
+      <ul>
+        <li><a href="#intro">Введение</a></li>
+        <li><a href="#rumors">Слухи и идеи</a></li>
+      </ul>
+    </aside>
+
+    <main>
+      <h1>Compendium of Rumors</h1>
+      <p class="text-muted">Дополнительные материалы, идеи и слухи E'Magios Core</p>
+
+      <!-- Введение -->
+      <section id="intro">
+        <h2>Введение</h2>
+        <p>
+          Compendium of Rumors содержит дополнительные материалы, необычные концепции и вдохновение для игр в мире E'Magios Core.
+        </p>
+        <p>
+          Эти материалы находятся на стадии тестирования и могут быть изменены в будущих версиях.
+        </p>
+      </section>
+
+      <!-- Слухи и идеи -->
+      <section id="rumors">
+        <h2>Слухи и идеи</h2>
+        <p>
+          <em>Контент этой секции находится в разработке и будет добавлен позже.</em>
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <script src="common.js"></script>
+  <script>
+    // Защита паролем
+    initPasswordProtection();
+  </script>
+</body>
+</html>
+
