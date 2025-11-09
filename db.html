@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>База данных — E'Magios Core</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .db-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-lg);
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .tab {
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 500;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .tab:hover {
+      color: var(--text-primary);
+    }
+
+    .tab.active {
+      color: var(--accent-emerald);
+      border-bottom-color: var(--accent-emerald);
+    }
+
+    .filters {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--spacing-md);
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .results-count {
+      color: var(--text-muted);
+    }
+
+    .results-table {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      overflow-x: auto;
+    }
+
+    .results-table table {
+      margin: 0;
+      border: none;
+    }
+
+    .results-table th {
+      background: var(--bg-elevated);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: var(--spacing-xl);
+      color: var(--text-muted);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .btn-clear {
+      margin-top: var(--spacing-md);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <div class="logo">E'Magios Core</div>
+      <ul class="nav-links">
+        <li><a href="index.html">Главная</a></li>
+        <li><a href="phb.html">Player's Handbook</a></li>
+        <li><a href="character-editor.html">Редактор персонажей</a></li>
+        <li><a href="db.html">База данных</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <div class="db-container">
+      <h1>База данных E'Magios Core</h1>
+      <p class="text-muted">Поиск заклинаний, школ магии и эффектов</p>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('spells')">Заклинания</button>
+        <button class="tab" onclick="switchTab('schools')">Школы Магии</button>
+        <button class="tab" onclick="switchTab('effects')">Эффекты</button>
+      </div>
+
+      <!-- Spells Tab -->
+      <div id="spells-tab" class="tab-content active">
+        <div class="filters">
+          <h3>Фильтры</h3>
+          <div class="filter-grid">
+            <div class="form-group">
+              <label for="spell-name">Название</label>
+              <input type="text" id="spell-name" placeholder="Поиск по названию">
+            </div>
+            <div class="form-group">
+              <label for="spell-rarity">Редкость</label>
+              <select id="spell-rarity">
+                <option value="">Все</option>
+                <option value="Редкая">Редкая</option>
+                <option value="Эпическая">Эпическая</option>
+                <option value="Скрытая">Скрытая</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="spell-type">Тип</label>
+              <select id="spell-type">
+                <option value="">Все</option>
+                <option value="Атака">Атака</option>
+                <option value="Защита">Защита</option>
+                <option value="Контроль">Контроль</option>
+                <option value="Поддержка">Поддержка</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="spell-source">Источник</label>
+              <select id="spell-source">
+                <option value="">Все</option>
+                <option value="Учебное">Учебное</option>
+                <option value="Фирменное">Фирменное</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="spell-school">Школа</label>
+              <input type="text" id="spell-school" placeholder="Название школы">
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-clear" onclick="clearSpellFilters()">Очистить фильтры</button>
+        </div>
+
+        <div class="results-header">
+          <h3>Результаты</h3>
+          <span class="results-count" id="spells-count">0 заклинаний</span>
+        </div>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" onclick="sortSpells('name')">Название</th>
+                <th class="sortable" onclick="sortSpells('school')">Школа</th>
+                <th class="sortable" onclick="sortSpells('type')">Тип</th>
+                <th class="sortable" onclick="sortSpells('source')">Источник</th>
+                <th class="sortable" onclick="sortSpells('actions')">Действий</th>
+                <th>Дальность</th>
+              </tr>
+            </thead>
+            <tbody id="spells-results">
+              <tr><td colspan="6" class="no-results">Загрузка...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Schools Tab -->
+      <div id="schools-tab" class="tab-content">
+        <div class="filters">
+          <h3>Фильтры</h3>
+          <div class="filter-grid">
+            <div class="form-group">
+              <label for="school-name">Название</label>
+              <input type="text" id="school-name" placeholder="Поиск по названию">
+            </div>
+            <div class="form-group">
+              <label for="school-rarity">Редкость</label>
+              <select id="school-rarity">
+                <option value="">Все</option>
+                <option value="Редкая">Редкая</option>
+                <option value="Эпическая">Эпическая</option>
+                <option value="Скрытая">Скрытая</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="school-properties">Свойства</label>
+              <input type="text" id="school-properties" placeholder="Конклав, Запретная...">
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-clear" onclick="clearSchoolFilters()">Очистить фильтры</button>
+        </div>
+
+        <div class="results-header">
+          <h3>Результаты</h3>
+          <span class="results-count" id="schools-count">0 школ</span>
+        </div>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" onclick="sortSchools('name')">Название</th>
+                <th class="sortable" onclick="sortSchools('rarity')">Редкость</th>
+                <th>Свойства</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody id="schools-results">
+              <tr><td colspan="4" class="no-results">Загрузка...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Effects Tab -->
+      <div id="effects-tab" class="tab-content">
+        <div class="filters">
+          <h3>Фильтры</h3>
+          <div class="filter-grid">
+            <div class="form-group">
+              <label for="effect-name">Название</label>
+              <input type="text" id="effect-name" placeholder="Поиск по названию">
+            </div>
+            <div class="form-group">
+              <label for="effect-type">Тип Действия</label>
+              <select id="effect-type">
+                <option value="">Все</option>
+                <option value="Обычный">Обычный</option>
+                <option value="Относительное">Относительное</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="effect-tags">Теги</label>
+              <input type="text" id="effect-tags" placeholder="Контроль, Скрытность...">
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-clear" onclick="clearEffectFilters()">Очистить фильтры</button>
+        </div>
+
+        <div class="results-header">
+          <h3>Результаты</h3>
+          <span class="results-count" id="effects-count">0 эффектов</span>
+        </div>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" onclick="sortEffects('name')">Название</th>
+                <th class="sortable" onclick="sortEffects('actionType')">Тип Действия</th>
+                <th>Теги</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody id="effects-results">
+              <tr><td colspan="4" class="no-results">Загрузка...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="common.js"></script>
+  <script src="db.js"></script>
+</body>
+</html>
+

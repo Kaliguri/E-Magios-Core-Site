@@ -1,0 +1,45 @@
+[
+  {
+    "id": "arcane-shot",
+    "name": "Выстрел Арканы",
+    "rarity": "Редкая",
+    "range": "Средняя",
+    "type": "Атака",
+    "school": "Базовая Аркана",
+    "source": "Учебное",
+    "actions": 1,
+    "concentration": false,
+    "duration": "Мгновенно",
+    "damageTypes": ["Аркана"],
+    "description": "Создает сгусток энергии, атакующий существо на Средней Дистанции. При попадании наносит 1d6+2 урона Арканой."
+  },
+  {
+    "id": "arcane-shield",
+    "name": "Щит Арканы",
+    "rarity": "Редкая",
+    "range": "Себя",
+    "type": "Защита",
+    "school": "Базовая Аркана",
+    "source": "Учебное",
+    "actions": 1,
+    "concentration": true,
+    "duration": "До конца боя",
+    "damageTypes": [],
+    "description": "Создает защитный щит вокруг персонажа, дающий бонус к Уклонению."
+  },
+  {
+    "id": "arcane-chains",
+    "name": "Цепи Арканы",
+    "rarity": "Редкая",
+    "range": "Средняя",
+    "type": "Контроль",
+    "school": "Базовая Аркана",
+    "source": "Учебное",
+    "actions": 2,
+    "concentration": false,
+    "duration": "До следующего хода",
+    "damageTypes": [],
+    "description": "Создает магические цепи, которые обездвиживают цель."
+  }
+]
+

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Редактор персонажей — E'Magios Core</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .editor-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .form-section {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .form-section h2 {
+      margin-top: 0;
+      color: var(--accent-emerald);
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: var(--spacing-sm);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--spacing-md);
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-md);
+    }
+
+    .form-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--spacing-md);
+    }
+
+    .readonly-field {
+      background: var(--bg-elevated);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--accent-emerald);
+      font-weight: 600;
+    }
+
+    .spell-list {
+      margin-top: var(--spacing-sm);
+    }
+
+    .spell-item {
+      display: flex;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-sm);
+      align-items: center;
+    }
+
+    .spell-item input {
+      flex: 1;
+    }
+
+    .spell-item button {
+      padding: var(--spacing-xs);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      min-width: 80px;
+    }
+
+    .spell-item button:hover {
+      background: #ef4444;
+      border-color: #ef4444;
+      color: white;
+    }
+
+    .btn-add {
+      margin-top: var(--spacing-sm);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: var(--spacing-sm);
+      flex-wrap: wrap;
+      margin-top: var(--spacing-lg);
+      position: sticky;
+      bottom: 0;
+      background: var(--bg-primary);
+      padding: var(--spacing-md) 0;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: var(--spacing-sm);
+      align-items: center;
+    }
+
+    .help-text {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    input[type="number"] {
+      width: 80px;
+    }
+
+    .full-width input[type="number"] {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <div class="logo">E'Magios Core</div>
+      <ul class="nav-links">
+        <li><a href="index.html">Главная</a></li>
+        <li><a href="phb.html">Player's Handbook</a></li>
+        <li><a href="character-editor.html">Редактор персонажей</a></li>
+        <li><a href="db.html">База данных</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <div class="editor-container">
+      <h1>Редактор персонажей</h1>
+      <p class="text-muted">Создайте и управляйте своим персонажем E'Magios Core</p>
+
+      <form id="character-form">
+        <!-- Основная информация -->
+        <div class="form-section">
+          <h2>Основная информация</h2>
+          <div class="form-group">
+            <label for="name">Имя персонажа *</label>
+            <input type="text" id="name" required placeholder="Введите имя персонажа">
+          </div>
+          <div class="form-group">
+            <label for="level">Уровень Магического Искусства *</label>
+            <input type="number" id="level" min="1" max="20" value="1" required>
+            <p class="help-text">Уровень от 1 до 20</p>
+          </div>
+        </div>
+
+        <!-- Автоматические расчеты -->
+        <div class="form-section">
+          <h2>Автоматические расчеты</h2>
+          <p class="text-muted">Эти значения рассчитываются автоматически на основе уровня</p>
+          
+          <div class="form-grid">
+            <div>
+              <label>Аркана</label>
+              <div class="readonly-field" id="calc-arcana">+4</div>
+            </div>
+            <div>
+              <label>Уклонение</label>
+              <div class="readonly-field" id="calc-evasion">10</div>
+            </div>
+            <div>
+              <label>Созидание</label>
+              <div class="readonly-field" id="calc-crafting">+4</div>
+            </div>
+            <div>
+              <label>Слоты Учебных Заклинаний</label>
+              <div class="readonly-field" id="calc-spell-slots">4</div>
+            </div>
+          </div>
+
+          <h4 style="margin-top: 1.5rem;">Стойкость</h4>
+          <div class="form-grid-3">
+            <div>
+              <label>Нижняя</label>
+              <div class="readonly-field" id="calc-fort-low">4</div>
+            </div>
+            <div>
+              <label>Средняя</label>
+              <div class="readonly-field" id="calc-fort-mid">8</div>
+            </div>
+            <div>
+              <label>Верхняя</label>
+              <div class="readonly-field" id="calc-fort-high">12</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Боевые характеристики -->
+        <div class="form-section">
+          <h2>Боевые характеристики</h2>
+          
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="health-current">Здоровье (текущее/макс)</label>
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <input type="number" id="health-current" min="0" value="8">
+                <span>/</span>
+                <input type="number" id="health-max" min="1" value="8">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="will-current">Воля (текущее/макс)</label>
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <input type="number" id="will-current" min="0" value="6">
+                <span>/</span>
+                <input type="number" id="will-max" min="1" value="6">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="spell-power">Сила Заклинаний</label>
+            <input type="number" id="spell-power" value="0">
+          </div>
+        </div>
+
+        <!-- Магическое Мастерство -->
+        <div class="form-section">
+          <h2>Магическое Мастерство</h2>
+          <p class="help-text">Максимум +2 на каждую характеристику</p>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="construction">Конструирование</label>
+              <input type="number" id="construction" min="0" max="2" value="0">
+            </div>
+            <div class="form-group">
+              <label for="spontaneity">Спонтанность</label>
+              <input type="number" id="spontaneity" min="0" max="2" value="0">
+            </div>
+            <div class="form-group">
+              <label for="metamagic">Метамагия</label>
+              <input type="number" id="metamagic" min="0" max="2" value="0">
+            </div>
+            <div class="form-group">
+              <label for="creation">Созидание</label>
+              <input type="number" id="creation" min="0" max="2" value="0">
+            </div>
+            <div class="form-group">
+              <label for="ritualism">Ритуалогия</label>
+              <input type="number" id="ritualism" min="0" max="2" value="0">
+            </div>
+            <div class="form-group">
+              <label for="versatility">Многогранность</label>
+              <input type="number" id="versatility" min="0" max="2" value="0">
+            </div>
+          </div>
+        </div>
+
+        <!-- Вспомогательная Магия -->
+        <div class="form-section">
+          <h2>Вспомогательная Магия</h2>
+          <p class="help-text">Максимум +2 на каждую характеристику</p>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="protection">Защита</label>
+              <input type="number" id="protection" min="0" max="2" value="0">
+            </div>
+            <div class="form-group">
+              <label for="blessing">Благословение</label>
+              <input type="number" id="blessing" min="0" max="2" value="0">
+            </div>
+            <div class="form-group">
+              <label for="illusion">Иллюзия</label>
+              <input type="number" id="illusion" min="0" max="2" value="0">
+            </div>
+            <div class="form-group">
+              <label for="divination">Прорицание</label>
+              <input type="number" id="divination" min="0" max="2" value="0">
+            </div>
+            <div class="form-group">
+              <label for="telepathy">Телепатия</label>
+              <input type="number" id="telepathy" min="0" max="2" value="0">
+            </div>
+            <div class="form-group">
+              <label for="concealment">Сокрытие</label>
+              <input type="number" id="concealment" min="0" max="2" value="0">
+            </div>
+            <div class="form-group">
+              <label for="detection">Обнаружение</label>
+              <input type="number" id="detection" min="0" max="2" value="0">
+            </div>
+            <div class="form-group">
+              <label for="summoning">Призыв</label>
+              <input type="number" id="summoning" min="0" max="2" value="0">
+            </div>
+          </div>
+        </div>
+
+        <!-- Навыки Личности -->
+        <div class="form-section">
+          <h2>Навыки Личности</h2>
+          <p class="help-text">Максимум +3 на каждую характеристику</p>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="communication">Общение</label>
+              <input type="number" id="communication" min="0" max="3" value="0">
+            </div>
+            <div class="form-group">
+              <label for="contacts">Контакты</label>
+              <input type="number" id="contacts" min="0" max="3" value="0">
+            </div>
+            <div class="form-group">
+              <label for="knowledge">Знания</label>
+              <input type="number" id="knowledge" min="0" max="3" value="0">
+            </div>
+            <div class="form-group">
+              <label for="perception">Внимательность</label>
+              <input type="number" id="perception" min="0" max="3" value="0">
+            </div>
+            <div class="form-group">
+              <label for="stealth">Скрытность</label>
+              <input type="number" id="stealth" min="0" max="3" value="0">
+            </div>
+            <div class="form-group">
+              <label for="physique">Телосложение</label>
+              <input type="number" id="physique" min="0" max="3" value="0">
+            </div>
+          </div>
+        </div>
+
+        <!-- Заклинания -->
+        <div class="form-section">
+          <h2>Учебные Заклинания</h2>
+          <div id="study-spells-list" class="spell-list"></div>
+          <button type="button" class="btn btn-secondary btn-add" onclick="addStudySpell()">+ Добавить учебное заклинание</button>
+        </div>
+
+        <div class="form-section">
+          <h2>Фирменные Заклинания</h2>
+          <div id="signature-spells-list" class="spell-list"></div>
+          <button type="button" class="btn btn-secondary btn-add" onclick="addSignatureSpell()">+ Добавить фирменное заклинание</button>
+        </div>
+
+        <!-- Описание персонажа -->
+        <div class="form-section">
+          <h2>Описание персонажа</h2>
+          <div class="form-group">
+            <label for="description">Описание (раса, внешность, история)</label>
+            <textarea id="description" rows="6" placeholder="Опишите вашего персонажа: расу, рост, цвет глаз, историю и т.д."></textarea>
+          </div>
+        </div>
+
+        <!-- Кнопки действий -->
+        <div class="action-buttons">
+          <button type="button" class="btn btn-primary" onclick="saveCharacter()">💾 Сохранить персонажа</button>
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('load-file').click()">📂 Загрузить персонажа</button>
+          <input type="file" id="load-file" accept=".json" style="display: none;" onchange="loadCharacter(this.files[0])">
+          <button type="button" class="btn btn-outline" onclick="clearForm()">🗑️ Очистить форму</button>
+          <button type="button" class="btn btn-secondary" onclick="window.location.href='phb.html'">📖 Вернуться к правилам</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script src="common.js"></script>
+  <script src="character-editor.js"></script>
+</body>
+</html>
+
