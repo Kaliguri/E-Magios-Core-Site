@@ -6,16 +6,69 @@
   <title>Редактор персонажей — E'Magios Core</title>
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-page="editor">
   <div class="page-with-sidebar">
     <!-- Sidebar will be injected here by common.js -->
     
-    <div class="main-content">
+    <main class="main-content main-content-wide">
   <style>
     .editor-container {
       max-width: 1000px;
       margin: 0 auto;
       padding: 2rem;
+    }
+
+    .saved-characters-section {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-lg);
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .saved-characters-section h2 {
+      margin-top: 0;
+      margin-bottom: var(--spacing-md);
+    }
+
+    #saved-characters-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    .saved-character-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-md);
+      background: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+    }
+
+    .saved-character-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .saved-character-info strong {
+      color: var(--text-primary);
+      font-size: 1.1rem;
+    }
+
+    .saved-character-info .text-muted {
+      font-size: 0.9rem;
+    }
+
+    .saved-character-actions {
+      display: flex;
+      gap: var(--spacing-sm);
+    }
+
+    .btn-sm {
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
     }
 
     .form-section {
@@ -133,6 +186,12 @@
     <div class="editor-container">
       <h1>Редактор персонажей</h1>
       <p class="text-muted">Создайте и управляйте своим персонажем E'Magios Core</p>
+
+      <!-- Saved Characters Section -->
+      <div class="saved-characters-section">
+        <h2>💾 Сохранённые персонажи</h2>
+        <div id="saved-characters-list"></div>
+      </div>
 
       <form id="character-form">
         <!-- Основная информация -->
@@ -350,16 +409,16 @@
 
         <!-- Кнопки действий -->
         <div class="action-buttons">
-          <button type="button" class="btn btn-primary" onclick="saveCharacter()">💾 Сохранить персонажа</button>
-          <button type="button" class="btn btn-secondary" onclick="document.getElementById('load-file').click()">📂 Загрузить персонажа</button>
+          <button type="button" class="btn btn-primary" onclick="saveCharacter()">💾 Сохранить на сайте</button>
+          <button type="button" class="btn btn-secondary" onclick="exportCharacter()">📥 Экспортировать в JSON</button>
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('load-file').click()">📂 Импортировать из JSON</button>
           <input type="file" id="load-file" accept=".json" style="display: none;" onchange="loadCharacter(this.files[0])">
           <button type="button" class="btn btn-outline" onclick="clearForm()">🗑️ Очистить форму</button>
-          <button type="button" class="btn btn-secondary" onclick="window.location.href='phb.html'">📖 Вернуться к правилам</button>
+          <button type="button" class="btn btn-secondary" onclick="window.location.href='phb/intro.html'">📖 Вернуться к правилам</button>
         </div>
       </form>
     </div>
-  </main>
-    </div> <!-- main-content -->
+    </main>
   </div> <!-- page-with-sidebar -->
 
   <script src="common.js"></script>

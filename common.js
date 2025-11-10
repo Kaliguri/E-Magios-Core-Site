@@ -2,19 +2,24 @@
 
 // Password Protection System
 const MASTER_PASSWORD = '147';
-const PASSWORD_KEY = 'masterAccess';
+const PASSWORD_KEY = 'emagiosMasterAccess';
 
 /**
  * Check if the user has access to protected content
  */
 function checkAccess() {
-  return sessionStorage.getItem(PASSWORD_KEY) === 'true';
+  return localStorage.getItem(PASSWORD_KEY) === 'true';
 }
 
 /**
  * Show password modal for protected pages
  */
 function showPasswordModal() {
+  // Get current book name
+  const bookKey = document.body.getAttribute('data-book');
+  const bookInfo = BOOKS[bookKey];
+  const bookTitle = bookInfo ? `${bookInfo.icon} ${bookInfo.title}` : 'эта книга';
+  
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
   overlay.id = 'password-modal';
@@ -22,7 +27,7 @@ function showPasswordModal() {
   overlay.innerHTML = `
     <div class="modal">
       <div class="modal-header">
-        <h3 class="modal-title">Защищенный контент</h3>
+        <h3 class="modal-title">Защищенный контент: ${bookTitle}</h3>
       </div>
       <div class="modal-body">
         <p>Эта страница защищена паролем. Введите пароль для доступа:</p>
@@ -58,8 +63,15 @@ function checkPassword() {
   const errorMsg = document.getElementById('password-error');
   
   if (input.value === MASTER_PASSWORD) {
-    sessionStorage.setItem(PASSWORD_KEY, 'true');
+    localStorage.setItem(PASSWORD_KEY, 'true');
     document.getElementById('password-modal').remove();
+    // Show the main content
+    const main = document.querySelector('main');
+    if (main) {
+      main.style.display = 'block';
+    }
+    // Add reset password button after successful login
+    addResetPasswordButton();
     // Trigger page-specific initialization if needed
     if (typeof onAccessGranted === 'function') {
       onAccessGranted();
@@ -75,7 +87,7 @@ function checkPassword() {
  * Go back to home page
  */
 function goToHome() {
-  window.location.href = 'index.html';
+  window.location.href = '../index.html';
 }
 
 /**
@@ -89,15 +101,79 @@ function initPasswordProtection() {
       main.style.display = 'none';
     }
     showPasswordModal();
+  } else {
+    // Show the main content
+    const main = document.querySelector('main');
+    if (main) {
+      main.style.display = 'block';
+    }
   }
 }
 
 /**
- * Logout / Clear access
+ * Logout / Clear access (Reset password)
  */
 function logout() {
-  sessionStorage.removeItem(PASSWORD_KEY);
+  localStorage.removeItem(PASSWORD_KEY);
   window.location.reload();
+}
+
+/**
+ * Add reset password button (visible on all pages, but only works if logged in)
+ */
+function addResetPasswordButton() {
+  // Prevent duplicate buttons
+  if (document.querySelector('.reset-password-btn')) return;
+  
+  const button = document.createElement('button');
+  button.className = 'reset-password-btn';
+  button.textContent = '🔓';
+  button.title = 'Сбросить пароль';
+  button.style.position = 'fixed';
+  button.style.top = 'var(--spacing-md)';
+  button.style.right = 'var(--spacing-md)';
+  button.style.zIndex = '1000';
+  button.style.padding = '8px';
+  button.style.fontSize = '1.2rem';
+  button.style.background = 'var(--bg-elevated)';
+  button.style.border = '1px solid var(--border-color)';
+  button.style.borderRadius = 'var(--radius-md)';
+  button.style.cursor = 'pointer';
+  button.style.opacity = '0';
+  button.style.transition = 'opacity 0.2s ease';
+  button.style.width = '40px';
+  button.style.height = '40px';
+  button.style.display = 'flex';
+  button.style.alignItems = 'center';
+  button.style.justifyContent = 'center';
+  
+  // Create hover area
+  const hoverArea = document.createElement('div');
+  hoverArea.style.position = 'fixed';
+  hoverArea.style.top = '0';
+  hoverArea.style.right = '0';
+  hoverArea.style.width = '100px';
+  hoverArea.style.height = '80px';
+  hoverArea.style.zIndex = '999';
+  
+  // Show button on hover
+  hoverArea.addEventListener('mouseenter', () => {
+    button.style.opacity = '1';
+  });
+  hoverArea.addEventListener('mouseleave', () => {
+    button.style.opacity = '0';
+  });
+  button.addEventListener('mouseenter', () => {
+    button.style.opacity = '1';
+  });
+  button.addEventListener('mouseleave', () => {
+    button.style.opacity = '0';
+  });
+  
+  button.onclick = logout;
+  
+  document.body.appendChild(hoverArea);
+  document.body.appendChild(button);
 }
 
 // Navigation helpers
@@ -111,45 +187,190 @@ function smoothScrollTo(targetId) {
   }
 }
 
+// Book and chapter structure
+const BOOKS = {
+  phb: {
+    title: 'Player\'s Handbook',
+    icon: '⚔️',
+    locked: false,
+    chapters: [
+      { id: 'intro', title: 'Введение', file: 'phb/intro.html' },
+      { id: 'creation', title: 'Создание Персонажа', file: 'phb/creation.html' },
+      { id: 'stats', title: 'Характеристики', file: 'phb/stats.html' },
+      { id: 'archetypes', title: 'Архетипы', file: 'phb/archetypes.html' },
+      { id: 'combat', title: 'Компоненты Боевой Системы', file: 'phb/combat.html' },
+      { id: 'actions', title: 'Базовые действия', file: 'phb/actions.html' },
+      { id: 'leveling', title: 'Повышение уровня', file: 'phb/leveling.html' },
+      { id: 'spells', title: 'Заклинания', file: 'phb/spells.html' },
+      { id: 'equipment', title: 'Экипировка', file: 'phb/equipment.html' },
+      { id: 'effects', title: 'Эффекты', file: 'phb/effects.html' }
+    ]
+  },
+  spellbook: {
+    title: 'Spellbook',
+    icon: '🔮',
+    locked: true,
+    chapters: [
+      { id: 'intro', title: 'Введение', file: 'spellbook/intro.html' },
+      { id: 'schools', title: 'Школы Магии', file: 'spellbook/schools.html' },
+      { id: 'typology', title: 'Типология Магии', file: 'spellbook/typology.html' },
+      { id: 'study-spells', title: 'Учебные заклинания', file: 'spellbook/study-spells.html' },
+      { id: 'signature-spells', title: 'Фирменные заклинания', file: 'spellbook/signature-spells.html' },
+      { id: 'spell-creation', title: 'Создание Заклинания', file: 'spellbook/spell-creation.html' },
+      { id: 'spontaneous-spells', title: 'Спонтанные заклинания', file: 'spellbook/spontaneous-spells.html' },
+      { id: 'metamagic', title: 'Метамагия', file: 'spellbook/metamagic.html' }
+    ]
+  },
+  master: {
+    title: 'Master\'s Handbook',
+    icon: '🎭',
+    locked: true,
+    chapters: [
+      { id: 'intro', title: 'Введение', file: 'master/intro.html' },
+      { id: 'mage-power-level', title: 'Уровень Силы Мага', file: 'master/mage-power-level.html' }
+    ]
+  },
+  craftbook: {
+    title: 'Craftbook',
+    icon: '⚒️',
+    locked: true,
+    chapters: [
+      { id: 'intro', title: 'Введение', file: 'craftbook/intro.html' },
+      { id: 'magical-crafts', title: 'Магические ремесла', file: 'craftbook/magical-crafts.html' }
+    ]
+  },
+  rumors: {
+    title: 'Compendium of Rumors',
+    icon: '💭',
+    locked: true,
+    chapters: [
+      { id: 'intro', title: 'Введение', file: 'rumors/intro.html' },
+      { id: 'ideas', title: 'Идеи', file: 'rumors/ideas.html' }
+    ]
+  }
+};
+
 /**
- * Setup table of contents links
+ * Generate and inject sidebar navigation with chapter list
  */
-function setupTOCLinks() {
-  const tocLinks = document.querySelectorAll('#toc a[href^="#"]');
-  tocLinks.forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      const targetId = link.getAttribute('href').substring(1);
-      smoothScrollTo(targetId);
-      // Update URL without scrolling
-      history.pushState(null, null, `#${targetId}`);
-    });
-  });
+function initSidebar() {
+  const body = document.body;
+  const currentBook = body.getAttribute('data-book');
+  const currentChapter = body.getAttribute('data-chapter');
+  const isHomePage = body.getAttribute('data-page') === 'home';
+  
+  const currentPage = body.getAttribute('data-page');
+  const isInSubfolder = currentBook !== null; // если есть data-book, значит мы в подпапке
+  const homeLink = isInSubfolder ? '../index.html' : 'index.html';
+  const isHomeActive = currentPage === 'home' ? 'active' : '';
+  
+  let sidebarHTML = `
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2><a href="${homeLink}" style="color: var(--accent-emerald); text-decoration: none;">E'Magios Core</a></h2>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-section">
+          <h3>📄 Главная</h3>
+          <ul>
+            <li><a href="${homeLink}" class="${isHomeActive}">Главная страница</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <h3>📖 Книги</h3>
+  `;
+  
+  // Generate book list with chapters
+  for (const [bookKey, book] of Object.entries(BOOKS)) {
+    const isCurrentBook = bookKey === currentBook;
+    const lockIcon = book.locked ? ' 🔒' : '';
+    
+    sidebarHTML += `
+      <div class="book-item ${isCurrentBook ? 'active' : ''}">
+        <div class="book-header" onclick="toggleBook('${bookKey}')">
+          <span>${book.icon} ${book.title}${lockIcon}</span>
+          <span class="toggle-icon">${isCurrentBook ? '▼' : '▶'}</span>
+        </div>
+        <ul class="chapter-list ${isCurrentBook ? 'expanded' : ''}">
+    `;
+    
+    for (const chapter of book.chapters) {
+      const isActive = isCurrentBook && chapter.id === currentChapter;
+      const chapterLink = isInSubfolder ? `../${chapter.file}` : chapter.file;
+      sidebarHTML += `
+        <li>
+          <a href="${chapterLink}" class="${isActive ? 'active-chapter' : ''}">
+            ${chapter.title}
+          </a>
+        </li>
+      `;
+    }
+    
+    sidebarHTML += `
+        </ul>
+      </div>
+    `;
+  }
+  
+  sidebarHTML += `
+        </div>
+        <div class="sidebar-section">
+          <h3>⚙️ Инструменты</h3>
+          <ul>
+            <li><a href="${isInSubfolder ? '../character-editor.html' : 'character-editor.html'}" class="${currentPage === 'editor' ? 'active' : ''}">📝 Редактор персонажей</a></li>
+            <li><a href="${isInSubfolder ? '../db.html' : 'db.html'}" class="${currentPage === 'db' ? 'active' : ''}">📊 База данных</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+  `;
+  
+  // Find the page-with-sidebar container and inject sidebar
+  const pageContainer = document.querySelector('.page-with-sidebar');
+  if (pageContainer) {
+    pageContainer.insertAdjacentHTML('afterbegin', sidebarHTML);
+  }
 }
 
 /**
- * Highlight active TOC link based on scroll position
+ * Toggle book chapter list
  */
-function updateActiveTOCLink() {
-  const sections = document.querySelectorAll('main section[id]');
-  const tocLinks = document.querySelectorAll('#toc a');
+function toggleBook(bookKey) {
+  const bookItem = event.target.closest('.book-item');
+  const chapterList = bookItem.querySelector('.chapter-list');
+  const toggleIcon = bookItem.querySelector('.toggle-icon');
   
-  let currentSection = '';
+  if (chapterList.classList.contains('expanded')) {
+    chapterList.classList.remove('expanded');
+    toggleIcon.textContent = '▶';
+  } else {
+    chapterList.classList.add('expanded');
+    toggleIcon.textContent = '▼';
+  }
+}
+
+/**
+ * Initialize scroll-to-top button
+ */
+function initScrollToTop() {
+  const scrollBtn = document.getElementById('scroll-to-top');
+  if (!scrollBtn) return;
   
-  sections.forEach(section => {
-    const sectionTop = section.offsetTop - 100;
-    if (window.scrollY >= sectionTop) {
-      currentSection = section.getAttribute('id');
+  // Show/hide button based on scroll position
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 300) {
+      scrollBtn.classList.add('visible');
+    } else {
+      scrollBtn.classList.remove('visible');
     }
   });
   
-  tocLinks.forEach(link => {
-    link.style.background = '';
-    link.style.color = '';
-    if (link.getAttribute('href') === `#${currentSection}`) {
-      link.style.background = 'var(--bg-elevated)';
-      link.style.color = 'var(--accent-emerald)';
-    }
+  // Scroll to top on click
+  scrollBtn.addEventListener('click', () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   });
 }
 
@@ -200,63 +421,18 @@ function loadJSONFile(file, callback) {
   reader.readAsText(file);
 }
 
-/**
- * Generate and inject sidebar navigation
- */
-function initSidebar() {
-  const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-  
-  const sidebarHTML = `
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <h2><a href="index.html" style="color: var(--accent-emerald); text-decoration: none;">E'Magios Core</a></h2>
-      </div>
-      <nav class="sidebar-nav">
-        <div class="sidebar-section">
-          <h3>📄 Главная</h3>
-          <ul>
-            <li><a href="index.html" class="${currentPage === 'index.html' || currentPage === '' ? 'active' : ''}">Главная страница</a></li>
-          </ul>
-        </div>
-        <div class="sidebar-section">
-          <h3>📚 Книги</h3>
-          <ul>
-            <li><a href="phb.html" class="${currentPage === 'phb.html' ? 'active' : ''}">Player's Handbook</a></li>
-            <li><a href="master.html" class="${currentPage === 'master.html' ? 'active' : ''}">Master's Handbook <span class="lock-icon">🔒</span></a></li>
-            <li><a href="spellbook.html" class="${currentPage === 'spellbook.html' ? 'active' : ''}">Spellbook <span class="lock-icon">🔒</span></a></li>
-            <li><a href="craftbook.html" class="${currentPage === 'craftbook.html' ? 'active' : ''}">Craftbook <span class="lock-icon">🔒</span></a></li>
-            <li><a href="rumors.html" class="${currentPage === 'rumors.html' ? 'active' : ''}">Compendium of Rumors <span class="lock-icon">🔒</span></a></li>
-          </ul>
-        </div>
-        <div class="sidebar-section">
-          <h3>🛠️ Инструменты</h3>
-          <ul>
-            <li><a href="character-editor.html" class="${currentPage === 'character-editor.html' ? 'active' : ''}">Редактор персонажей</a></li>
-            <li><a href="db.html" class="${currentPage === 'db.html' ? 'active' : ''}">База данных</a></li>
-          </ul>
-        </div>
-      </nav>
-    </aside>
-  `;
-  
-  // Find the page-with-sidebar container and inject sidebar
-  const pageContainer = document.querySelector('.page-with-sidebar');
-  if (pageContainer) {
-    pageContainer.insertAdjacentHTML('afterbegin', sidebarHTML);
-  }
-}
-
 // Initialize common features on page load
 document.addEventListener('DOMContentLoaded', () => {
-  // Generate and inject sidebar
-  initSidebar();
-  
-  // Setup TOC if it exists
-  if (document.getElementById('toc')) {
-    setupTOCLinks();
-    window.addEventListener('scroll', updateActiveTOCLink);
-    updateActiveTOCLink();
+  // Generate and inject sidebar for chapter pages and home page
+  if (document.body.hasAttribute('data-book') || document.body.hasAttribute('data-page')) {
+    initSidebar();
   }
+  
+  // Add reset password button on ALL pages (visible only on hover)
+  addResetPasswordButton();
+  
+  // Initialize scroll-to-top button
+  initScrollToTop();
   
   // Handle hash on page load
   if (window.location.hash) {
@@ -266,4 +442,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 100);
   }
 });
-

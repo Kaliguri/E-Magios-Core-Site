@@ -16,9 +16,34 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initial calculations
   updateCalculations();
   
-  // Try to load last character from localStorage
-  loadLastCharacter();
+  // Migrate old data if needed
+  migrateOldData();
+  
+  // Load saved characters list
+  displaySavedCharacters();
 });
+
+/**
+ * Migrate old localStorage data format
+ */
+function migrateOldData() {
+  const oldData = localStorage.getItem('lastCharacter');
+  if (oldData) {
+    try {
+      const character = JSON.parse(oldData);
+      // Migrate to new format
+      const existingChars = getSavedCharacters();
+      if (!existingChars.find(c => c.name === character.name)) {
+        existingChars.push(character);
+        setSavedCharacters(existingChars);
+      }
+    } catch (e) {
+      console.error('Error migrating old data:', e);
+    }
+    // Always remove old data
+    localStorage.removeItem('lastCharacter');
+  }
+}
 
 /**
  * Update all automatic calculations based on level
@@ -255,26 +280,63 @@ function fillForm(data) {
 }
 
 /**
- * Save character to JSON file
+ * Get all saved characters from localStorage
+ */
+function getSavedCharacters() {
+  const saved = localStorage.getItem('savedCharacters');
+  return saved ? JSON.parse(saved) : [];
+}
+
+/**
+ * Save characters array to localStorage
+ */
+function setSavedCharacters(characters) {
+  localStorage.setItem('savedCharacters', JSON.stringify(characters));
+}
+
+/**
+ * Save character to localStorage only
  */
 function saveCharacter() {
   const data = collectFormData();
   
   if (!data.name) {
-    alert('Пожалуйста, введите имя персонажа перед сохранением.');
+    // Just focus on name field without annoying alert
+    document.getElementById('name').focus();
     return;
   }
   
-  const json = JSON.stringify(data, null, 2);
-  const filename = `${data.name.replace(/[^a-zA-Zа-яА-Я0-9]/g, '_')}.json`;
+  // Save to localStorage
+  const characters = getSavedCharacters();
+  const existingIndex = characters.findIndex(c => c.name === data.name);
   
-  // Save to localStorage as last character
-  localStorage.setItem('lastCharacter', json);
+  if (existingIndex >= 0) {
+    // Update existing character
+    characters[existingIndex] = data;
+  } else {
+    // Add new character
+    characters.push(data);
+  }
+  
+  setSavedCharacters(characters);
+  displaySavedCharacters();
+}
+
+/**
+ * Export character to JSON file
+ */
+function exportCharacter() {
+  const data = collectFormData();
+  
+  if (!data.name) {
+    document.getElementById('name').focus();
+    return;
+  }
   
   // Download file
+  const json = JSON.stringify(data, null, 2);
+  const filename = `${data.name.replace(/[^a-zA-Zа-яА-Я0-9]/g, '_')}.json`;
   downloadJSON(json, filename);
-  
-  alert(`Персонаж "${data.name}" сохранён!`);
 }
 
 /**
@@ -285,31 +347,74 @@ function loadCharacter(file) {
   
   loadJSONFile(file, (data) => {
     fillForm(data);
-    alert(`Персонаж "${data.name}" загружен!`);
   });
 }
 
 /**
- * Load last character from localStorage
+ * Display saved characters list
  */
-function loadLastCharacter() {
-  const lastChar = localStorage.getItem('lastCharacter');
-  if (lastChar) {
-    try {
-      const data = JSON.parse(lastChar);
-      // Only auto-load if it's recent (within 7 days)
-      const lastModified = new Date(data.lastModified);
-      const daysSince = (new Date() - lastModified) / (1000 * 60 * 60 * 24);
-      
-      if (daysSince < 7) {
-        const shouldLoad = confirm(`Найден сохранённый персонаж "${data.name}". Загрузить его?`);
-        if (shouldLoad) {
-          fillForm(data);
-        }
-      }
-    } catch (e) {
-      console.error('Error loading last character:', e);
-    }
+function displaySavedCharacters() {
+  const characters = getSavedCharacters();
+  const container = document.getElementById('saved-characters-list');
+  
+  if (!container) return;
+  
+  if (characters.length === 0) {
+    container.innerHTML = '<p class="text-muted">Нет сохранённых персонажей</p>';
+    return;
+  }
+  
+  container.innerHTML = characters.map((char, index) => {
+    const date = new Date(char.lastModified).toLocaleDateString('ru-RU');
+    return `
+      <div class="saved-character-item">
+        <div class="saved-character-info">
+          <strong>${char.name}</strong>
+          <span class="text-muted">Уровень ${char.level} • ${date}</span>
+        </div>
+        <div class="saved-character-actions">
+          <button type="button" class="btn btn-sm btn-primary" onclick="loadSavedCharacter(${index})">Загрузить</button>
+          <button type="button" class="btn btn-sm btn-secondary" onclick="exportSavedCharacter(${index})">Экспорт</button>
+          <button type="button" class="btn btn-sm btn-outline" onclick="deleteSavedCharacter(${index})">Удалить</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/**
+ * Load character from saved list
+ */
+function loadSavedCharacter(index) {
+  const characters = getSavedCharacters();
+  if (characters[index]) {
+    fillForm(characters[index]);
+  }
+}
+
+/**
+ * Export character from saved list to JSON
+ */
+function exportSavedCharacter(index) {
+  const characters = getSavedCharacters();
+  if (characters[index]) {
+    const data = characters[index];
+    const json = JSON.stringify(data, null, 2);
+    const filename = `${data.name.replace(/[^a-zA-Zа-яА-Я0-9]/g, '_')}.json`;
+    downloadJSON(json, filename);
+  }
+}
+
+/**
+ * Delete character from saved list
+ */
+function deleteSavedCharacter(index) {
+  const characters = getSavedCharacters();
+  if (characters[index]) {
+    // Delete without confirmation - user can always save again if needed
+    characters.splice(index, 1);
+    setSavedCharacters(characters);
+    displaySavedCharacters();
   }
 }
 
@@ -317,10 +422,7 @@ function loadLastCharacter() {
  * Clear the form
  */
 function clearForm() {
-  if (!confirm('Вы уверены, что хотите очистить форму? Несохранённые данные будут потеряны.')) {
-    return;
-  }
-  
+  // Clear without confirmation
   document.getElementById('character-form').reset();
   document.getElementById('level').value = 1;
   

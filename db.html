@@ -6,11 +6,11 @@
   <title>База данных — E'Magios Core</title>
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-page="db">
   <div class="page-with-sidebar">
     <!-- Sidebar will be injected here by common.js -->
     
-    <div class="main-content">
+    <main class="main-content main-content-wide">
   <style>
     .db-container {
       max-width: 1400px;
@@ -107,10 +107,86 @@
     .btn-clear {
       margin-top: var(--spacing-md);
     }
+
+    .results-table a {
+      transition: all 0.2s ease;
+    }
+
+    .results-table a:hover {
+      color: var(--accent-emerald) !important;
+      text-decoration: underline !important;
+    }
+
+    .results-table td strong a {
+      font-weight: 600;
+    }
+
+    /* Detail View styles */
+    .detail-view {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: var(--spacing-xl);
+    }
+
+    .detail-container h1 {
+      color: var(--accent-emerald);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .detail-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-xl);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .detail-field {
+      margin-bottom: var(--spacing-md);
+      padding-bottom: var(--spacing-md);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .detail-field:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .detail-field strong {
+      color: var(--text-primary);
+      display: block;
+      margin-bottom: var(--spacing-xs);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .detail-field-value {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
+
+    .detail-description {
+      background: var(--bg-elevated);
+      border-left: 3px solid var(--accent-emerald);
+      padding: var(--spacing-md);
+      border-radius: var(--radius-md);
+      margin-top: var(--spacing-md);
+    }
   </style>
 
   <main>
-    <div class="db-container">
+    <!-- Detail View (shown when viewing specific item) -->
+    <div id="detailView" class="detail-view" style="display: none;">
+      <div class="detail-container">
+        <a href="db.html" class="btn btn-secondary" style="margin-bottom: var(--spacing-lg);">← Назад к базе данных</a>
+        <div id="detailContent"></div>
+      </div>
+    </div>
+
+    <!-- Database View (shown by default) -->
+    <div id="databaseView" class="db-container">
       <h1>База данных E'Magios Core</h1>
       <p class="text-muted">Поиск заклинаний, школ магии и эффектов</p>
 
@@ -129,15 +205,6 @@
             <div class="form-group">
               <label for="spell-name">Название</label>
               <input type="text" id="spell-name" placeholder="Поиск по названию">
-            </div>
-            <div class="form-group">
-              <label for="spell-rarity">Редкость</label>
-              <select id="spell-rarity">
-                <option value="">Все</option>
-                <option value="Редкая">Редкая</option>
-                <option value="Эпическая">Эпическая</option>
-                <option value="Скрытая">Скрытая</option>
-              </select>
             </div>
             <div class="form-group">
               <label for="spell-type">Тип</label>
@@ -208,7 +275,13 @@
             </div>
             <div class="form-group">
               <label for="school-properties">Свойства</label>
-              <input type="text" id="school-properties" placeholder="Конклав, Запретная...">
+              <select id="school-properties">
+                <option value="">Все</option>
+                <option value="Конклав">Конклав</option>
+                <option value="Часть Конклава">Часть Конклава</option>
+                <option value="Запретная">Запретная</option>
+                <option value="Вспомогательная">Вспомогательная</option>
+              </select>
             </div>
           </div>
           <button class="btn btn-secondary btn-clear" onclick="clearSchoolFilters()">Очистить фильтры</button>
@@ -225,11 +298,10 @@
                 <th class="sortable" onclick="sortSchools('name')">Название</th>
                 <th class="sortable" onclick="sortSchools('rarity')">Редкость</th>
                 <th>Свойства</th>
-                <th>Описание</th>
               </tr>
             </thead>
             <tbody id="schools-results">
-              <tr><td colspan="4" class="no-results">Загрузка...</td></tr>
+              <tr><td colspan="3" class="no-results">Загрузка...</td></tr>
             </tbody>
           </table>
         </div>
@@ -252,10 +324,6 @@
                 <option value="Относительное">Относительное</option>
               </select>
             </div>
-            <div class="form-group">
-              <label for="effect-tags">Теги</label>
-              <input type="text" id="effect-tags" placeholder="Контроль, Скрытность...">
-            </div>
           </div>
           <button class="btn btn-secondary btn-clear" onclick="clearEffectFilters()">Очистить фильтры</button>
         </div>
@@ -270,19 +338,17 @@
               <tr>
                 <th class="sortable" onclick="sortEffects('name')">Название</th>
                 <th class="sortable" onclick="sortEffects('actionType')">Тип Действия</th>
-                <th>Теги</th>
                 <th>Описание</th>
               </tr>
             </thead>
             <tbody id="effects-results">
-              <tr><td colspan="4" class="no-results">Загрузка...</td></tr>
+              <tr><td colspan="3" class="no-results">Загрузка...</td></tr>
             </tbody>
           </table>
         </div>
       </div>
-    </div>
-  </main>
-    </div> <!-- main-content -->
+    </div> <!-- database-view -->
+    </main>
   </div> <!-- page-with-sidebar -->
 
   <script src="common.js"></script>

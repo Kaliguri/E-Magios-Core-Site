@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Школы Магии — Spellbook — E'Magios Core</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body data-book="spellbook" data-chapter="schools">
+  <div class="page-with-sidebar">
+    <div class="main-content">
+      <main>
+        <h1>Школы Магии</h1>
+
+        <h2>Быстрые ссылки</h2>
+        <p><strong>💡 Совет:</strong> Кликните на любую школу магии, чтобы увидеть её описание в базе данных.</p>
+        <ul>
+          <li><strong>Редкая:</strong> 
+            <a href="../db.html?school=Базовая Аркана">Базовая Аркана</a>, 
+            <a href="../db.html?school=Базовая Стихийная Магия">Базовая Стихийная Магия</a>, 
+            <a href="../db.html?school=Огонь">Огонь</a>, 
+            <a href="../db.html?school=Вода">Вода</a>, 
+            <a href="../db.html?school=Земля">Земля</a>, 
+            <a href="../db.html?school=Воздух">Воздух</a>, 
+            <a href="../db.html?school=Послушание">Послушание</a>, 
+            <a href="../db.html?school=Природная магия">Природная магия</a>, 
+            <a href="../db.html?school=Яды">Яды</a>, 
+            <a href="../db.html?school=Растения">Растения</a>, 
+            <a href="../db.html?school=Животные">Животные</a>, 
+            <a href="../db.html?school=Разум">Разум</a>, 
+            <a href="../db.html?school=Физические усиления">Физические усиления</a>, 
+            <a href="../db.html?school=Магические приспособления">Магические приспособления</a>
+          </li>
+          <li><strong>Эпическая:</strong> 
+            <a href="../db.html?school=Редкая Стихийная Магия">Редкая Стихийная Магия</a>, 
+            <a href="../db.html?school=Лава">Лава</a>, 
+            <a href="../db.html?school=Лед">Лед</a>, 
+            <a href="../db.html?school=Металл">Металл</a>, 
+            <a href="../db.html?school=Молния">Молния</a>, 
+            <a href="../db.html?school=Кристаллы">Кристаллы</a>, 
+            <a href="../db.html?school=Жизнь">Жизнь</a>, 
+            <a href="../db.html?school=Смерть">Смерть</a>, 
+            <a href="../db.html?school=Музыка">Музыка</a>, 
+            <a href="../db.html?school=Астральная Навигация">Астральная Навигация</a>, 
+            <a href="../db.html?school=Иные миры">Иные миры</a>, 
+            <a href="../db.html?school=Кровь">Кровь</a>, 
+            <a href="../db.html?school=Тьма">Тьма</a>, 
+            <a href="../db.html?school=Свет">Свет</a>, 
+            <a href="../db.html?school=Тени">Тени</a>, 
+            <a href="../db.html?school=Душа">Душа</a>, 
+            <a href="../db.html?school=Контракты">Контракты</a>, 
+            <a href="../db.html?school=Сон">Сон</a>, 
+            <a href="../db.html?school=Материализация">Материализация</a>, 
+            <a href="../db.html?school=Истинная Аркана">Истинная Аркана</a>, 
+            <a href="../db.html?school=Рунная Магия">Рунная Магия</a>
+          </li>
+          <li><strong>Скрытая:</strong> 
+            <a href="../db.html?school=Пространство">Пространство</a>, 
+            <a href="../db.html?school=Время">Время</a>, 
+            <a href="../db.html?school=Хаос">Хаос</a>, 
+            <a href="../db.html?school=Закономерность">Закономерность</a>, 
+            <a href="../db.html?school=Судьба">Судьба</a>, 
+            <a href="../db.html?school=4-ая стена">4-ая стена</a>
+          </li>
+        </ul>
+
+        <h2 id="rarity">Редкость Школ</h2>
+
+        <h3 id="rarity-rare">Редкая</h3>
+        <p>Как и любая магия в мире - редкая. Есть различные крупные (по меркам магов) объединения этих школ.</p>
+
+        <h3 id="rarity-epic">Эпическая</h3>
+        <p>Тайная магия, которая практикуется лишь в небольших, тайных или могущественных организациях.</p>
+
+        <h3 id="rarity-hidden">Скрытая</h3>
+        <p>Магия, о которой лишь ходят слухи, или которую никто из ныне живущих не видел.</p>
+
+        <h2 id="properties">Свойства</h2>
+
+        <h3 id="property-conclave">Конклав</h3>
+        <p>Школа, которая содержит в себе несколько Школ Магии. Есть два способа выбрать такую школу.</p>
+        <ol>
+          <li>Выбрать одну из Школ Магии в Конклаве. В таком случае будут получены Особенности Конклава и все бонусы выбранной Школы.</li>
+          <li>Выбрать Конклав. В таком случае будет доступ ко всем Школам Магии, но не будут доступны все уникальные Особенности Школ Магии.</li>
+        </ol>
+
+        <h3 id="property-conclave-part">Часть Конклава</h3>
+        <p>Школа, принадлежащая определенному Конклаву.</p>
+
+        <h3 id="property-forbidden">Запретная</h3>
+        <p>Школа, которая несет в себе негативные эффекты, например, при использовании Заклинаний.</p>
+
+        <h3 id="property-support">Вспомогательная</h3>
+        <p>Школа, которую нельзя прямо использовать в сражениях, является дополнительной с уникальными возможностями.</p>
+
+        <h2>Все школы магии</h2>
+        <p class="text-muted"><em>Для просмотра всех школ магии с их описаниями используйте <a href="../db.html">Базу данных</a>. Здесь представлен краткий пример — Базовая Аркана.</em></p>
+
+        <h3 id="school-arcana">Школа Магии: Базовая Аркана</h3>
+        <h4>Параметры</h4>
+        <ul><li><strong>Редкость:</strong> <a href="#rarity-rare">Редкая</a></li></ul>
+        <h4>Описание</h4>
+        <p>Начальная школа магии, подходящая для обучения новых магов. Её простота обманчива, ведь множество боевых магов используют Базовую Аркану за её исключительную эффективность.</p>
+        <p>Её главным преимуществом и её недостатком является простота. Она требует мало ресурсов, но не обладает особыми эффектами.</p>
+        <h4>Принципы</h4>
+        <ul>
+          <li><strong>Простота.</strong> Одно заклинание должно иметь один эффект.</li>
+          <li><strong>Чистая сила.</strong> Накладываемые эффекты могут иметь только физическую природу. Урон только Арканой, Дробящий, Колющий и Режущий.</li>
+        </ul>
+        <h4>Особенности</h4>
+        <ul>
+          <li><strong>Эффективность.</strong> Основной эффект усилен.</li>
+          <li><strong>Обучаемость.</strong> Скорость создания фирменных заклинаний усиленна.</li>
+        </ul>
+        <h4>Учебные Заклинания</h4>
+        <ul>
+          <li>Выстрел Арканы</li>
+          <li>Щит Арканы</li>
+          <li>Цепи Арканы</li>
+        </ul>
+
+        <div class="chapter-navigation">
+          <a href="intro.html" class="prev-chapter">← Предыдущая глава: Введение</a>
+          <a href="typology.html" class="next-chapter">Следующая глава: Типология Магии →</a>
+        </div>
+      </main>
+    </div>
+  </div>
+  <button id="scroll-to-top" class="scroll-to-top" aria-label="Наверх">↑</button>
+  <script src="../common.js"></script>
+  <script>initPasswordProtection();</script>
+</body>
+</html>
+
