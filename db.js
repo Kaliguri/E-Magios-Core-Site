@@ -640,6 +640,7 @@ function sortSpells(field) {
     currentSpellSort.ascending = true;
   }
   filterAndDisplaySpells();
+  saveFiltersToSession();
 }
 
 function clearSpellFilters() {
@@ -755,7 +756,13 @@ function displaySchools(schools) {
       const rarityLink = school.rarity
         ? `<a href="phb.html#rarity-${getRarityId(school.rarity)}" style="color: var(--text-secondary); text-decoration: none;">${school.rarity}</a>`
         : '—';
-      const propertiesText = school.properties && school.properties.length ? school.properties.join(', ') : '—';
+      const propertiesText = school.properties && school.properties.length
+        ? school.properties
+            .map(function (property) {
+              return linkifySchoolProperty(property);
+            })
+            .join(', ')
+        : '—';
       const difficultyText = formatDifficultyStars(school.difficulty);
       return (
         '<tr>' +
@@ -777,6 +784,7 @@ function sortSchools(field) {
     currentSchoolSort.ascending = true;
   }
   filterAndDisplaySchools();
+  saveFiltersToSession();
 }
 
 function clearSchoolFilters() {
@@ -937,6 +945,46 @@ function linkifyResources(value) {
   return String(value).replace(/Воля/g, '<a href="phb/combat.html#воля" ' + style + '>Воля</a>');
 }
 
+function linkifySchoolProperty(property) {
+  if (!property) {
+    return '';
+  }
+  const style = 'style="color: var(--accent-emerald); text-decoration: none;"';
+  if (property === 'Конклав') {
+    return '<a href="spellbook/schools.html#property-conclave" ' + style + '>' + property + '</a>';
+  }
+  if (property === 'Часть Конклава') {
+    return '<a href="spellbook/schools.html#property-conclave-part" ' + style + '>' + property + '</a>';
+  }
+  if (property === 'Запретная') {
+    return '<a href="spellbook/schools.html#property-forbidden" ' + style + '>' + property + '</a>';
+  }
+  if (property === 'Вспомогательная') {
+    return '<a href="spellbook/schools.html#property-support" ' + style + '>' + property + '</a>';
+  }
+  return property;
+}
+
+function linkifySchoolText(text) {
+  if (!text) {
+    return '';
+  }
+  const style = 'style="color: var(--accent-emerald); text-decoration: none;"';
+  let result = text;
+
+  result = result.replace(/Концентраци(я|и|ю|ей)/g, function (match, ending) {
+    return '<a href="phb/combat.html#концентрация" ' + style + '>' + 'Концентраци' + ending + '</a>';
+  });
+
+  result = result.replace(/Воля/g, '<a href="phb/combat.html#воля" ' + style + '>Воля</a>');
+
+  result = result.replace(/Всплеск(а|ом|у|е)?/g, function (match) {
+    return '<a href="phb/effects.html" ' + style + '>' + match + '</a>';
+  });
+
+  return result;
+}
+
 function sortEffects(field) {
   if (currentEffectSort.field === field) {
     currentEffectSort.ascending = !currentEffectSort.ascending;
@@ -945,6 +993,7 @@ function sortEffects(field) {
     currentEffectSort.ascending = true;
   }
   filterAndDisplayEffects();
+  saveFiltersToSession();
 }
 
 function clearEffectFilters() {
@@ -1096,6 +1145,11 @@ function saveFiltersToSession() {
     sessionStorage.setItem('db_spellFilters', JSON.stringify(spellFilters));
     sessionStorage.setItem('db_schoolFilters', JSON.stringify(schoolFilters));
     sessionStorage.setItem('db_effectFilters', JSON.stringify(effectFilters));
+    sessionStorage.setItem('db_spellSort', JSON.stringify(currentSpellSort));
+    sessionStorage.setItem('db_schoolSort', JSON.stringify(currentSchoolSort));
+    sessionStorage.setItem('db_effectSort', JSON.stringify(currentEffectSort));
+    sessionStorage.setItem('db_archetypeSort', JSON.stringify(currentArchetypeSort));
+    sessionStorage.setItem('db_actionSort', JSON.stringify(currentActionSort));
     
     // Save search inputs
     const spellName = document.getElementById('spell-name');
@@ -1122,6 +1176,11 @@ function loadFiltersFromSession() {
     const savedSpellFilters = sessionStorage.getItem('db_spellFilters');
     const savedSchoolFilters = sessionStorage.getItem('db_schoolFilters');
     const savedEffectFilters = sessionStorage.getItem('db_effectFilters');
+    const savedSpellSort = sessionStorage.getItem('db_spellSort');
+    const savedSchoolSort = sessionStorage.getItem('db_schoolSort');
+    const savedEffectSort = sessionStorage.getItem('db_effectSort');
+    const savedArchetypeSort = sessionStorage.getItem('db_archetypeSort');
+    const savedActionSort = sessionStorage.getItem('db_actionSort');
     
     if (savedSpellFilters) {
       const parsed = JSON.parse(savedSpellFilters);
@@ -1157,6 +1216,56 @@ function loadFiltersFromSession() {
       
       // Copy to temp filters
       tempEffectFilters.actionType = effectFilters.actionType.slice();
+    }
+
+    if (savedSpellSort) {
+      const parsedSort = JSON.parse(savedSpellSort);
+      if (parsedSort.field) {
+        currentSpellSort.field = parsedSort.field;
+      }
+      if (typeof parsedSort.ascending === 'boolean') {
+        currentSpellSort.ascending = parsedSort.ascending;
+      }
+    }
+
+    if (savedSchoolSort) {
+      const parsedSort = JSON.parse(savedSchoolSort);
+      if (parsedSort.field) {
+        currentSchoolSort.field = parsedSort.field;
+      }
+      if (typeof parsedSort.ascending === 'boolean') {
+        currentSchoolSort.ascending = parsedSort.ascending;
+      }
+    }
+
+    if (savedEffectSort) {
+      const parsedSort = JSON.parse(savedEffectSort);
+      if (parsedSort.field) {
+        currentEffectSort.field = parsedSort.field;
+      }
+      if (typeof parsedSort.ascending === 'boolean') {
+        currentEffectSort.ascending = parsedSort.ascending;
+      }
+    }
+
+    if (savedArchetypeSort) {
+      const parsedSort = JSON.parse(savedArchetypeSort);
+      if (parsedSort.field) {
+        currentArchetypeSort.field = parsedSort.field;
+      }
+      if (typeof parsedSort.ascending === 'boolean') {
+        currentArchetypeSort.ascending = parsedSort.ascending;
+      }
+    }
+
+    if (savedActionSort) {
+      const parsedSort = JSON.parse(savedActionSort);
+      if (parsedSort.field) {
+        currentActionSort.field = parsedSort.field;
+      }
+      if (typeof parsedSort.ascending === 'boolean') {
+        currentActionSort.ascending = parsedSort.ascending;
+      }
     }
     
     // Restore search inputs
@@ -1356,13 +1465,14 @@ function showSchoolPage(schoolId) {
   
   let descriptionHTML = '';
   if (school.description) {
-    descriptionHTML = '<h2>Описание</h2>' + renderSpellDescription(school.description);
+    descriptionHTML = '<h2>Описание</h2>' + renderSpellDescription(linkifySchoolText(school.description));
   }
   
   function renderListWithFormatting(text) {
     if (!text) return '';
     text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    text = linkifySchoolText(text);
     return text;
   }
   
@@ -1389,8 +1499,14 @@ function showSchoolPage(schoolId) {
   let spellsHTML = '';
   if (school.educationalSpells && school.educationalSpells.length > 0) {
     const spellItems = school.educationalSpells
-      .map(function (spell) {
-        return '<li>' + spell + '</li>';
+      .map(function (spellName) {
+        const spell = spellsData.find(function (s) {
+          return s.name === spellName;
+        });
+        if (spell) {
+          return '<li><a href="db.html?spell=' + spell.id + '" style="color: var(--accent-emerald); text-decoration: none;">' + spellName + '</a></li>';
+        }
+        return '<li>' + spellName + '</li>';
       })
       .join('');
     spellsHTML = '<h2>Учебные Заклинания</h2><ul>' + spellItems + '</ul>';
@@ -1408,7 +1524,12 @@ function showSchoolPage(schoolId) {
   
   let propertiesHTML = '';
   if (school.properties && school.properties.length > 0) {
-    propertiesHTML = '<li><strong>Свойства:</strong> ' + school.properties.join(', ') + '</li>';
+    const propertiesText = school.properties
+      .map(function (property) {
+        return linkifySchoolProperty(property);
+      })
+      .join(', ');
+    propertiesHTML = '<li><strong>Свойства:</strong> ' + propertiesText + '</li>';
   }
   
   let difficultyHTML = '';
@@ -1584,6 +1705,7 @@ function sortArchetypes(field) {
     currentArchetypeSort.ascending = true;
   }
   filterAndDisplayArchetypes();
+  saveFiltersToSession();
 }
 
 function displayActions(actions) {
@@ -1633,6 +1755,7 @@ function sortActions(field) {
     currentActionSort.ascending = true;
   }
   filterAndDisplayActions();
+  saveFiltersToSession();
 }
 
 function hasActiveSpellFilters() {
