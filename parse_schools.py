@@ -10,13 +10,7 @@ import json
 OBSIDIAN_PATH = r"C:\Users\Kaliguri\Documents\Obsidian Vault\E'Magios Core\E'Magios Core - 03. Spellbook"
 OUTPUT_PATH = r"data\schools.json"
 
-def clean_wikilink(text):
-    """Remove wikilinks and return clean text."""
-    # [[Link|Text]] -> Text
-    text = re.sub(r'\[\[([^\]|]+)\|([^\]]+)\]\]', r'\2', text)
-    # [[Link]] -> Link (extract just the display part)
-    text = re.sub(r'\[\[([^\]#|]+)(?:#[^\]|]+)?(?:\|([^\]]+))?\]\]', lambda m: m.group(2) if m.group(2) else m.group(1).split('/')[-1], text)
-    return text.strip()
+from link_resolver import slugify, strip_wikilinks_to_text, convert_wikilinks_in_text
 
 def clean_markdown_formatting(text):
     """Remove markdown formatting like ** for bold."""
@@ -36,10 +30,7 @@ def parse_school_file(filepath):
     name = filename.replace('Школа Магии - ', '').replace('.md', '')
     
     # Create slug ID
-    slug = name.lower()
-    slug = slug.replace('ё', 'е')
-    slug = re.sub(r'[^а-яa-z0-9]+', '-', slug)
-    slug = slug.strip('-')
+    slug = slugify(name)
     
     school = {
         "id": slug,
@@ -82,30 +73,47 @@ def parse_school_file(filepath):
         # Parse parameters
         elif current_section == 'parameters' and line.startswith('-'):
             if '**Редкость**:' in line:
-                rarity = clean_wikilink(line.split(':')[1])
+                rarity = strip_wikilinks_to_text(line.split(':', 1)[1])
                 school['rarity'] = rarity
             elif '**Свойства**:' in line:
-                props = clean_wikilink(line.split(':', 1)[1])
+                props = strip_wikilinks_to_text(line.split(':', 1)[1])
                 if props:
                     school['properties'].append(props)
+            elif '**Сложность**:' in line:
+                difficulty_text = strip_wikilinks_to_text(line.split(':', 1)[1])
+                stars_count = difficulty_text.count('★')
+                if stars_count == 0:
+                    match = re.search(r'(\d+)', difficulty_text)
+                    if match:
+                        stars_count = int(match.group(1))
+                if stars_count:
+                    school['difficulty'] = stars_count
         
         # Parse description
-        elif current_section == 'description' and line and not line.startswith('#'):
-            if school['description']:
-                school['description'] += ' ' + line
-            else:
-                school['description'] = line
+        elif current_section == 'description' and not line.startswith('#'):
+            if line:  # Non-empty line
+                if school['description']:
+                    # If previous content doesn't end with paragraph break, add space
+                    if not school['description'].endswith('\n\n'):
+                        school['description'] += ' ' + line
+                    else:
+                        school['description'] += line
+                else:
+                    school['description'] = line
+            elif school['description'] and not school['description'].endswith('\n\n'):
+                # Empty line = paragraph break
+                school['description'] += '\n\n'
         
         # Parse principles
         elif current_section == 'principles' and line.startswith('- '):
             principle = line[2:].strip()
-            principle = clean_markdown_formatting(principle)
+            principle = strip_wikilinks_to_text(principle)
             school['principles'].append(principle)
         
         # Parse features
         elif current_section == 'features' and line.startswith('- '):
             feature = line[2:].strip()
-            feature = clean_markdown_formatting(feature)
+            feature = strip_wikilinks_to_text(feature)
             school['features'].append(feature)
         
         # Parse properties section (special case for features)
@@ -113,18 +121,18 @@ def parse_school_file(filepath):
             # Check if this is a feature (starts with **Name**.) or just a property link
             if '**' in line and '.' in line:
                 feature = line[2:].strip()
-                feature = clean_markdown_formatting(feature)
+                feature = strip_wikilinks_to_text(feature)
                 school['features'].append(feature)
             elif not line.startswith('- [['):
                 # Plain text feature
                 feature = line[2:].strip()
-                feature = clean_markdown_formatting(feature)
+                feature = clean_wikilink(feature)
                 if feature:
                     school['features'].append(feature)
         
         # Parse educational spells
         elif current_section == 'spells' and line.startswith('- '):
-            spell = clean_wikilink(line[2:])
+            spell = strip_wikilinks_to_text(line[2:])
             if spell:
                 school['educationalSpells'].append(spell)
         
@@ -142,8 +150,10 @@ def parse_school_file(filepath):
                 if 'Школа Магии' in match[0] and link_name != name:
                     school['relatedSchools'].append(link_name)
     
-    # Clean up description
-    school['description'] = clean_markdown_formatting(school['description'])
+    # Clean up description: wikilinks -> HTML + markdown cleanup
+    if school['description']:
+        desc_html = convert_wikilinks_in_text(school['description'], base_prefix='')
+        school['description'] = clean_markdown_formatting(desc_html)
     
     # Remove empty fields
     if not school['description']:

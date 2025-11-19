@@ -1,7 +1,6 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Эффекты — Player's Handbook — E'Magios Core</title>
@@ -9,42 +8,35 @@
 </head>
 <body data-book="phb" data-chapter="effects">
   <div class="page-with-sidebar">
+    <!-- Sidebar will be injected here by common.js -->
+    
     <div class="main-content">
       <main>
         <h1>Эффекты</h1>
-        <ul>
-          <li><a href="#effect-immobilized">Обездвижен</a></li>
-          <li><a href="#effect-stunned">Оглушен</a></li>
-          <li><a href="#effect-invisible">Невидимый</a></li>
-        </ul>
+        
+        <p>
+          Эффекты — это различные состояния, которые могут быть наложены на персонажа в результате заклинаний, атак или других действий.
+        </p>
 
-        <h2 id="effect-immobilized">Эффект: Обездвижен</h2>
-        <h3>Параметры</h3>
-        <ul><li><strong>Тип Действия:</strong> Обычный</li></ul>
-        <h3>Описание</h3>
-        <p>Вы не можете перемещаться.</p>
-        <p>Вы можете попробовать выбраться, потратив Действие (1), чтобы пройти встречную проверку Аркана + Телосложение или применить соответствующее Заклинание.</p>
+        <h2>Список Эффектов</h2>
+        <p>
+          Подробную информацию по всем эффектам вы можете найти в <a href="../db.html" style="color: var(--accent-emerald);">Базе данных</a>.
+        </p>
+        <p>
+          <a href="../db.html" class="btn btn-primary">Перейти в Базу данных →</a>
+        </p>
 
-        <h2 id="effect-stunned">Эффект: Оглушен</h2>
-        <h3>Параметры</h3>
-        <ul><li><strong>Тип Действия:</strong> Обычный</li></ul>
-        <h3>Описание</h3>
-        <p>Вы оглушены. Вы пропускаете свой ход. Надейтесь на судьбу и друзей или примените соответствующее Заклинание.</p>
-
-        <h2 id="effect-invisible">Эффект: Невидимый</h2>
-        <h3>Параметры</h3>
-        <ul><li><strong>Тип Действия:</strong> Относительное</li></ul>
-        <h3>Описание</h3>
-        <p>Вас не видно. Вы спрятаны магией или за каким-то препятствием от конкретного существа.</p>
-
+        <!-- Chapter Navigation -->
         <div class="chapter-navigation">
-          <a href="equipment.html" class="prev-chapter">← Предыдущая глава: Экипировка</a>
+          <a href="leveling.html" class="prev-chapter">← Предыдущая глава: Повышение Уровня</a>
         </div>
       </main>
-    </div>
-  </div>
+    </div> <!-- main-content -->
+  </div> <!-- page-with-sidebar -->
+
+  <!-- Scroll to top button -->
   <button id="scroll-to-top" class="scroll-to-top" aria-label="Наверх">↑</button>
-  <script src="../common.js"></script>
+
+  <script src="../common.js?v=1.0"></script>
 </body>
 </html>
-

@@ -10,13 +10,7 @@ import json
 OBSIDIAN_PATH = r"C:\Users\Kaliguri\Documents\Obsidian Vault\E'Magios Core\E'Magios Core - 01. Player's Handbook"
 OUTPUT_PATH = r"data\effects.json"
 
-def clean_wikilink(text):
-    """Remove wikilinks and return clean text."""
-    # [[Link|Text]] -> Text
-    text = re.sub(r'\[\[([^\]|]+)\|([^\]]+)\]\]', r'\2', text)
-    # [[Link]] -> Link (extract just the display part)
-    text = re.sub(r'\[\[([^\]#|]+)(?:#[^\]|]+)?(?:\|([^\]]+))?\]\]', lambda m: m.group(2) if m.group(2) else m.group(1).split('/')[-1], text)
-    return text.strip()
+from link_resolver import slugify, strip_wikilinks_to_text, convert_wikilinks_in_text
 
 def clean_markdown_formatting(text):
     """Remove markdown formatting like ** for bold."""
@@ -36,10 +30,7 @@ def parse_effect_file(filepath):
     name = filename.replace('Эффект - ', '').replace('.md', '')
     
     # Create slug ID
-    slug = name.lower()
-    slug = slug.replace('ё', 'е')
-    slug = re.sub(r'[^а-яa-z0-9]+', '-', slug)
-    slug = slug.strip('-')
+    slug = slugify(name)
     
     effect = {
         "id": slug,
@@ -67,7 +58,7 @@ def parse_effect_file(filepath):
         # Parse parameters
         elif current_section == 'parameters' and line.startswith('-'):
             if '**Тип Действия**:' in line:
-                effect['actionType'] = clean_wikilink(line.split(':', 1)[1])
+                effect['actionType'] = strip_wikilinks_to_text(line.split(':', 1)[1])
         
         # Parse description
         elif current_section == 'description' and line and not line.startswith('#'):
@@ -76,8 +67,10 @@ def parse_effect_file(filepath):
             else:
                 effect['description'] = line
     
-    # Clean up description
-    effect['description'] = clean_markdown_formatting(effect['description'])
+    # Clean up description (wikilinks -> HTML + markdown)
+    if effect['description']:
+        desc_html = convert_wikilinks_in_text(effect['description'], base_prefix='')
+        effect['description'] = clean_markdown_formatting(desc_html)
     
     return effect
 

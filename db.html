@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
@@ -12,6 +12,22 @@
     
     <main class="main-content main-content-wide">
   <style>
+    .db-layout {
+      display: flex;
+      gap: var(--spacing-lg);
+      align-items: flex-start;
+    }
+
+    .db-layout-main {
+      flex: 3;
+      min-width: 0;
+    }
+
+    .db-layout-side {
+      flex: 2;
+      min-width: 0;
+    }
+
     .db-container {
       max-width: 1400px;
       margin: 0 auto;
@@ -50,14 +66,8 @@
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
-      padding: var(--spacing-lg);
-      margin-bottom: var(--spacing-lg);
-    }
-
-    .filter-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: var(--spacing-md);
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
     }
 
     .results-header {
@@ -174,6 +184,293 @@
       border-radius: var(--radius-md);
       margin-top: var(--spacing-md);
     }
+
+    .filters-row {
+      display: flex;
+      gap: var(--spacing-md);
+      align-items: center;
+    }
+
+    .filters-row .form-group {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
+    .filters-row .form-group input[type="text"] {
+      height: 2.6rem;
+    }
+
+    .filters-toggle-btn {
+      white-space: nowrap;
+      flex-shrink: 0;
+      height: 2.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 var(--spacing-md);
+    }
+
+    .filters-clear-btn {
+      white-space: nowrap;
+      flex-shrink: 0;
+      height: 2.6rem;
+      width: 2.6rem;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      font-size: 1.3rem;
+      line-height: 1;
+      transition: all 0.2s ease;
+    }
+
+    .filters-clear-btn.visible {
+      display: flex;
+    }
+
+    .filters-clear-btn:hover {
+      background: var(--accent-emerald) !important;
+      border-color: var(--accent-emerald) !important;
+    }
+
+    .filters-panel {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .filters-panel.open {
+      display: flex;
+    }
+
+    .filters-panel-inner {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+      min-width: 600px;
+      max-width: 900px;
+      max-height: 85vh;
+      width: 85vw;
+      cursor: default;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .filters-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-md);
+      padding: var(--spacing-md) var(--spacing-lg);
+      flex-shrink: 0;
+      background: var(--bg-primary);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .filters-modal-title {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .filters-modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.8rem;
+      line-height: 1;
+      padding: 0;
+      width: 2rem;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+    }
+
+    .filters-modal-close:hover {
+      color: var(--accent-emerald);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .filter-category {
+      margin-bottom: var(--spacing-sm);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .filter-category-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem var(--spacing-md);
+      user-select: none;
+      transition: background 0.2s ease;
+      font-weight: 500;
+      color: var(--text-primary);
+      background: var(--bg-secondary);
+      gap: var(--spacing-sm);
+    }
+
+    .filter-category-header:hover {
+      background: #2f2f2f;
+    }
+
+    .filter-category-title {
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .filter-category-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .filter-category-action-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.85rem;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .filter-category-action-btn:hover {
+      color: var(--accent-emerald);
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    .filter-category-arrow {
+      transition: transform 0.2s ease;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .filter-category.collapsed .filter-category-arrow {
+      transform: rotate(-90deg);
+    }
+
+    .filter-category-content {
+      padding: var(--spacing-sm) var(--spacing-md);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      max-height: 400px;
+      overflow-y: auto;
+      transition: max-height 0.3s ease;
+      background: var(--bg-elevated);
+      scrollbar-width: thin;
+      scrollbar-color: var(--bg-secondary) var(--bg-elevated);
+    }
+
+    .filter-category-content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .filter-category-content::-webkit-scrollbar-track {
+      background: var(--bg-elevated);
+    }
+
+    .filter-category-content::-webkit-scrollbar-thumb {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+    }
+
+    .filter-category-content::-webkit-scrollbar-thumb:hover {
+      background: var(--border-color);
+    }
+
+    .filter-category.collapsed .filter-category-content {
+      display: none;
+    }
+
+    .filter-tag {
+      padding: 0.4rem 0.9rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 0.375rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .filter-tag:hover {
+      background: var(--bg-elevated);
+      border-color: var(--border-hover);
+      color: var(--text-primary);
+    }
+
+    .filter-tag.active {
+      background: #0d9668;
+      border-color: #0d9668;
+      color: white;
+    }
+
+    .filters-modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 var(--spacing-lg);
+      background: var(--bg-secondary);
+      scrollbar-width: thin;
+      scrollbar-color: var(--bg-elevated) var(--bg-secondary);
+    }
+
+    .filters-modal-body::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .filters-modal-body::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+    }
+
+    .filters-modal-body::-webkit-scrollbar-thumb {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+    }
+
+    .filters-modal-body::-webkit-scrollbar-thumb:hover {
+      background: var(--border-hover);
+    }
+
+    .filters-modal-footer {
+      display: flex;
+      gap: var(--spacing-sm);
+      justify-content: flex-start;
+      padding: var(--spacing-md) var(--spacing-lg);
+      border-top: 1px solid var(--border-color);
+      flex-shrink: 0;
+      background: var(--bg-primary);
+    }
+
+    .filters-modal-footer .btn {
+      white-space: nowrap;
+      padding: var(--spacing-xs) var(--spacing-md);
+    }
+
+    @media (max-width: 768px) {
+      .filters-panel-inner {
+        width: 90%;
+        max-width: 90%;
+        min-width: unset;
+      }
+    }
   </style>
 
   <main>
@@ -188,53 +485,112 @@
     <!-- Database View (shown by default) -->
     <div id="databaseView" class="db-container">
       <h1>База данных E'Magios Core</h1>
-      <p class="text-muted">Поиск заклинаний, школ магии и эффектов</p>
+      <p class="text-muted">Поиск Заклинаний, Школ Магии, Архетипов и не только...</p>
 
       <!-- Tabs -->
       <div class="tabs">
-        <button class="tab active" onclick="switchTab('spells')">Заклинания</button>
-        <button class="tab" onclick="switchTab('schools')">Школы Магии</button>
-        <button class="tab" onclick="switchTab('effects')">Эффекты</button>
+        <button class="tab active" data-tab="spells" onclick="switchTab('spells')">Заклинания</button>
+        <button class="tab" data-tab="schools" onclick="switchTab('schools')">Школы Магии</button>
+        <button class="tab" data-tab="archetypes" onclick="switchTab('archetypes')">Архетипы</button>
+        <button class="tab" data-tab="actions" onclick="switchTab('actions')">Базовые Действия</button>
+        <button class="tab" data-tab="effects" onclick="switchTab('effects')">Эффекты</button>
       </div>
 
       <!-- Spells Tab -->
       <div id="spells-tab" class="tab-content active">
-        <div class="filters">
-          <h3>Фильтры</h3>
-          <div class="filter-grid">
-            <div class="form-group">
-              <label for="spell-name">Название</label>
-              <input type="text" id="spell-name" placeholder="Поиск по названию">
-            </div>
-            <div class="form-group">
-              <label for="spell-type">Тип</label>
-              <select id="spell-type">
-                <option value="">Все</option>
-                <option value="Атака">Атака</option>
-                <option value="Защита">Защита</option>
-                <option value="Контроль">Контроль</option>
-                <option value="Поддержка">Поддержка</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="spell-source">Источник</label>
-              <select id="spell-source">
-                <option value="">Все</option>
-                <option value="Учебное">Учебное</option>
-                <option value="Фирменное">Фирменное</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="spell-school">Школа</label>
-              <input type="text" id="spell-school" placeholder="Название школы">
-            </div>
-          </div>
-          <button class="btn btn-secondary btn-clear" onclick="clearSpellFilters()">Очистить фильтры</button>
+        <div class="results-header">
+          <h3>Заклинания</h3>
+          <span class="results-count" id="spells-count">0 заклинаний</span>
         </div>
 
-        <div class="results-header">
-          <h3>Результаты</h3>
-          <span class="results-count" id="spells-count">0 заклинаний</span>
+        <div class="filters">
+          <div class="filters-row">
+            <div class="form-group">
+              <input type="text" id="spell-name" placeholder="Поиск по названию">
+            </div>
+            <button type="button" class="btn btn-secondary filters-toggle-btn" onclick="toggleFiltersPanel('spells')">
+              Фильтр
+            </button>
+            <button type="button" class="btn btn-secondary filters-clear-btn" id="spell-filters-clear" onclick="quickClearSpellFilters()" title="Сбросить фильтры">
+              ×
+            </button>
+          </div>
+          <div id="spells-filters-panel" class="filters-panel">
+            <div class="filters-panel-inner">
+              <div class="filters-modal-header">
+                <div class="filters-modal-title">Фильтры</div>
+                <button type="button" class="filters-modal-close" onclick="closeFiltersPanel()">×</button>
+              </div>
+              
+              <div class="filters-modal-body">
+                <div class="filter-category" data-category="type">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Тип</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('spell-type-tags', 'type', tempSpellFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('spell-type-tags', 'type', tempSpellFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="spell-type-tags"></div>
+                </div>
+
+                <div class="filter-category" data-category="source">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Источник</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('spell-source-tags', 'source', tempSpellFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('spell-source-tags', 'source', tempSpellFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="spell-source-tags"></div>
+                </div>
+
+                <div class="filter-category" data-category="school">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Школа</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('spell-school-tags', 'school', tempSpellFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('spell-school-tags', 'school', tempSpellFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="spell-school-tags"></div>
+                </div>
+
+                <div class="filter-category" data-category="damage">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Тип урона</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('spell-damage-tags', 'damage', tempSpellFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('spell-damage-tags', 'damage', tempSpellFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="spell-damage-tags"></div>
+                </div>
+
+                <div class="filter-category" data-category="concentration">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Концентрация</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('spell-concentration-tags', 'concentration', tempSpellFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('spell-concentration-tags', 'concentration', tempSpellFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="spell-concentration-tags"></div>
+                </div>
+              </div>
+
+              <div class="filters-modal-footer">
+                <button class="btn btn-secondary" onclick="applySpellFilters()">Применить изменения</button>
+                <button class="btn btn-secondary" onclick="cancelSpellFilters()">Отменить изменения</button>
+                <button class="btn btn-secondary" onclick="clearSpellFilters()">Очистить фильтры</button>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="results-table">
           <table>
@@ -244,12 +600,10 @@
                 <th class="sortable" onclick="sortSpells('school')">Школа</th>
                 <th class="sortable" onclick="sortSpells('type')">Тип</th>
                 <th class="sortable" onclick="sortSpells('source')">Источник</th>
-                <th class="sortable" onclick="sortSpells('actions')">Действий</th>
-                <th>Дальность</th>
               </tr>
             </thead>
             <tbody id="spells-results">
-              <tr><td colspan="6" class="no-results">Загрузка...</td></tr>
+              <tr><td colspan="4" class="no-results">Загрузка...</td></tr>
             </tbody>
           </table>
         </div>
@@ -257,39 +611,75 @@
 
       <!-- Schools Tab -->
       <div id="schools-tab" class="tab-content">
-        <div class="filters">
-          <h3>Фильтры</h3>
-          <div class="filter-grid">
-            <div class="form-group">
-              <label for="school-name">Название</label>
-              <input type="text" id="school-name" placeholder="Поиск по названию">
-            </div>
-            <div class="form-group">
-              <label for="school-rarity">Редкость</label>
-              <select id="school-rarity">
-                <option value="">Все</option>
-                <option value="Редкая">Редкая</option>
-                <option value="Эпическая">Эпическая</option>
-                <option value="Скрытая">Скрытая</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="school-properties">Свойства</label>
-              <select id="school-properties">
-                <option value="">Все</option>
-                <option value="Конклав">Конклав</option>
-                <option value="Часть Конклава">Часть Конклава</option>
-                <option value="Запретная">Запретная</option>
-                <option value="Вспомогательная">Вспомогательная</option>
-              </select>
-            </div>
-          </div>
-          <button class="btn btn-secondary btn-clear" onclick="clearSchoolFilters()">Очистить фильтры</button>
+        <div class="results-header">
+          <h3>Школы Магии</h3>
+          <span class="results-count" id="schools-count">0 школ</span>
         </div>
 
-        <div class="results-header">
-          <h3>Результаты</h3>
-          <span class="results-count" id="schools-count">0 школ</span>
+        <div class="filters">
+          <div class="filters-row">
+            <div class="form-group">
+              <input type="text" id="school-name" placeholder="Поиск по названию">
+            </div>
+            <button type="button" class="btn btn-secondary filters-toggle-btn" onclick="toggleFiltersPanel('schools')">
+              Фильтр
+            </button>
+            <button type="button" class="btn btn-secondary filters-clear-btn" id="school-filters-clear" onclick="quickClearSchoolFilters()" title="Сбросить фильтры">
+              ×
+            </button>
+          </div>
+          <div id="schools-filters-panel" class="filters-panel">
+            <div class="filters-panel-inner">
+              <div class="filters-modal-header">
+                <div class="filters-modal-title">Фильтры</div>
+                <button type="button" class="filters-modal-close" onclick="closeFiltersPanel()">×</button>
+              </div>
+              
+              <div class="filters-modal-body">
+                <div class="filter-category" data-category="rarity">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Редкость</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('school-rarity-tags', 'rarity', tempSchoolFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('school-rarity-tags', 'rarity', tempSchoolFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="school-rarity-tags"></div>
+                </div>
+
+                <div class="filter-category" data-category="properties">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Свойства</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('school-properties-tags', 'properties', tempSchoolFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('school-properties-tags', 'properties', tempSchoolFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="school-properties-tags"></div>
+                </div>
+
+                <div class="filter-category" data-category="difficulty">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Сложность</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('school-difficulty-tags', 'difficulty', tempSchoolFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('school-difficulty-tags', 'difficulty', tempSchoolFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="school-difficulty-tags"></div>
+                </div>
+              </div>
+
+              <div class="filters-modal-footer">
+                <button class="btn btn-secondary" onclick="applySchoolFilters()">Применить изменения</button>
+                <button class="btn btn-secondary" onclick="cancelSchoolFilters()">Отменить изменения</button>
+                <button class="btn btn-secondary" onclick="clearSchoolFilters()">Очистить фильтры</button>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="results-table">
           <table>
@@ -297,11 +687,70 @@
               <tr>
                 <th class="sortable" onclick="sortSchools('name')">Название</th>
                 <th class="sortable" onclick="sortSchools('rarity')">Редкость</th>
+                <th class="sortable" onclick="sortSchools('difficulty')">Сложность</th>
                 <th>Свойства</th>
               </tr>
             </thead>
             <tbody id="schools-results">
-              <tr><td colspan="3" class="no-results">Загрузка...</td></tr>
+              <tr><td colspan="4" class="no-results">Загрузка...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Archetypes Tab -->
+      <div id="archetypes-tab" class="tab-content">
+        <div class="results-header">
+          <h3>Архетипы</h3>
+          <span class="results-count" id="archetypes-count">0 архетипов</span>
+        </div>
+
+        <div class="filters">
+          <div class="filters-row">
+            <div class="form-group">
+              <input type="text" id="archetype-name" placeholder="Поиск по названию">
+            </div>
+          </div>
+        </div>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" onclick="sortArchetypes('name')">Название</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody id="archetypes-results">
+              <tr><td colspan="2" class="no-results">Загрузка...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Actions Tab -->
+      <div id="actions-tab" class="tab-content">
+        <div class="results-header">
+          <h3>Базовые Действия</h3>
+          <span class="results-count" id="actions-count">0 действий</span>
+        </div>
+
+        <div class="filters">
+          <div class="filters-row">
+            <div class="form-group">
+              <input type="text" id="action-name" placeholder="Поиск по названию">
+            </div>
+          </div>
+        </div>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" onclick="sortActions('name')">Название</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody id="actions-results">
+              <tr><td colspan="2" class="no-results">Загрузка...</td></tr>
             </tbody>
           </table>
         </div>
@@ -309,35 +758,58 @@
 
       <!-- Effects Tab -->
       <div id="effects-tab" class="tab-content">
-        <div class="filters">
-          <h3>Фильтры</h3>
-          <div class="filter-grid">
-            <div class="form-group">
-              <label for="effect-name">Название</label>
-              <input type="text" id="effect-name" placeholder="Поиск по названию">
-            </div>
-            <div class="form-group">
-              <label for="effect-type">Тип Действия</label>
-              <select id="effect-type">
-                <option value="">Все</option>
-                <option value="Обычный">Обычный</option>
-                <option value="Относительное">Относительное</option>
-              </select>
-            </div>
-          </div>
-          <button class="btn btn-secondary btn-clear" onclick="clearEffectFilters()">Очистить фильтры</button>
+        <div class="results-header">
+          <h3>Эффекты</h3>
+          <span class="results-count" id="effects-count">0 эффектов</span>
         </div>
 
-        <div class="results-header">
-          <h3>Результаты</h3>
-          <span class="results-count" id="effects-count">0 эффектов</span>
+        <div class="filters">
+          <div class="filters-row">
+            <div class="form-group">
+              <input type="text" id="effect-name" placeholder="Поиск по названию">
+            </div>
+            <button type="button" class="btn btn-secondary filters-toggle-btn" onclick="toggleFiltersPanel('effects')">
+              Фильтр
+            </button>
+            <button type="button" class="btn btn-secondary filters-clear-btn" id="effect-filters-clear" onclick="quickClearEffectFilters()" title="Сбросить фильтры">
+              ×
+            </button>
+          </div>
+          <div id="effects-filters-panel" class="filters-panel">
+            <div class="filters-panel-inner">
+              <div class="filters-modal-header">
+                <div class="filters-modal-title">Фильтры</div>
+                <button type="button" class="filters-modal-close" onclick="closeFiltersPanel()">×</button>
+              </div>
+              
+              <div class="filters-modal-body">
+                <div class="filter-category" data-category="actionType">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Тип Действия</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('effect-type-tags', 'actionType', tempEffectFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('effect-type-tags', 'actionType', tempEffectFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="effect-type-tags"></div>
+                </div>
+              </div>
+
+              <div class="filters-modal-footer">
+                <button class="btn btn-secondary" onclick="applyEffectFilters()">Применить изменения</button>
+                <button class="btn btn-secondary" onclick="cancelEffectFilters()">Отменить изменения</button>
+                <button class="btn btn-secondary" onclick="clearEffectFilters()">Очистить фильтры</button>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="results-table">
           <table>
             <thead>
               <tr>
                 <th class="sortable" onclick="sortEffects('name')">Название</th>
-                <th class="sortable" onclick="sortEffects('actionType')">Тип Действия</th>
+                <th class="sortable" onclick="sortEffects('actionType')" style="white-space: nowrap;">Тип Действия</th>
                 <th>Описание</th>
               </tr>
             </thead>
@@ -351,8 +823,11 @@
     </main>
   </div> <!-- page-with-sidebar -->
 
-  <script src="common.js"></script>
-  <script src="db.js"></script>
+  <!-- Scroll to top button -->
+  <button id="scroll-to-top" class="scroll-to-top" aria-label="Наверх">↑</button>
+
+  <script src="common.js?v=1.1"></script>
+  <script src="db.js?v=2.2"></script>
 </body>
 </html>
 
