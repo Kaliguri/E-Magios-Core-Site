@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Parse Basic Action files from Obsidian Vault and generate actions.json
+Parse Basic Action files and Rest Action files from Obsidian Vault and generate actions.json
 Usage: python parse_actions.py
 """
 import os
@@ -9,6 +9,8 @@ import json
 
 OBSIDIAN_PATH = r"C:\Users\Kaliguri\Documents\Obsidian Vault\E'Magios Core\E'Magios Core - 01. Player's Handbook"
 OUTPUT_PATH = r"data\actions.json"
+
+from link_resolver import convert_wikilinks_in_text
 
 def clean_wikilink(text):
     """Remove wikilinks and return clean text."""
@@ -38,6 +40,7 @@ def parse_action_file(filepath):
     action = {
         "id": slug,
         "name": name,
+        "kind": "Базовое",
         "actions": None,
         "range": "",
         "target": "",
@@ -49,8 +52,9 @@ def parse_action_file(filepath):
     current_section = None
     
     for line in lines:
-        line = line.strip()
-        
+        raw_line = line.rstrip('\n')
+        line = raw_line.strip()
+
         if line.startswith('#### Параметры'):
             current_section = 'parameters'
         elif line.startswith('#### Описание'):
@@ -73,16 +77,94 @@ def parse_action_file(filepath):
             elif '**Длительность**:' in line:
                 action['duration'] = clean_wikilink(line.split(':', 1)[1])
         
-        elif current_section == 'description' and line and not line.startswith('#'):
-            if action['description']:
-                action['description'] += ' ' + line
-            else:
-                action['description'] = line
+        elif current_section == 'description':
+            # Пустая строка → разрыв абзаца
+            if not line:
+                if action['description'] and not action['description'].endswith('\n\n'):
+                    action['description'] += '\n\n'
+            elif not line.startswith('#'):
+                # Если это нумерованный пункт "1. ..." – всегда начинаем новый абзац
+                if re.match(r'^\d+\.', line):
+                    if action['description'] and not action['description'].endswith('\n\n'):
+                        action['description'] += '\n\n'
+
+                if not action['description'] or action['description'].endswith('\n\n'):
+                    # Начало нового абзаца
+                    action['description'] = (action['description'] or '') + line
+                else:
+                    # Продолжение текущего абзаца
+                    action['description'] += ' ' + line
     
-    action['description'] = clean_markdown_formatting(clean_wikilink(action['description']))
+    # Сначала конвертируем wikilinks в HTML-ссылки, затем убираем markdown-форматирование
+    if action['description']:
+        desc_html = convert_wikilinks_in_text(action['description'], base_prefix='')
+        action['description'] = clean_markdown_formatting(desc_html)
     
     action_clean = {k: v for k, v in action.items() if v is not None and v != ""}
     
+    return action_clean
+
+def parse_rest_action_file(filepath):
+    """Parse a rest action file (Действия Отдыха - *) and extract all data."""
+    with open(filepath, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    filename = os.path.basename(filepath)
+    name = filename.replace('Действия Отдыха - ', '').replace('.md', '')
+
+    slug = name.lower()
+    slug = slug.replace('ё', 'е')
+    slug = re.sub(r'[^а-яa-z0-9]+', '-', slug)
+    slug = slug.strip('-')
+
+    action = {
+        "id": slug,
+        "name": name,
+        "kind": "Отдых",
+        "cost": "",
+        "availability": "",
+        "description": ""
+    }
+
+    lines = content.split('\n')
+    current_section = None
+
+    for line in lines:
+        raw_line = line.rstrip('\n')
+        line = raw_line.strip()
+
+        if line.startswith('#### Параметры'):
+            current_section = 'parameters'
+        elif line.startswith('#### Описание'):
+            current_section = 'description'
+        elif line.startswith('___'):
+            current_section = None
+        elif line.startswith('####'):
+            current_section = None
+
+        elif current_section == 'parameters' and line.startswith('-'):
+            if '**Стоимость**:' in line:
+                action['cost'] = clean_wikilink(line.split(':', 1)[1])
+            elif '**Доступность**:' in line:
+                action['availability'] = clean_wikilink(line.split(':', 1)[1])
+        elif current_section == 'description':
+            if not line:
+                if action['description'] and not action['description'].endswith('\n\n'):
+                    action['description'] += '\n\n'
+            elif not line.startswith('#'):
+                if re.match(r'^\d+\.', line):
+                    if action['description'] and not action['description'].endswith('\n\n'):
+                        action['description'] += '\n\n'
+
+                if not action['description'] or action['description'].endswith('\n\n'):
+                    action['description'] = (action['description'] or '') + line
+                else:
+                    action['description'] += ' ' + line
+
+    action['description'] = clean_markdown_formatting(clean_wikilink(action['description']))
+
+    action_clean = {k: v for k, v in action.items() if v is not None and v != ""}
+
     return action_clean
 
 def main():
@@ -93,6 +175,11 @@ def main():
             filepath = os.path.join(OBSIDIAN_PATH, filename)
             print(f"Parsing: {filename}")
             action = parse_action_file(filepath)
+            actions.append(action)
+        elif filename.startswith('Действия Отдыха') and filename.endswith('.md'):
+            filepath = os.path.join(OBSIDIAN_PATH, filename)
+            print(f"Parsing rest action: {filename}")
+            action = parse_rest_action_file(filepath)
             actions.append(action)
     
     actions.sort(key=lambda x: x['name'])

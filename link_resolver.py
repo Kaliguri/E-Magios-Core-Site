@@ -65,6 +65,11 @@ def _resolve_special_page_link(
     - 08. Абстрактные Категории#Категории Дальности
     - 12. Критический Успех
     - 15. Повышение уровня
+    - 03. Характеристики
+    - 07/11. Базовые действия
+    - 09/22. Заклинания
+    - 10/17. Экипировка
+    - 11/20. Эффекты
     """
     # Split page and anchor
     page_part = full_link
@@ -73,9 +78,10 @@ def _resolve_special_page_link(
         page_part, anchor_raw = full_link.split("#", 1)
 
     page_part = page_part.strip()
+    normalized = page_part.lower()
 
     # 10. Компоненты Боевой Системы → phb/combat.html
-    if page_part.startswith("10. Компоненты Боевой Системы"):
+    if "компоненты боевой системы" in normalized:
         anchor_id = slugify(anchor_raw) if anchor_raw else ""
         href = f"{base_prefix}phb/combat.html"
         if anchor_id:
@@ -83,7 +89,7 @@ def _resolve_special_page_link(
         return f'<a href="{href}">{display_text}</a>'
 
     # 08. Абстрактные Категории → phb/abstract-categories.html
-    if page_part.startswith("08. Абстрактные Категории"):
+    if "абстрактные категории" in normalized:
         anchor_id = slugify(anchor_raw) if anchor_raw else ""
         href = f"{base_prefix}phb/abstract-categories.html"
         if anchor_id:
@@ -91,17 +97,42 @@ def _resolve_special_page_link(
         return f'<a href="{href}">{display_text}</a>'
 
     # 12. Критический Успех → phb/critical-success.html
-    if page_part.startswith("12. Критический Успех"):
+    if "критический успех" in normalized:
         href = f"{base_prefix}phb/critical-success.html"
         return f'<a href="{href}">{display_text}</a>'
 
     # 15. Повышение уровня → phb/leveling.html
-    if page_part.startswith("15. Повышение уровня"):
+    if "повышение уровня" in normalized:
         href = f"{base_prefix}phb/leveling.html"
         return f'<a href="{href}">{display_text}</a>'
 
+    # 03. Характеристики → phb/stats.html
+    if "характеристики" in normalized:
+        href = f"{base_prefix}phb/stats.html"
+        return f'<a href="{href}">{display_text}</a>'
+
+    # 07/11. Базовые действия → phb/actions.html
+    if "базовые действия" in normalized:
+        href = f"{base_prefix}phb/actions.html"
+        return f'<a href="{href}">{display_text}</a>'
+
+    # 09/22. Заклинания → phb/spells.html
+    if normalized.rstrip(". ").endswith("заклинания"):
+        href = f"{base_prefix}phb/spells.html"
+        return f'<a href="{href}">{display_text}</a>'
+
+    # 10/17. Экипировка → phb/equipment.html
+    if "экипировка" in normalized:
+        href = f"{base_prefix}phb/equipment.html"
+        return f'<a href="{href}">{display_text}</a>'
+
+    # 11/20. Эффекты → phb/effects.html
+    if "эффекты" in normalized:
+        href = f"{base_prefix}phb/effects.html"
+        return f'<a href="{href}">{display_text}</a>'
+
     # 04. Учебные Заклинания → ссылка на секцию с учебными заклинаниями
-    if page_part.startswith("04. Учебные Заклинания"):
+    if "учебные заклинания" in normalized:
         # На сайте уже есть секция источников в PHB (через phb.html#source-*)
         # Здесь ведём просто на учебные заклинания в PHB.
         href = f"{base_prefix}phb.html#source-educational"
@@ -125,7 +156,57 @@ def _resolve_effect_link(
         return f'<a href="{href}">{display_text}</a>'
 
     effect_id = slugify(effect_name)
-    href = f"{base_prefix}db.html?effect={effect_id}"
+    return _make_db_link("effect", effect_id, display_text, base_prefix)
+
+
+def _make_db_link(kind: str, obj_id: str, display_text: str, base_prefix: str) -> str:
+    """
+    Build link to DB entity.
+
+    - Если base_prefix == '' → JSON для db.html: используем JS-обработчики (showSpellPage и др.),
+      чтобы НЕ менять URL при открытии попапов.
+    - Если base_prefix != '' → обычная ссылка db.html?... для глав PHB и других страниц.
+    """
+    # Используем JS‑обработчики только когда ссылка будет отображаться внутри db.html
+    if base_prefix == "":
+        if kind == "spell":
+            return (
+                f'<a href="javascript:void(0)" onclick="showSpellPage(\'{obj_id}\')"'
+                f' style="color: var(--accent-emerald); text-decoration: none;">{display_text}</a>'
+            )
+        if kind == "school":
+            return (
+                f'<a href="javascript:void(0)" onclick="showSchoolPage(\'{obj_id}\')"'
+                f' style="color: var(--accent-emerald); text-decoration: none;">{display_text}</a>'
+            )
+        if kind == "effect":
+            return (
+                f'<a href="javascript:void(0)" onclick="showEffectPage(\'{obj_id}\')"'
+                f' style="color: var(--accent-emerald); text-decoration: none;">{display_text}</a>'
+            )
+        if kind == "action":
+            return (
+                f'<a href="javascript:void(0)" onclick="showActionPage(\'{obj_id}\')"'
+                f' style="color: var(--accent-emerald); text-decoration: none;">{display_text}</a>'
+            )
+        if kind == "skill":
+            return (
+                f'<a href="javascript:void(0)" onclick="showSkillPage(\'{obj_id}\')"'
+                f' style="color: var(--accent-emerald); text-decoration: none;">{display_text}</a>'
+            )
+        if kind == "actionType":
+            return (
+                f'<a href="javascript:void(0)" onclick="showActionTypePage(\'{obj_id}\')"'
+                f' style="color: var(--accent-emerald); text-decoration: none;">{display_text}</a>'
+            )
+        if kind == "combat":
+            return (
+                f'<a href="javascript:void(0)" onclick="showCombatPage(\'{obj_id}\')"'
+                f' style="color: var(--accent-emerald); text-decoration: none;">{display_text}</a>'
+            )
+
+    # Поведение по умолчанию — обычная ссылка на db.html
+    href = f"{base_prefix}db.html?{kind}={obj_id}"
     return f'<a href="{href}">{display_text}</a>'
 
 
@@ -156,26 +237,67 @@ def resolve_wikilink(
         path_part, _ = full_link.split("#", 1)
     last_part = path_part.split("/")[-1]
 
+    # === Сущности базы данных ===
     # Schools: Школа Магии - X → db.html?school={id}
     if last_part.startswith("Школа Магии - "):
         school_name = last_part.replace("Школа Магии - ", "").strip()
         school_id = slugify(school_name)
-        href = f"{base_prefix}db.html?school={school_id}"
-        return f'<a href="{href}">{display_text}</a>'
+        return _make_db_link("school", school_id, display_text, base_prefix)
 
-    # Effects: (possibly with full path)
+    # Effects: (possibly with full path) → db.html?effect={id}
     if last_part.startswith("Эффект - "):
         return _resolve_effect_link(last_part, display_text, base_prefix)
 
-    # Spells: Заклинание — Школа — Название
+    # Spells: Заклинание — Школа — Название → db.html?spell={id}
     if last_part.startswith("Заклинание — "):
         # Структура файлов: "Заклинание — Школа — Название"
         filename = last_part.replace(".md", "")
         parts = filename.replace("Заклинание — ", "").split(" — ")
         spell_name = parts[-1].strip() if parts else filename
         spell_id = slugify(spell_name)
-        href = f"{base_prefix}db.html?spell={spell_id}"
-        return f'<a href="{href}">{display_text}</a>'
+        return _make_db_link("spell", spell_id, display_text, base_prefix)
+
+    # Combat components: Компонент Боевой Системы - X → db.html?combat={id}
+    if last_part.startswith("Компонент Боевой Системы - "):
+        comp_name = last_part.replace("Компонент Боевой Системы - ", "").strip()
+        comp_id = slugify(comp_name)
+        return _make_db_link("combat", comp_id, display_text, base_prefix)
+
+    # Base / rest actions: Базовое Действие - X / Действия Отдыха - X → db.html?action={id}
+    if last_part.startswith("Базовое Действие - ") or last_part.startswith("Базовые Действие - "):
+        act_name = (
+            last_part.replace("Базовое Действие - ", "")
+            .replace("Базовые Действие - ", "")
+            .strip()
+        )
+        act_id = slugify(act_name)
+        return _make_db_link("action", act_id, display_text, base_prefix)
+    if last_part.startswith("Действия Отдыха - "):
+        act_name = last_part.replace("Действия Отдыха - ", "").strip()
+        act_id = slugify(act_name)
+        return _make_db_link("action", act_id, display_text, base_prefix)
+
+    # Action types: Тип Действия - X → db.html?actionType={id}
+    if last_part.startswith("Тип Действия - "):
+        t_name = last_part.replace("Тип Действия - ", "").strip()
+        t_id = slugify(t_name)
+        return _make_db_link("actionType", t_id, display_text, base_prefix)
+
+    # Skills: Навык Личности - X / Навык Магии - X → db.html?skill={id}
+    if last_part.startswith("Навык Личности - ") or last_part.startswith("Навык Магии - "):
+        s_name = (
+            last_part.replace("Навык Личности - ", "")
+            .replace("Навык Магии - ", "")
+            .strip()
+        )
+        s_id = slugify(s_name)
+        return _make_db_link("skill", s_id, display_text, base_prefix)
+
+    # Archetypes: Архетип - X → db.html?archetype={id}
+    if last_part.startswith("Архетип - "):
+        a_name = last_part.replace("Архетип - ", "").strip()
+        a_id = slugify(a_name)
+        return _make_db_link("archetype", a_id, display_text, base_prefix)
 
     # Auxiliary magic: Вспомогательная Магия - X → характеристики PHB
     if last_part.startswith("Вспомогательная Магия - "):

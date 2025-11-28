@@ -148,6 +148,84 @@ data/actions.json
 
 **Результат:** 13 базовых действий
 
+### 6. parse_skills.py
+
+Парсит навыки (личности и магии) из Player's Handbook.
+
+**Входные данные:**
+```
+C:\Users\Kaliguri\Documents\Obsidian Vault\E'Magios Core\E'Magios Core - 01. Player's Handbook\Навык - *.md
+```
+
+**Выходные данные:**
+```
+data/skills.json
+```
+
+**Что парсит:**
+- Навыки личности и магические навыки собираются в один общий JSON.
+- В данных есть признак типа навыка (`Личность` или `Магия`), чтобы база данных могла сортировать и фильтровать по типу.
+
+**Структура:**
+```json
+{
+  "id": "string",
+  "name": "string",
+  "type": "Личность|Магия",
+  "category": "string",
+  "description": "string"
+}
+```
+
+### 7. (планируется) parse_action_types.py
+
+Парсинг типов действий из Player's Handbook.
+
+**Ожидаемые входные данные:**
+```
+E'Magios Core - 01. Player's Handbook\Тип Действия - *.md
+```
+
+**Выходные данные:**
+```
+data/action_types.json
+```
+
+**Предполагаемая структура:**
+```json
+{
+  "id": "string",
+  "name": "string",
+  "category": "string",
+  "description": "string"
+}
+```
+
+### 8. parse_combat_components.py
+
+Парсит компоненты боевой системы (ключевые элементы из разделов «Компоненты Боевой Системы» и связанных страниц).
+
+**Входные данные:**
+```
+E'Magios Core - 01. Player's Handbook\Боевой Компонент - *.md
+```
+
+**Выходные данные:**
+```
+data/combat_components.json
+```
+
+**Структура:**
+```json
+{
+  "id": "string",
+  "name": "string",
+  "section": "string",
+  "page": "string",
+  "description": "string"
+}
+```
+
 ## Общие возможности
 
 Все парсеры имеют следующие возможности:

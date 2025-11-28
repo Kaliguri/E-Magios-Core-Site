@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Новости — E'Magios Core</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="news">
+  <div class="page-with-sidebar">
+    <!-- Sidebar will be injected here by common.js -->
+
+    <main class="main-content">
+      <div class="container">
+        <h1>Новости</h1>
+
+        <section id="news-list">
+          <!-- Записи будут добавлены через news.js -->
+          <p class="text-muted">Загрузка списка изменений...</p>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scroll to top button -->
+  <button id="scroll-to-top" class="scroll-to-top" aria-label="Наверх">↑</button>
+
+  <script src="common.js?v=1.3"></script>
+  <script src="news.js?v=1.1"></script>
+</body>
+</html>
+
+
