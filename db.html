@@ -251,7 +251,7 @@
       background: var(--bg-secondary);
       border-radius: var(--radius-lg);
       border: 1px solid var(--border-color);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); /* как у обычного попапа */
       min-width: 600px;
       max-width: 900px;
       max-height: 85vh;
@@ -268,7 +268,7 @@
       gap: var(--spacing-md);
       padding: var(--spacing-md) var(--spacing-lg);
       flex-shrink: 0;
-      background: var(--bg-primary);
+      background: var(--bg-secondary); /* тот же фон, что и у обычного попапа */
       border-bottom: 1px solid var(--border-color);
     }
 
@@ -464,6 +464,81 @@
       padding: var(--spacing-xs) var(--spacing-md);
     }
 
+    #spell-detail-modal .modal {
+      /* Чуть шире базового модального окна (~+10–15%) */
+      max-width: 1040px;
+      width: 98%;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      /* Компактная шапка и минимальные боковые отступы,
+         чтобы скролл был ближе к правому краю */
+      padding: var(--spacing-xs) var(--spacing-sm) var(--spacing-md) var(--spacing-lg);
+    }
+
+    #spell-detail-modal .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--bg-elevated) var(--bg-secondary);
+      padding-right: var(--spacing-sm);
+    }
+
+    #spell-detail-modal .modal-body::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #spell-detail-modal .modal-body::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+    }
+
+    #spell-detail-modal .modal-body::-webkit-scrollbar-thumb {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+    }
+
+    #spell-detail-modal .modal-body::-webkit-scrollbar-thumb:hover {
+      background: var(--border-hover);
+    }
+
+    #spell-detail-modal .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    /* Выравнивание маркеров списков в попапе базы (параметры, компоненты и т.п.) */
+    #spell-detail-modal .modal-body ul {
+      margin-left: 0;
+      padding-left: 1.5rem;
+      list-style-position: inside;
+    }
+
+    #spell-detail-modal .modal-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.8rem;
+      line-height: 1;
+      padding: 0;
+      width: 2rem;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+    }
+
+    #spell-detail-modal .modal-close-btn:hover {
+      color: var(--accent-emerald);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
     @media (max-width: 768px) {
       .filters-panel-inner {
         width: 90%;
@@ -494,6 +569,9 @@
         <button class="tab" data-tab="archetypes" onclick="switchTab('archetypes')">Архетипы</button>
         <button class="tab" data-tab="actions" onclick="switchTab('actions')">Базовые Действия</button>
         <button class="tab" data-tab="effects" onclick="switchTab('effects')">Эффекты</button>
+        <button class="tab" data-tab="skills" onclick="switchTab('skills')">Навыки</button>
+        <button class="tab" data-tab="action-types" onclick="switchTab('action-types')">Типы Действий</button>
+        <button class="tab" data-tab="combat" onclick="switchTab('combat')">Боевая система</button>
       </div>
 
       <!-- Spells Tab -->
@@ -535,18 +613,6 @@
                   <div class="filter-category-content" id="spell-type-tags"></div>
                 </div>
 
-                <div class="filter-category" data-category="source">
-                  <div class="filter-category-header">
-                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Источник</span>
-                    <div class="filter-category-actions">
-                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('spell-source-tags', 'source', tempSpellFilters)">Выбрать все</button>
-                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('spell-source-tags', 'source', tempSpellFilters)">Снять все</button>
-                    </div>
-                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
-                  </div>
-                  <div class="filter-category-content" id="spell-source-tags"></div>
-                </div>
-
                 <div class="filter-category" data-category="school">
                   <div class="filter-category-header">
                     <span class="filter-category-title" onclick="toggleFilterCategory(this)">Школа</span>
@@ -582,6 +648,18 @@
                   </div>
                   <div class="filter-category-content" id="spell-concentration-tags"></div>
                 </div>
+
+                <div class="filter-category" data-category="requiredLevel">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Требуемый Уровень</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('spell-level-tags', 'requiredLevel', tempSpellFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('spell-level-tags', 'requiredLevel', tempSpellFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="spell-level-tags"></div>
+                </div>
               </div>
 
               <div class="filters-modal-footer">
@@ -599,7 +677,7 @@
                 <th class="sortable" onclick="sortSpells('name')">Название</th>
                 <th class="sortable" onclick="sortSpells('school')">Школа</th>
                 <th class="sortable" onclick="sortSpells('type')">Тип</th>
-                <th class="sortable" onclick="sortSpells('source')">Источник</th>
+                <th class="sortable" onclick="sortSpells('requiredLevel')">Требуемый Уровень</th>
               </tr>
             </thead>
             <tbody id="spells-results">
@@ -739,6 +817,40 @@
             <div class="form-group">
               <input type="text" id="action-name" placeholder="Поиск по названию">
             </div>
+            <button type="button" class="btn btn-secondary filters-toggle-btn" onclick="toggleFiltersPanel('actions')">
+              Фильтр
+            </button>
+            <button type="button" class="btn btn-secondary filters-clear-btn" id="action-filters-clear" onclick="quickClearActionFilters()" title="Сбросить фильтры">
+              ×
+            </button>
+          </div>
+          <div id="actions-filters-panel" class="filters-panel">
+            <div class="filters-panel-inner">
+              <div class="filters-modal-header">
+                <div class="filters-modal-title">Фильтры</div>
+                <button type="button" class="filters-modal-close" onclick="closeFiltersPanel()">×</button>
+              </div>
+              
+              <div class="filters-modal-body">
+                <div class="filter-category" data-category="kind">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Тип действия</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('action-kind-tags', 'kind', tempActionFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('action-kind-tags', 'kind', tempActionFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="action-kind-tags"></div>
+                </div>
+              </div>
+
+              <div class="filters-modal-footer">
+                <button class="btn btn-secondary" onclick="applyActionFilters()">Применить изменения</button>
+                <button class="btn btn-secondary" onclick="cancelActionFilters()">Отменить изменения</button>
+                <button class="btn btn-secondary" onclick="clearActionFilters()">Очистить фильтры</button>
+              </div>
+            </div>
           </div>
         </div>
         <div class="results-table">
@@ -746,7 +858,7 @@
             <thead>
               <tr>
                 <th class="sortable" onclick="sortActions('name')">Название</th>
-                <th>Описание</th>
+                <th class="sortable" onclick="sortActions('kind')" style="white-space: nowrap;">Тип действия</th>
               </tr>
             </thead>
             <tbody id="actions-results">
@@ -810,11 +922,131 @@
               <tr>
                 <th class="sortable" onclick="sortEffects('name')">Название</th>
                 <th class="sortable" onclick="sortEffects('actionType')" style="white-space: nowrap;">Тип Действия</th>
-                <th>Описание</th>
               </tr>
             </thead>
             <tbody id="effects-results">
-              <tr><td colspan="3" class="no-results">Загрузка...</td></tr>
+              <tr><td colspan="2" class="no-results">Загрузка...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Skills Tab -->
+      <div id="skills-tab" class="tab-content">
+        <div class="results-header">
+          <h3>Навыки</h3>
+          <span class="results-count" id="skills-count">0 навыков</span>
+        </div>
+
+        <div class="filters">
+          <div class="filters-row">
+            <div class="form-group">
+              <input type="text" id="skill-name" placeholder="Поиск по названию">
+            </div>
+            <button type="button" class="btn btn-secondary filters-toggle-btn" onclick="toggleFiltersPanel('skills')">
+              Фильтр
+            </button>
+            <button type="button" class="btn btn-secondary filters-clear-btn" id="skill-filters-clear" onclick="quickClearSkillFilters()" title="Сбросить фильтры">
+              ×
+            </button>
+          </div>
+          <div id="skills-filters-panel" class="filters-panel">
+            <div class="filters-panel-inner">
+              <div class="filters-modal-header">
+                <div class="filters-modal-title">Фильтры</div>
+                <button type="button" class="filters-modal-close" onclick="closeFiltersPanel()">×</button>
+              </div>
+              
+              <div class="filters-modal-body">
+                <div class="filter-category" data-category="type">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Тип навыка</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('skill-type-tags', 'type', tempSkillFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('skill-type-tags', 'type', tempSkillFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="skill-type-tags"></div>
+                </div>
+              </div>
+
+              <div class="filters-modal-footer">
+                <button class="btn btn-secondary" onclick="applySkillFilters()">Применить изменения</button>
+                <button class="btn btn-secondary" onclick="cancelSkillFilters()">Отменить изменения</button>
+                <button class="btn btn-secondary" onclick="clearSkillFilters()">Очистить фильтры</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" onclick="sortSkills('name')">Название</th>
+                <th class="sortable" onclick="sortSkills('type')" style="white-space: nowrap;">Тип навыка</th>
+              </tr>
+            </thead>
+            <tbody id="skills-results">
+              <tr><td colspan="2" class="no-results">Загрузка...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Action Types Tab -->
+      <div id="action-types-tab" class="tab-content">
+        <div class="results-header">
+          <h3>Типы Действий</h3>
+          <span class="results-count" id="action-types-count">0 типов</span>
+        </div>
+
+        <div class="filters">
+          <div class="filters-row">
+            <div class="form-group">
+              <input type="text" id="action-type-name" placeholder="Поиск по названию">
+            </div>
+          </div>
+        </div>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" onclick="sortActionTypes('name')">Название</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody id="action-types-results">
+              <tr><td colspan="2" class="no-results">Загрузка...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Combat Components Tab -->
+      <div id="combat-tab" class="tab-content">
+        <div class="results-header">
+          <h3>Компоненты боевой системы</h3>
+          <span class="results-count" id="combat-count">0 компонентов</span>
+        </div>
+
+        <div class="filters">
+          <div class="filters-row">
+            <div class="form-group">
+              <input type="text" id="combat-name" placeholder="Поиск по названию">
+            </div>
+          </div>
+        </div>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" onclick="sortCombat('name')">Название</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody id="combat-results">
+              <tr><td colspan="2" class="no-results">Загрузка...</td></tr>
             </tbody>
           </table>
         </div>
@@ -823,11 +1055,23 @@
     </main>
   </div> <!-- page-with-sidebar -->
 
+  <div id="spell-detail-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="spell-detail-title">Заклинание</h3>
+        <button type="button" class="modal-close-btn" id="spell-detail-close" aria-label="Закрыть">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="spell-detail-content"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Scroll to top button -->
   <button id="scroll-to-top" class="scroll-to-top" aria-label="Наверх">↑</button>
 
-  <script src="common.js?v=1.1"></script>
-  <script src="db.js?v=2.3"></script>
+  <script src="common.js?v=1.3"></script>
+  <script src="db.js?v=2.8"></script>
 </body>
 </html>
 

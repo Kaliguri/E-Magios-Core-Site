@@ -14,29 +14,71 @@
   <style>
     .editor-container {
       max-width: 1000px;
-      margin: 0 auto;
-      padding: 2rem;
+      margin: 0;
+      padding: 1.5rem;
+    }
+
+    .auth-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-md);
+      padding: var(--spacing-xs) var(--spacing-md);
+      border-radius: var(--radius-md);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-color);
     }
 
     .saved-characters-section {
-      background: var(--bg-secondary);
-      border-radius: var(--radius-md);
-      padding: var(--spacing-lg);
-      margin-bottom: var(--spacing-xl);
+      background: transparent;
+      border-radius: 0;
+      border: none;
+      padding: 0 0 var(--spacing-sm) 0;
+      margin-bottom: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--spacing-sm);
     }
 
     .saved-characters-section h2 {
       margin-top: 0;
+      margin-bottom: 0;
+    }
+
+    .saved-characters-section p {
+      margin: 0;
+    }
+
+    .saved-characters-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .saved-characters-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-sm);
       margin-bottom: var(--spacing-md);
     }
 
-    #saved-characters-list {
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-sm);
+    .saved-characters-actions .btn {
+      width: 100%;
+      justify-content: center;
+      padding: var(--spacing-sm) var(--spacing-md);
+      font-size: 1.05rem;
     }
 
-    .saved-character-item {
+    .character-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--spacing-sm);
+      margin-top: var(--spacing-md);
+      align-items: stretch;
+    }
+
+    .character-card {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -44,73 +86,274 @@
       background: var(--bg-elevated);
       border-radius: var(--radius-sm);
       border: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
     }
 
-    .saved-character-info {
+    .character-card:hover {
+      background: var(--bg-secondary);
+      border-color: var(--accent-emerald);
+    }
+
+    .character-main {
       display: flex;
       flex-direction: column;
       gap: 0.25rem;
     }
 
-    .saved-character-info strong {
+    .character-main strong {
       color: var(--text-primary);
-      font-size: 1.1rem;
+      font-size: 1.05rem;
     }
 
-    .saved-character-info .text-muted {
+    .character-meta {
       font-size: 0.9rem;
     }
 
-    .saved-character-actions {
+    .character-menu-wrapper {
+      position: relative;
       display: flex;
-      gap: var(--spacing-sm);
+      align-items: flex-start;
     }
 
-    .btn-sm {
-      padding: 0.5rem 1rem;
+    .character-menu-button {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      border-radius: var(--radius-sm);
+      font-size: 1.3rem;
+      line-height: 1;
+    }
+
+    .character-menu-button:hover {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+    }
+
+    .character-menu {
+      position: absolute;
+      right: 0;
+      top: 120%;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      min-width: 180px;
+      z-index: 10;
+      display: none;
+    }
+
+    .character-menu.open {
+      display: block;
+    }
+
+    .character-menu button {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      background: transparent;
+      border: none;
+      text-align: left;
+      color: var(--text-secondary);
+      cursor: pointer;
       font-size: 0.9rem;
+    }
+
+    .character-menu button:hover {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
     }
 
     .form-section {
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
-      padding: var(--spacing-lg);
-      margin-bottom: var(--spacing-lg);
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
     }
 
     .form-section h2 {
       margin-top: 0;
       color: var(--accent-emerald);
-      border-bottom: 2px solid var(--border-color);
-      padding-bottom: var(--spacing-sm);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: var(--spacing-xs);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .form-section-compact {
+      padding: var(--spacing-sm);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .form-section-compact .form-grid {
+      gap: 0.5rem;
+    }
+
+    .form-section-compact .form-group {
+      margin-bottom: 0;
     }
 
     .form-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: var(--spacing-md);
+      gap: var(--spacing-sm);
     }
 
     .form-grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: var(--spacing-md);
+      gap: var(--spacing-sm);
     }
 
     .form-grid-3 {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: var(--spacing-md);
+      gap: var(--spacing-sm);
+    }
+
+    .stat-list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.4rem;
+    }
+
+    .stat-row-clickable {
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .stat-row-clickable:hover {
+      background: var(--bg-secondary);
+      border-color: var(--accent-emerald);
+    }
+
+    .stat-row {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.45rem;
+      background: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+    }
+
+    .stat-label {
+      flex: 1;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stat-value {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--accent-emerald) !important;
+    }
+
+    .stat-value-input {
+      flex: 0 0 56px;
+      width: 56px;
+      text-align: center;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    @media (max-width: 768px) {
+      .stat-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .stat-list.stat-list-wide {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .stat-edit-values {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .stat-edit-values input[type="number"] {
+      width: 80px;
+    }
+
+    .defense-control {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .defense-shields {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .defense-shield {
+      position: relative;
+      width: 22px;
+      height: 26px;
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+
+    .defense-shield::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      clip-path: polygon(50% 0, 100% 25%, 100% 65%, 50% 100%, 0 65%, 0 25%);
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .defense-shield.active::before {
+      background: var(--accent-emerald);
+      border-color: var(--accent-emerald);
+    }
+
+    .defense-step-btn {
+      width: 26px;
+      height: 26px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--accent-emerald);
+      background: transparent;
+      color: var(--accent-emerald);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+    }
+
+    .defense-step-btn:hover {
+      background: var(--accent-emerald);
+      border-color: var(--accent-emerald-dark);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .defense-step-btn:focus-visible {
+      outline: 2px solid var(--accent-emerald);
+      outline-offset: 1px;
     }
 
     .readonly-field {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 56px;
       background: var(--bg-elevated);
       padding: var(--spacing-xs) var(--spacing-sm);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-sm);
-      color: var(--accent-emerald);
-      font-weight: 600;
+      text-align: center;
     }
 
     .spell-list {
@@ -119,44 +362,468 @@
 
     .spell-item {
       display: flex;
+      align-items: center;
+      justify-content: space-between;
       gap: var(--spacing-sm);
       margin-bottom: var(--spacing-sm);
-      align-items: center;
-    }
-
-    .spell-item input {
-      flex: 1;
-    }
-
-    .spell-item button {
-      padding: var(--spacing-xs);
+      padding: var(--spacing-xs) var(--spacing-sm);
       background: var(--bg-elevated);
-      border: 1px solid var(--border-color);
-      color: var(--text-secondary);
       border-radius: var(--radius-sm);
-      cursor: pointer;
-      min-width: 80px;
+      border: 1px solid var(--border-color);
     }
 
-    .spell-item button:hover {
-      background: #ef4444;
-      border-color: #ef4444;
-      color: white;
+    .spell-main {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      flex: 1;
+      min-width: 0;
+    }
+
+    .spell-name-btn {
+      border: none;
+      background: transparent;
+      color: var(--accent-emerald);
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0;
+      margin: 0;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .spell-name-btn:hover {
+      text-decoration: underline;
+    }
+
+    .spell-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      white-space: nowrap;
     }
 
     .btn-add {
       margin-top: var(--spacing-sm);
     }
 
+    .spell-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .spell-active-toggle-btn {
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-elevated);
+      color: transparent;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .spell-active-toggle-btn.spell-active-on {
+      background: var(--accent-emerald);
+      border-color: var(--accent-emerald);
+      color: #ffffff;
+    }
+
+    .spell-recommendations {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--spacing-sm);
+      margin-top: var(--spacing-sm);
+    }
+
+    .spell-recommendation {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      padding: var(--spacing-sm);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .spell-recommendation-label {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .spell-recommendation-value {
+      font-weight: 600;
+    }
+
+    .spell-recommendation-ok {
+      color: var(--accent-emerald);
+    }
+
+    .spell-recommendation-over {
+      color: #ef4444;
+    }
+
+    /* Spell select modal */
+    .spell-select-modal .modal {
+      max-width: 1100px;
+      width: 95%;
+    }
+
+    .spell-select-modal .filters {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .spell-select-modal .filters-row {
+      display: flex;
+      gap: var(--spacing-md);
+      align-items: center;
+    }
+
+    .spell-select-modal .filters-row label {
+      display: none;
+    }
+
+    .spell-select-modal .filters-row .form-group {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
+    .spell-select-modal .filters-row .form-group input[type="text"] {
+      height: 2.6rem;
+    }
+
+    .spell-select-modal .filters-toggle-btn {
+      white-space: nowrap;
+      flex-shrink: 0;
+      height: 2.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 var(--spacing-md);
+    }
+
+    .spell-select-modal .filters-panel {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1100;
+    }
+
+    .spell-select-modal .filters-panel.open {
+      display: flex;
+    }
+
+    .spell-select-modal .filters-panel-inner {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+      min-width: 600px;
+      max-width: 900px;
+      max-height: 85vh;
+      width: 85vw;
+      cursor: default;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .spell-select-modal .filters-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-md);
+      padding: var(--spacing-md) var(--spacing-lg);
+      flex-shrink: 0;
+      background: var(--bg-primary);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .spell-select-modal .filters-modal-title {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .spell-select-modal .filters-modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.8rem;
+      line-height: 1;
+      padding: 0;
+      width: 2rem;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+    }
+
+    .spell-select-modal .filters-modal-close:hover {
+      color: var(--accent-emerald);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .spell-select-modal .filter-category {
+      margin-bottom: var(--spacing-sm);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .spell-select-modal .filter-category-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem var(--spacing-md);
+      user-select: none;
+      transition: background 0.2s ease;
+      font-weight: 500;
+      color: var(--text-primary);
+      background: var(--bg-secondary);
+      gap: var(--spacing-sm);
+    }
+
+    .spell-select-modal .filter-category-header:hover {
+      background: #2f2f2f;
+    }
+
+    .spell-select-modal .filter-category-title {
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .spell-select-modal .filter-category-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .spell-select-modal .filter-category-action-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.85rem;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .spell-select-modal .filter-category-action-btn:hover {
+      color: var(--accent-emerald);
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    .spell-select-modal .filter-category-arrow {
+      transition: transform 0.2s ease;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .spell-select-modal .filter-category.collapsed .filter-category-arrow {
+      transform: rotate(-90deg);
+    }
+
+    .spell-select-modal .filter-category-content {
+      padding: var(--spacing-sm) var(--spacing-md);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      max-height: 400px;
+      overflow-y: auto;
+      transition: max-height 0.3s ease;
+      background: var(--bg-elevated);
+      scrollbar-width: thin;
+      scrollbar-color: var(--bg-secondary) var(--bg-elevated);
+    }
+
+    .spell-select-modal .filter-category-content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .spell-select-modal .filter-category-content::-webkit-scrollbar-track {
+      background: var(--bg-elevated);
+    }
+
+    .spell-select-modal .filter-category-content::-webkit-scrollbar-thumb {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+    }
+
+    .spell-select-modal .filter-category-content::-webkit-scrollbar-thumb:hover {
+      background: var(--border-color);
+    }
+
+    .spell-select-modal .filter-category.collapsed .filter-category-content {
+      display: none;
+    }
+
+    .spell-select-modal .filter-tag {
+      padding: 0.4rem 0.9rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 0.375rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .spell-select-modal .filter-tag:hover {
+      background: var(--bg-elevated);
+      border-color: var(--border-hover);
+      color: var(--text-primary);
+    }
+
+    .spell-select-modal .filter-tag.active {
+      background: #0d9668;
+      border-color: #0d9668;
+      color: white;
+    }
+
+    .spell-select-modal .filters-modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 var(--spacing-lg);
+      background: var(--bg-secondary);
+      scrollbar-width: thin;
+      scrollbar-color: var(--bg-elevated) var(--bg-secondary);
+    }
+
+    .spell-select-modal .filters-modal-body::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .spell-select-modal .filters-modal-body::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+    }
+
+    .spell-select-modal .filters-modal-body::-webkit-scrollbar-thumb {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+    }
+
+    .spell-select-modal .filters-modal-body::-webkit-scrollbar-thumb:hover {
+      background: var(--border-hover);
+    }
+
+    .spell-select-modal .filters-modal-footer {
+      display: flex;
+      gap: var(--spacing-sm);
+      justify-content: flex-start;
+      padding: var(--spacing-md) var(--spacing-lg);
+      border-top: 1px solid var(--border-color);
+      flex-shrink: 0;
+      background: var(--bg-primary);
+    }
+
+    .spell-select-modal .filters-modal-footer .btn {
+      white-space: nowrap;
+      padding: var(--spacing-xs) var(--spacing-md);
+    }
+
+    @media (max-width: 768px) {
+      .spell-select-modal .filters-panel-inner {
+        width: 90%;
+        max-width: 90%;
+        min-width: unset;
+      }
+    }
+
+    .spell-select-list {
+      margin-top: var(--spacing-sm);
+      max-height: 380px;
+      overflow-y: auto;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      scrollbar-width: thin;
+      scrollbar-color: var(--bg-elevated) var(--bg-secondary);
+    }
+
+    .spell-select-list::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .spell-select-list::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+    }
+
+    .spell-select-list::-webkit-scrollbar-thumb {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+    }
+
+    .spell-select-list::-webkit-scrollbar-thumb:hover {
+      background: var(--border-hover);
+    }
+
+    .spell-select-list table {
+      margin: 0;
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    .spell-select-list th,
+    .spell-select-list td {
+      border: 1px solid var(--border-color);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      font-size: 0.9rem;
+    }
+
+    .spell-select-list th {
+      background: var(--bg-elevated);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .spell-select-list tbody tr {
+      cursor: pointer;
+    }
+
+    .spell-select-list tbody tr:hover {
+      background: var(--bg-elevated);
+    }
+
+    .spell-select-list tbody tr.selected {
+      background: rgba(16, 185, 129, 0.18);
+    }
+
     .action-buttons {
       display: flex;
       gap: var(--spacing-sm);
       flex-wrap: wrap;
-      margin-top: var(--spacing-lg);
+      margin-top: var(--spacing-md);
       position: sticky;
       bottom: 0;
       background: var(--bg-primary);
-      padding: var(--spacing-md) 0;
+      padding: var(--spacing-sm) 0;
       border-top: 1px solid var(--border-color);
     }
 
@@ -180,252 +847,788 @@
     .full-width input[type="number"] {
       width: 100%;
     }
+
+    .btn-sm {
+      padding: 0.35rem 0.8rem;
+      font-size: 0.85rem;
+    }
+
+    /* Bonuses */
+    .bonuses-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .bonuses-categories {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: var(--spacing-md);
+    }
+
+    .bonuses-category {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      border: 1px solid var(--border-color);
+    }
+
+    .bonuses-category h4 {
+      margin-top: 0;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .bonus-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .bonus-item {
+      display: grid;
+      grid-template-columns: auto 2fr 1.2fr 0.8fr auto;
+      gap: var(--spacing-xs);
+      align-items: center;
+      background: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      padding: var(--spacing-xs) var(--spacing-sm);
+    }
+
+    .bonus-item:hover {
+      background: var(--bg-secondary);
+      border-color: var(--accent-emerald);
+    }
+
+    .bonus-item input[type="text"] {
+      width: 100%;
+    }
+
+    .bonus-item select {
+      width: 100%;
+    }
+
+    .bonus-item input[type="number"] {
+      width: 100%;
+    }
+
+    .bonus-drag-handle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 0.35rem;
+      cursor: grab;
+      color: var(--text-muted);
+      font-size: 1rem;
+      user-select: none;
+    }
+
+    .bonus-item.dragging .bonus-drag-handle {
+      cursor: grabbing;
+      color: var(--accent-emerald);
+    }
+
+    .bonus-remove-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      border-radius: var(--radius-sm);
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    .bonus-remove-btn:hover {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+    }
+
+    /* Tabs */
+    .editor-header-row {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--spacing-xs);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    #back-to-list-btn {
+      padding: calc(var(--spacing-xs) * 1.6) var(--spacing-lg);
+      font-size: 1.05rem;
+    }
+
+    .editor-tabs-nav {
+      display: flex;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-md);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .editor-tab-button {
+      padding: 0.4rem 0.9rem;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      font-size: 0.95rem;
+    }
+
+    .editor-tab-button.active {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border-bottom: 2px solid var(--accent-emerald);
+    }
+
+    .editor-tab-content {
+      display: none;
+    }
+
+    .editor-tab-content.active {
+      display: block;
+    }
+
+    /* Bonuses modal */
+    .bonuses-modal .modal {
+      max-width: 900px;
+      width: 95%;
+    }
+
+    .bonuses-modal .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-sm);
+    }
+
+    .bonuses-modal .modal-header-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    #spell-details-modal .modal {
+      max-width: 900px;
+      width: 95%;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #spell-details-modal .modal-body {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    #spell-details-modal .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-sm);
+    }
+
+    #spell-details-modal .modal-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.8rem;
+      line-height: 1;
+      padding: 0;
+      width: 2rem;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+    }
+
+    #spell-details-modal .modal-close-btn:hover {
+      color: var(--accent-emerald);
+      background: rgba(255, 255, 255, 0.05);
+    }
   </style>
 
   <main>
     <div class="editor-container">
-      <h1>Редактор персонажей</h1>
-      <p class="text-muted">Создайте и управляйте своим персонажем E'Magios Core</p>
-
-      <!-- Saved Characters Section -->
-      <div class="saved-characters-section">
-        <h2>💾 Сохранённые персонажи</h2>
-        <div id="saved-characters-list"></div>
-      </div>
-
-      <form id="character-form">
-        <!-- Основная информация -->
-        <div class="form-section">
-          <h2>Основная информация</h2>
-          <div class="form-group">
-            <label for="name">Имя персонажа *</label>
-            <input type="text" id="name" required placeholder="Введите имя персонажа">
-          </div>
-          <div class="form-group">
-            <label for="level">Уровень Магического Искусства *</label>
-            <input type="number" id="level" min="1" max="20" value="1" required>
-            <p class="help-text">Уровень от 1 до 20</p>
+      <!-- Страница списка персонажей -->
+      <section id="characters-list-page">
+        <div class="saved-characters-section">
+          <div class="saved-characters-text">
+            <h2>Мои персонажи</h2>
           </div>
         </div>
 
-        <!-- Автоматические расчеты -->
-        <div class="form-section">
-          <h2>Автоматические расчеты</h2>
-          <p class="text-muted">Эти значения рассчитываются автоматически на основе уровня</p>
-          
-          <div class="form-grid">
-            <div>
-              <label>Аркана</label>
-              <div class="readonly-field" id="calc-arcana">+4</div>
-            </div>
-            <div>
-              <label>Уклонение</label>
-              <div class="readonly-field" id="calc-evasion">10</div>
-            </div>
-            <div>
-              <label>Созидание</label>
-              <div class="readonly-field" id="calc-crafting">+4</div>
-            </div>
-            <div>
-              <label>Слоты Учебных Заклинаний</label>
-              <div class="readonly-field" id="calc-spell-slots">4</div>
-            </div>
-          </div>
-
-          <h4 style="margin-top: 1.5rem;">Стойкость</h4>
-          <div class="form-grid-3">
-            <div>
-              <label>Нижняя</label>
-              <div class="readonly-field" id="calc-fort-low">4</div>
-            </div>
-            <div>
-              <label>Средняя</label>
-              <div class="readonly-field" id="calc-fort-mid">8</div>
-            </div>
-            <div>
-              <label>Верхняя</label>
-              <div class="readonly-field" id="calc-fort-high">12</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Боевые характеристики -->
-        <div class="form-section">
-          <h2>Боевые характеристики</h2>
-          
-          <div class="form-grid-2">
-            <div class="form-group">
-              <label for="health-current">Здоровье (текущее/макс)</label>
-              <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <input type="number" id="health-current" min="0" value="8">
-                <span>/</span>
-                <input type="number" id="health-max" min="1" value="8">
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="will-current">Воля (текущее/макс)</label>
-              <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <input type="number" id="will-current" min="0" value="6">
-                <span>/</span>
-                <input type="number" id="will-max" min="1" value="6">
-              </div>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="spell-power">Сила Заклинаний</label>
-            <input type="number" id="spell-power" value="0">
-          </div>
-        </div>
-
-        <!-- Магическое Мастерство -->
-        <div class="form-section">
-          <h2>Магическое Мастерство</h2>
-          <p class="help-text">Максимум +2 на каждую характеристику</p>
-          
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="construction">Конструирование</label>
-              <input type="number" id="construction" min="0" max="2" value="0">
-            </div>
-            <div class="form-group">
-              <label for="spontaneity">Спонтанность</label>
-              <input type="number" id="spontaneity" min="0" max="2" value="0">
-            </div>
-            <div class="form-group">
-              <label for="metamagic">Метамагия</label>
-              <input type="number" id="metamagic" min="0" max="2" value="0">
-            </div>
-            <div class="form-group">
-              <label for="creation">Созидание</label>
-              <input type="number" id="creation" min="0" max="2" value="0">
-            </div>
-            <div class="form-group">
-              <label for="ritualism">Ритуалогия</label>
-              <input type="number" id="ritualism" min="0" max="2" value="0">
-            </div>
-            <div class="form-group">
-              <label for="versatility">Многогранность</label>
-              <input type="number" id="versatility" min="0" max="2" value="0">
-            </div>
-          </div>
-        </div>
-
-        <!-- Вспомогательная Магия -->
-        <div class="form-section">
-          <h2>Вспомогательная Магия</h2>
-          <p class="help-text">Максимум +2 на каждую характеристику</p>
-          
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="protection">Защита</label>
-              <input type="number" id="protection" min="0" max="2" value="0">
-            </div>
-            <div class="form-group">
-              <label for="blessing">Благословение</label>
-              <input type="number" id="blessing" min="0" max="2" value="0">
-            </div>
-            <div class="form-group">
-              <label for="illusion">Иллюзия</label>
-              <input type="number" id="illusion" min="0" max="2" value="0">
-            </div>
-            <div class="form-group">
-              <label for="divination">Прорицание</label>
-              <input type="number" id="divination" min="0" max="2" value="0">
-            </div>
-            <div class="form-group">
-              <label for="telepathy">Телепатия</label>
-              <input type="number" id="telepathy" min="0" max="2" value="0">
-            </div>
-            <div class="form-group">
-              <label for="concealment">Сокрытие</label>
-              <input type="number" id="concealment" min="0" max="2" value="0">
-            </div>
-            <div class="form-group">
-              <label for="detection">Обнаружение</label>
-              <input type="number" id="detection" min="0" max="2" value="0">
-            </div>
-            <div class="form-group">
-              <label for="summoning">Призыв</label>
-              <input type="number" id="summoning" min="0" max="2" value="0">
-            </div>
-          </div>
-        </div>
-
-        <!-- Навыки Личности -->
-        <div class="form-section">
-          <h2>Навыки Личности</h2>
-          <p class="help-text">Максимум +3 на каждую характеристику</p>
-          
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="communication">Общение</label>
-              <input type="number" id="communication" min="0" max="3" value="0">
-            </div>
-            <div class="form-group">
-              <label for="contacts">Контакты</label>
-              <input type="number" id="contacts" min="0" max="3" value="0">
-            </div>
-            <div class="form-group">
-              <label for="knowledge">Знания</label>
-              <input type="number" id="knowledge" min="0" max="3" value="0">
-            </div>
-            <div class="form-group">
-              <label for="perception">Внимательность</label>
-              <input type="number" id="perception" min="0" max="3" value="0">
-            </div>
-            <div class="form-group">
-              <label for="stealth">Скрытность</label>
-              <input type="number" id="stealth" min="0" max="3" value="0">
-            </div>
-            <div class="form-group">
-              <label for="physique">Телосложение</label>
-              <input type="number" id="physique" min="0" max="3" value="0">
-            </div>
-          </div>
-        </div>
-
-        <!-- Заклинания -->
-        <div class="form-section">
-          <h2>Учебные Заклинания</h2>
-          <div id="study-spells-list" class="spell-list"></div>
-          <button type="button" class="btn btn-secondary btn-add" onclick="addStudySpell()">+ Добавить учебное заклинание</button>
-        </div>
-
-        <div class="form-section">
-          <h2>Фирменные Заклинания</h2>
-          <div id="signature-spells-list" class="spell-list"></div>
-          <button type="button" class="btn btn-secondary btn-add" onclick="addSignatureSpell()">+ Добавить фирменное заклинание</button>
-        </div>
-
-        <!-- Описание персонажа -->
-        <div class="form-section">
-          <h2>Описание персонажа</h2>
-          <div class="form-group">
-            <label for="description">Описание (раса, внешность, история)</label>
-            <textarea id="description" rows="6" placeholder="Опишите вашего персонажа: расу, рост, цвет глаз, историю и т.д."></textarea>
-          </div>
-        </div>
-
-        <!-- Кнопки действий -->
-        <div class="action-buttons">
-          <button type="button" class="btn btn-primary" onclick="saveCharacter()">💾 Сохранить на сайте</button>
-          <button type="button" class="btn btn-secondary" onclick="exportCharacter()">📥 Экспортировать в JSON</button>
-          <button type="button" class="btn btn-secondary" onclick="document.getElementById('load-file').click()">📂 Импортировать из JSON</button>
+        <div class="saved-characters-actions">
+          <button type="button" class="btn btn-primary" id="create-new-character-btn">
+            Создать нового персонажа
+          </button>
+          <button type="button" class="btn btn-primary" onclick="document.getElementById('load-file').click()">
+            Импортировать из JSON
+          </button>
           <input type="file" id="load-file" accept=".json" style="display: none;" onchange="loadCharacter(this.files[0])">
-          <button type="button" class="btn btn-outline" onclick="clearForm()">🗑️ Очистить форму</button>
-          <button type="button" class="btn btn-secondary" onclick="window.location.href='phb/intro.html'">📖 Вернуться к правилам</button>
         </div>
-      </form>
+
+        <div id="saved-characters-list" class="character-list"></div>
+      </section>
+
+      <!-- Страница конкретного персонажа -->
+      <section id="character-editor-page" class="hidden">
+        <div class="editor-header-row">
+          <button type="button" class="btn btn-secondary btn-sm" id="back-to-list-btn">
+            ← Мои персонажи
+          </button>
+          <h2>Лист персонажа</h2>
+        </div>
+
+        <div class="editor-tabs-nav">
+          <button type="button" class="editor-tab-button active" data-tab="tab-main">
+            Основное
+          </button>
+          <button type="button" class="editor-tab-button" data-tab="tab-stats">
+            Характеристики
+          </button>
+          <button type="button" class="editor-tab-button" data-tab="tab-spells">
+            Заклинания
+          </button>
+          <button type="button" class="editor-tab-button" data-tab="tab-description">
+            Описание
+          </button>
+        </div>
+
+        <form id="character-form">
+          <!-- Вкладка "Основное" -->
+          <div id="tab-main" class="editor-tab-content active">
+            <!-- Основная информация -->
+            <div class="form-section form-section-compact">
+              <h2>Основная информация</h2>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="name">Имя персонажа *</label>
+                  <input type="text" id="name" required placeholder="Введите имя персонажа">
+                </div>
+                <div class="form-group">
+                  <label for="level">Уровень</label>
+                  <input type="number" id="level" min="1" max="20" value="1" required>
+                </div>
+              </div>
+            </div>
+
+            <!-- Боевые характеристики -->
+            <div class="form-section">
+              <h2>Боевые характеристики</h2>
+
+              <input type="hidden" id="health-current" value="8">
+              <input type="hidden" id="health-max" value="8">
+              <input type="hidden" id="will-current" value="6">
+              <input type="hidden" id="will-max" value="6">
+              <input type="hidden" id="defense-value" value="0">
+
+              <h4 style="margin-top: 1rem;">Основное</h4>
+              <div class="stat-list stat-list-wide" style="margin-top: var(--spacing-sm); margin-bottom: var(--spacing-sm);">
+                <div class="stat-row stat-row-clickable" id="health-stat-row" title="Open Health editor">
+                  <span class="stat-label">Здоровье</span>
+                  <div class="defense-control">
+                    <button type="button" class="defense-step-btn" id="health-minus" aria-label="Уменьшить здоровье">−</button>
+                    <div class="readonly-field stat-value" id="stat-health-display">8/8</div>
+                    <button type="button" class="defense-step-btn" id="health-plus" aria-label="Увеличить здоровье">+</button>
+                  </div>
+                </div>
+                <div class="stat-row stat-row-clickable" id="will-stat-row" title="Open Will editor">
+                  <span class="stat-label">Воля</span>
+                  <div class="defense-control">
+                    <button type="button" class="defense-step-btn" id="will-minus" aria-label="Уменьшить волю">−</button>
+                    <div class="readonly-field stat-value" id="stat-will-display">6/6</div>
+                    <button type="button" class="defense-step-btn" id="will-plus" aria-label="Увеличить волю">+</button>
+                  </div>
+                </div>
+              </div>
+
+              <h4 style="margin-top: 1rem;">Атака</h4>
+              <div class="stat-list">
+                <div class="stat-row">
+                  <span class="stat-label">Аркана</span>
+                  <div class="readonly-field stat-value" id="stat-arcana">+4</div>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">Бонус к попаданию</span>
+                  <div class="readonly-field stat-value" id="stat-attack-bonus">+4</div>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">Бонус к наложению</span>
+                  <div class="readonly-field stat-value" id="stat-cast-bonus">+4</div>
+                </div>
+              </div>
+
+              <h4 style="margin-top: 1rem;">Защита</h4>
+              <div class="stat-list">
+                <div class="stat-row">
+                  <span class="stat-label">Уклонение</span>
+                  <div class="readonly-field stat-value" id="stat-evasion">10</div>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">Спасбросок</span>
+                  <div class="readonly-field stat-value" id="stat-save">4</div>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">Защита</span>
+                  <div class="defense-control">
+                    <button type="button" class="defense-step-btn" id="defense-minus" aria-label="Уменьшить защиту">−</button>
+                    <div class="defense-shields" id="defense-shields" aria-hidden="true">
+                      <span class="defense-shield" data-index="0"></span>
+                      <span class="defense-shield" data-index="1"></span>
+                      <span class="defense-shield" data-index="2"></span>
+                      <span class="defense-shield" data-index="3"></span>
+                      <span class="defense-shield" data-index="4"></span>
+                    </div>
+                    <button type="button" class="defense-step-btn" id="defense-plus" aria-label="Увеличить защиту">+</button>
+                  </div>
+                </div>
+              </div>
+
+              <h4 style="margin-top: 1rem;">Стойкость</h4>
+              <div class="stat-list">
+                <div class="stat-row">
+                  <span class="stat-label">Нижняя Стойкость</span>
+                  <div class="readonly-field stat-value" id="stat-fort-low">4</div>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">Средняя Стойкость</span>
+                  <div class="readonly-field stat-value" id="stat-fort-mid">8</div>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">Верхняя Стойкость</span>
+                  <div class="readonly-field stat-value" id="stat-fort-high">12</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Бонусы -->
+            <div class="form-section">
+              <div class="bonuses-header">
+                <h2>Бонусы</h2>
+                <button type="button" class="btn btn-secondary" id="add-bonus-btn">
+                  Добавить бонус
+                </button>
+              </div>
+              <div class="bonuses-category">
+                <h4>Список бонусов</h4>
+                <div id="bonuses-list" class="bonus-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Вкладка "Характеристики" -->
+          <div id="tab-stats" class="editor-tab-content">
+            <!-- Магическое Мастерство -->
+            <div class="form-section">
+              <h2>Магическое Мастерство</h2>
+              <p class="help-text">Максимум +2 на каждую характеристику</p>
+              
+              <div class="stat-list">
+                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="construction">
+                  <span class="stat-label">Конструирование</span>
+                  <input type="text" id="construction" value="+0" class="stat-value-input stat-value">
+                </div>
+                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="spontaneity">
+                  <span class="stat-label">Спонтанность</span>
+                  <input type="text" id="spontaneity" value="+0" class="stat-value-input stat-value">
+                </div>
+                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="metamagic">
+                  <span class="stat-label">Метамагия</span>
+                  <input type="text" id="metamagic" value="+0" class="stat-value-input stat-value">
+                </div>
+                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="creation">
+                  <span class="stat-label">Созидание</span>
+                  <input type="text" id="creation" value="+0" class="stat-value-input stat-value">
+                </div>
+                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="ritualism">
+                  <span class="stat-label">Ритуалогия</span>
+                  <input type="text" id="ritualism" value="+0" class="stat-value-input stat-value">
+                </div>
+                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="versatility">
+                  <span class="stat-label">Многогранность</span>
+                  <input type="text" id="versatility" value="+0" class="stat-value-input stat-value">
+                </div>
+              </div>
+            </div>
+
+            <!-- Навыки Личности -->
+            <div class="form-section">
+              <h2>Навыки Личности</h2>
+              <p class="help-text">Максимум +3 на каждую характеристику</p>
+              
+              <div class="stat-list">
+                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="communication">
+                  <span class="stat-label">Общение</span>
+                  <input type="text" id="communication" value="+0" class="stat-value-input stat-value">
+                </div>
+                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="contacts">
+                  <span class="stat-label">Контакты</span>
+                  <input type="text" id="contacts" value="+0" class="stat-value-input stat-value">
+                </div>
+                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="knowledge">
+                  <span class="stat-label">Знания</span>
+                  <input type="text" id="knowledge" value="+0" class="stat-value-input stat-value">
+                </div>
+                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="perception">
+                  <span class="stat-label">Внимательность</span>
+                  <input type="text" id="perception" value="+0" class="stat-value-input stat-value">
+                </div>
+                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="stealth">
+                  <span class="stat-label">Скрытность</span>
+                  <input type="text" id="stealth" value="+0" class="stat-value-input stat-value">
+                </div>
+                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="physique">
+                  <span class="stat-label">Телосложение</span>
+                  <input type="text" id="physique" value="+0" class="stat-value-input stat-value">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Вкладка "Заклинания" -->
+          <div id="tab-spells" class="editor-tab-content">
+            <div class="form-section">
+              <h2>Заклинания</h2>
+              <div class="spell-recommendations">
+                <div class="spell-recommendation">
+                  <div class="spell-recommendation-label">Учебные (активные)</div>
+                  <div class="spell-recommendation-value" id="study-spells-recommendation">0 / 5</div>
+                </div>
+                <div class="spell-recommendation">
+                  <div class="spell-recommendation-label">Фирменные (активные)</div>
+                  <div class="spell-recommendation-value" id="signature-spells-recommendation">0 / 2</div>
+                </div>
+                <div class="spell-recommendation">
+                  <div class="spell-recommendation-label">Школы Магии (активные)</div>
+                  <div class="spell-recommendation-value" id="magic-schools-recommendation">0 / 2</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h2>Учебные заклинания</h2>
+              <div id="study-spells-list" class="spell-list"></div>
+              <button type="button" class="btn btn-secondary btn-add" onclick="openSpellSelectModal('study')">+ Добавить учебное заклинание</button>
+            </div>
+
+            <div class="form-section">
+              <h2>Фирменные заклинания</h2>
+              <div id="signature-spells-list" class="spell-list"></div>
+              <button type="button" class="btn btn-secondary btn-add" onclick="openSpellSelectModal('signature')">+ Добавить фирменное заклинание</button>
+            </div>
+
+            <div class="form-section">
+              <h2>Школы Магии</h2>
+              <div id="magic-schools-list" class="spell-list"></div>
+              <button type="button" class="btn btn-secondary btn-add" onclick="openSchoolSelectModal()">+ Добавить школу магии</button>
+            </div>
+          </div>
+
+          <!-- Вкладка "Описание" -->
+          <div id="tab-description" class="editor-tab-content">
+            <div class="form-section">
+              <h2>Описание персонажа</h2>
+              <div class="form-group">
+                <label for="description">Описание (раса, внешность, история)</label>
+                <textarea id="description" rows="6" placeholder="Опишите вашего персонажа: расу, рост, цвет глаз, историю и т.д."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Кнопки действий -->
+          <div class="action-buttons">
+            <button type="button" class="btn btn-primary" id="save-character-btn">Сохранить персонажа</button>
+            <button type="button" class="btn btn-secondary" onclick="exportCharacter()">Экспортировать в JSON</button>
+            <button type="button" class="btn btn-secondary" id="cancel-changes-btn">Отменить изменения</button>
+          </div>
+        </form>
+      </section>
     </div>
     </main>
   </div> <!-- page-with-sidebar -->
 
+  <div id="stat-edit-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="stat-edit-title">Значение характеристики</h3>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="stat-edit-current">Текущее значение / Максимальное значение</label>
+          <div class="stat-edit-values">
+            <input type="number" id="stat-edit-current" min="0">
+            <span>/</span>
+            <input type="number" id="stat-edit-max" min="1">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="stat-edit-cancel">
+          Отмена
+        </button>
+        <button type="button" class="btn btn-primary" id="stat-edit-save">
+          Сохранить
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="signed-stat-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="signed-stat-title">Значение характеристики</h3>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="signed-stat-input">Текущее значение</label>
+          <input type="number" id="signed-stat-input">
+          <p class="help-text" id="signed-stat-help"></p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="signed-stat-cancel">
+          Отмена
+        </button>
+        <button type="button" class="btn btn-primary" id="signed-stat-save">
+          Сохранить
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="spell-select-modal" class="modal-overlay hidden spell-select-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="spell-select-title">Выбор заклинания</h3>
+      </div>
+      <div class="modal-body">
+        <div class="filters">
+          <div class="filters-row">
+            <div class="form-group">
+              <label for="spell-search-input">Поиск по названию</label>
+              <input type="text" id="spell-search-input" placeholder="Начните вводить название заклинания">
+            </div>
+            <button type="button" class="btn btn-secondary filters-toggle-btn" id="spell-select-filters-btn">
+              Фильтр
+            </button>
+          </div>
+        </div>
+        <div id="spell-select-filters-panel" class="filters-panel">
+          <div class="filters-panel-inner">
+            <div class="filters-modal-header">
+              <div class="filters-modal-title">Фильтры</div>
+              <button type="button" class="filters-modal-close" onclick="closeSpellSelectFiltersPanel()">×</button>
+            </div>
+            <div class="filters-modal-body">
+              <div class="filter-category" data-category="type">
+                <div class="filter-category-header">
+                  <span class="filter-category-title" onclick="spellSelectToggleFilterCategory(this)">Тип</span>
+                  <div class="filter-category-actions">
+                    <button type="button" class="filter-category-action-btn" onclick="spellSelectSelectAllInCategory('spell-select-type-tags', 'type')">Выбрать все</button>
+                    <button type="button" class="filter-category-action-btn" onclick="spellSelectClearAllInCategory('spell-select-type-tags', 'type')">Снять все</button>
+                  </div>
+                  <span class="filter-category-arrow" onclick="spellSelectToggleFilterCategory(this)">▼</span>
+                </div>
+                <div class="filter-category-content" id="spell-select-type-tags"></div>
+              </div>
+
+              <div class="filter-category" data-category="source">
+                <div class="filter-category-header">
+                  <span class="filter-category-title" onclick="spellSelectToggleFilterCategory(this)">Источник</span>
+                  <div class="filter-category-actions">
+                    <button type="button" class="filter-category-action-btn" onclick="spellSelectSelectAllInCategory('spell-select-source-tags', 'source')">Выбрать все</button>
+                    <button type="button" class="filter-category-action-btn" onclick="spellSelectClearAllInCategory('spell-select-source-tags', 'source')">Снять все</button>
+                  </div>
+                  <span class="filter-category-arrow" onclick="spellSelectToggleFilterCategory(this)">▼</span>
+                </div>
+                <div class="filter-category-content" id="spell-select-source-tags"></div>
+              </div>
+
+              <div class="filter-category" data-category="school">
+                <div class="filter-category-header">
+                  <span class="filter-category-title" onclick="spellSelectToggleFilterCategory(this)">Школа</span>
+                  <div class="filter-category-actions">
+                    <button type="button" class="filter-category-action-btn" onclick="spellSelectSelectAllInCategory('spell-select-school-tags', 'school')">Выбрать все</button>
+                    <button type="button" class="filter-category-action-btn" onclick="spellSelectClearAllInCategory('spell-select-school-tags', 'school')">Снять все</button>
+                  </div>
+                  <span class="filter-category-arrow" onclick="spellSelectToggleFilterCategory(this)">▼</span>
+                </div>
+                <div class="filter-category-content" id="spell-select-school-tags"></div>
+              </div>
+
+              <div class="filter-category" data-category="damage">
+                <div class="filter-category-header">
+                  <span class="filter-category-title" onclick="spellSelectToggleFilterCategory(this)">Тип урона</span>
+                  <div class="filter-category-actions">
+                    <button type="button" class="filter-category-action-btn" onclick="spellSelectSelectAllInCategory('spell-select-damage-tags', 'damage')">Выбрать все</button>
+                    <button type="button" class="filter-category-action-btn" onclick="spellSelectClearAllInCategory('spell-select-damage-tags', 'damage')">Снять все</button>
+                  </div>
+                  <span class="filter-category-arrow" onclick="spellSelectToggleFilterCategory(this)">▼</span>
+                </div>
+                <div class="filter-category-content" id="spell-select-damage-tags"></div>
+              </div>
+
+              <div class="filter-category" data-category="concentration">
+                <div class="filter-category-header">
+                  <span class="filter-category-title" onclick="spellSelectToggleFilterCategory(this)">Концентрация</span>
+                  <div class="filter-category-actions">
+                    <button type="button" class="filter-category-action-btn" onclick="spellSelectSelectAllInCategory('spell-select-concentration-tags', 'concentration')">Выбрать все</button>
+                    <button type="button" class="filter-category-action-btn" onclick="spellSelectClearAllInCategory('spell-select-concentration-tags', 'concentration')">Снять все</button>
+                  </div>
+                  <span class="filter-category-arrow" onclick="spellSelectToggleFilterCategory(this)">▼</span>
+                </div>
+                <div class="filter-category-content" id="spell-select-concentration-tags"></div>
+              </div>
+            </div>
+            <div class="filters-modal-footer">
+              <button type="button" class="btn btn-secondary" onclick="applySpellSelectFilters()">Применить изменения</button>
+              <button type="button" class="btn btn-secondary" onclick="cancelSpellSelectFilters()">Отменить изменения</button>
+              <button type="button" class="btn btn-secondary" onclick="clearSpellSelectFilters()">Очистить фильтры</button>
+            </div>
+          </div>
+        </div>
+        <div id="spell-select-list" class="spell-select-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="spell-select-cancel">
+          Отмена
+        </button>
+        <button type="button" class="btn btn-primary" id="spell-select-apply">
+          Выбрать
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="school-select-modal" class="modal-overlay hidden spell-select-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="school-select-title">Выбор школы магии</h3>
+      </div>
+      <div class="modal-body">
+        <div class="filters">
+          <div class="filters-row">
+            <div class="form-group">
+              <label for="school-search-input">Поиск по названию</label>
+              <input type="text" id="school-search-input" placeholder="Начните вводить название школы магии">
+            </div>
+            <button type="button" class="btn btn-secondary filters-toggle-btn" id="school-select-filters-btn">
+              Фильтр
+            </button>
+          </div>
+        </div>
+        <div id="school-select-filters-panel" class="filters-panel">
+          <div class="filters-panel-inner">
+            <div class="filters-modal-header">
+              <div class="filters-modal-title">Фильтры</div>
+              <button type="button" class="filters-modal-close" onclick="closeSchoolSelectFiltersPanel()">×</button>
+            </div>
+            <div class="filters-modal-body">
+              <div class="filter-category" data-category="rarity">
+                <div class="filter-category-header">
+                  <span class="filter-category-title" onclick="schoolSelectToggleFilterCategory(this)">Редкость</span>
+                  <div class="filter-category-actions">
+                    <button type="button" class="filter-category-action-btn" onclick="schoolSelectSelectAllInCategory('school-select-rarity-tags', 'rarity')">Выбрать все</button>
+                    <button type="button" class="filter-category-action-btn" onclick="schoolSelectClearAllInCategory('school-select-rarity-tags', 'rarity')">Снять все</button>
+                  </div>
+                  <span class="filter-category-arrow" onclick="schoolSelectToggleFilterCategory(this)">▼</span>
+                </div>
+                <div class="filter-category-content" id="school-select-rarity-tags"></div>
+              </div>
+
+              <div class="filter-category" data-category="properties">
+                <div class="filter-category-header">
+                  <span class="filter-category-title" onclick="schoolSelectToggleFilterCategory(this)">Свойства</span>
+                  <div class="filter-category-actions">
+                    <button type="button" class="filter-category-action-btn" onclick="schoolSelectSelectAllInCategory('school-select-properties-tags', 'properties')">Выбрать все</button>
+                    <button type="button" class="filter-category-action-btn" onclick="schoolSelectClearAllInCategory('school-select-properties-tags', 'properties')">Снять все</button>
+                  </div>
+                  <span class="filter-category-arrow" onclick="schoolSelectToggleFilterCategory(this)">▼</span>
+                </div>
+                <div class="filter-category-content" id="school-select-properties-tags"></div>
+              </div>
+
+              <div class="filter-category" data-category="difficulty">
+                <div class="filter-category-header">
+                  <span class="filter-category-title" onclick="schoolSelectToggleFilterCategory(this)">Сложность</span>
+                  <div class="filter-category-actions">
+                    <button type="button" class="filter-category-action-btn" onclick="schoolSelectSelectAllInCategory('school-select-difficulty-tags', 'difficulty')">Выбрать все</button>
+                    <button type="button" class="filter-category-action-btn" onclick="schoolSelectClearAllInCategory('school-select-difficulty-tags', 'difficulty')">Снять все</button>
+                  </div>
+                  <span class="filter-category-arrow" onclick="schoolSelectToggleFilterCategory(this)">▼</span>
+                </div>
+                <div class="filter-category-content" id="school-select-difficulty-tags"></div>
+              </div>
+            </div>
+            <div class="filters-modal-footer">
+              <button type="button" class="btn btn-secondary" onclick="applySchoolSelectFilters()">Применить изменения</button>
+              <button type="button" class="btn btn-secondary" onclick="cancelSchoolSelectFilters()">Отменить изменения</button>
+              <button type="button" class="btn btn-secondary" onclick="clearSchoolSelectFilters()">Очистить фильтры</button>
+            </div>
+          </div>
+        </div>
+        <div id="school-select-list" class="spell-select-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="school-select-cancel">
+          Отмена
+        </button>
+        <button type="button" class="btn btn-primary" id="school-select-apply">
+          Выбрать
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="spell-details-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="spell-details-title">Заклинание</h3>
+        <button type="button" class="modal-close-btn" id="spell-details-close" aria-label="Закрыть">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="spell-details-content"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Scroll to top button -->
   <button id="scroll-to-top" class="scroll-to-top" aria-label="Наверх">↑</button>
 
-  <script src="common.js?v=1.1"></script>
-  <script src="character-editor.js?v=1.0"></script>
+  <script src="common.js?v=1.3"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <script>
+    window.FIREBASE_CONFIG = {
+      apiKey: "AIzaSyClJ4mEng2FT46hhUILWFmHhAOep5GXUrI",
+      authDomain: "e-magios-core-site.firebaseapp.com",
+      projectId: "e-magios-core-site",
+      storageBucket: "e-magios-core-site.firebasestorage.app",
+      messagingSenderId: "682279052886",
+      appId: "1:682279052886:web:7525c0261bdf4fd5917df7",
+      measurementId: "G-ZM296D8VQG"
+    };
+  </script>
+
+  <script src="auth.js?v=1.2"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      initCharacterEditorAuth();
+    });
+  </script>
+
+  <script src="character-editor.js?v=2.3"></script>
 </body>
 </html>
 

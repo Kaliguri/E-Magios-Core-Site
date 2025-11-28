@@ -18,7 +18,7 @@ function showPasswordModal() {
   // Get current book name
   const bookKey = document.body.getAttribute('data-book');
   const bookInfo = BOOKS[bookKey];
-  const bookTitle = bookInfo ? `${bookInfo.icon} ${bookInfo.title}` : 'эта книга';
+  const bookTitle = bookInfo ? bookInfo.title : 'эта книга';
   
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
@@ -191,7 +191,6 @@ function smoothScrollTo(targetId) {
 const BOOKS = {
   phb: {
     title: 'Player\'s Handbook',
-    icon: '⚔️',
     locked: false,
     chapters: [
       { id: 'intro', title: 'Введение', file: 'phb/intro.html' },
@@ -218,7 +217,6 @@ const BOOKS = {
   },
   spellbook: {
     title: 'Spellbook',
-    icon: '🔮',
     locked: true,
     chapters: [
       { id: 'intro', title: 'Введение', file: 'spellbook/intro.html' },
@@ -233,7 +231,6 @@ const BOOKS = {
   },
   master: {
     title: 'Master\'s Handbook',
-    icon: '🎭',
     locked: true,
     chapters: [
       { id: 'intro', title: 'Введение', file: 'master/intro.html' },
@@ -246,7 +243,6 @@ const BOOKS = {
   },
   craftbook: {
     title: 'Craftbook',
-    icon: '⚒️',
     locked: true,
     chapters: [
       { id: 'intro', title: 'Введение', file: 'craftbook/intro.html' },
@@ -256,7 +252,6 @@ const BOOKS = {
   },
   rumors: {
     title: 'Compendium of Rumors',
-    icon: '💭',
     locked: true,
     chapters: [
       { id: 'intro', title: 'Введение', file: 'rumors/intro.html' },
@@ -275,9 +270,13 @@ function initSidebar() {
   const isHomePage = body.getAttribute('data-page') === 'home';
   
   const currentPage = body.getAttribute('data-page');
-  const isInSubfolder = currentBook !== null; // если есть data-book, значит мы в подпапке
+  const isInSubfolder = currentBook !== null;
   const homeLink = isInSubfolder ? '../index.html' : 'index.html';
+  const newsLink = isInSubfolder ? '../news.html' : 'news.html';
+  const profileLink = isInSubfolder ? '../profile.html' : 'profile.html';
   const isHomeActive = currentPage === 'home' ? 'active' : '';
+  const isNewsActive = currentPage === 'news' ? 'active' : '';
+  const isProfileActive = currentPage === 'profile' ? 'active' : '';
   
   let sidebarHTML = `
     <aside class="sidebar" id="sidebar">
@@ -286,13 +285,15 @@ function initSidebar() {
       </div>
       <nav class="sidebar-nav">
         <div class="sidebar-section">
-          <h3>📄 Главная</h3>
+          <h3>Главная</h3>
           <ul>
             <li><a href="${homeLink}" class="${isHomeActive}">Главная страница</a></li>
+            <li><a href="${profileLink}" class="${isProfileActive}">Профиль</a></li>
+            <li><a href="${newsLink}" class="${isNewsActive}">Новости</a></li>
           </ul>
         </div>
         <div class="sidebar-section">
-          <h3>📖 Книги</h3>
+          <h3>Книги</h3>
   `;
   
   // Generate book list with chapters
@@ -303,7 +304,7 @@ function initSidebar() {
     sidebarHTML += `
       <div class="book-item ${isCurrentBook ? 'active' : ''}">
         <div class="book-header" onclick="toggleBook('${bookKey}')">
-          <span>${book.icon} ${book.title}${lockIcon}</span>
+          <span>${book.title}${lockIcon}</span>
           <span class="toggle-icon">${isCurrentBook ? '▼' : '▶'}</span>
         </div>
         <ul class="chapter-list ${isCurrentBook ? 'expanded' : ''}">
@@ -330,10 +331,10 @@ function initSidebar() {
   sidebarHTML += `
         </div>
         <div class="sidebar-section">
-          <h3>⚙️ Инструменты</h3>
+          <h3>Инструменты</h3>
           <ul>
-            <li><a href="${isInSubfolder ? '../character-editor.html' : 'character-editor.html'}" class="${currentPage === 'editor' ? 'active' : ''}">📝 Редактор персонажей</a></li>
-            <li><a href="${isInSubfolder ? '../db.html' : 'db.html'}" class="${currentPage === 'db' ? 'active' : ''}">📊 База данных</a></li>
+            <li><a href="${isInSubfolder ? '../character-editor.html' : 'character-editor.html'}" class="${currentPage === 'editor' ? 'active' : ''}">Редактор персонажей</a></li>
+            <li><a href="${isInSubfolder ? '../db.html' : 'db.html'}" class="${currentPage === 'db' ? 'active' : ''}">База данных</a></li>
           </ul>
         </div>
       </nav>
@@ -391,17 +392,21 @@ function initScrollToTop() {
 
 // Character Editor helpers
 /**
- * Calculate stats based on level
+ * Расчёт базовых характеристик по уровню
+ * Соответствует описанию из главы «Характеристики» (Obsidian, 03. Характеристики).
  */
 function calculateStatsByLevel(level) {
+  const safeLevel = level >= 1 ? level : 1;
+
   return {
-    arcana: 4 + (level * 4),
-    evasion: 10 + (level * 4),
-    crafting: 4 + (level * 4),
-    fortitudeLow: 4 + (level * 2),
-    fortitudeMid: 8 + (level * 4),
-    fortitudeHigh: 12 + (level * 6),
-    spellSlots: 4 + ((level - 1) * 2)
+    arcana: safeLevel * 2,
+    evasion: 4 + (safeLevel * 2),
+    savingThrow: 2 + (safeLevel * 2),
+    crafting: 4 * safeLevel,
+    fortitudeLow: 4 + (safeLevel * 4),
+    fortitudeMid: 8 + (safeLevel * 8),
+    fortitudeHigh: 12 + (safeLevel * 12),
+    spellSlots: 4 + ((safeLevel - 1) * 2)
   };
 }
 

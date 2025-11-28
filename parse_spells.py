@@ -193,7 +193,8 @@ def parse_spell_file(filepath):
         "concentration": None,
         "maintenance": None,
         "school": "",
-        "source": "",
+        "requiredLevel": None,
+        "value": None,
         "supportMagic": "",
         "type": "",
         "trigger": None,
@@ -204,6 +205,13 @@ def parse_spell_file(filepath):
     lines = content.split('\n')
     current_section = None
     i = 0
+
+    # Специфичные поля для ритуалов (#### Требования к Ритуалу)
+    ritual_time_lines = []
+    ritual_participants_lines = []
+    ritual_components_lines = []
+    ritual_components_value = None
+    current_ritual_subsection = None
     
     while i < len(lines):
         line = lines[i].strip()
@@ -211,10 +219,24 @@ def parse_spell_file(filepath):
         # Detect subspells section
         is_subspell = False
         
-        # Check if this is a ##### heading (but not Параметры/Описание)
+        # Check if this is a ##### heading (but not Параметры/Описание).
+        # Для реальных подзаклинаний под ним дальше идут "###### Параметры/Описание".
+        # Служебные блоки вроде "Время проведения" для ритуалов не должны
+        # становиться подзаклинаниями.
         if line.startswith('#####') and not line.startswith('######'):
             if not (line.startswith('##### Параметры') or line.startswith('##### Описание')):
-                is_subspell = True
+                has_content = False
+                for j in range(i + 1, min(i + 20, len(lines))):
+                    next_line = lines[j].strip()
+                    # Ищем вложенные параметры/описание подзаклинания
+                    if next_line.startswith('###### Параметры') or next_line.startswith('###### Описание'):
+                        has_content = True
+                        break
+                    # Если встретили следующий заголовок того же уровня — выходим
+                    if next_line.startswith('#####') and not next_line.startswith('######'):
+                        break
+                if has_content:
+                    is_subspell = True
         # Check if this is a ###### heading - skip these entirely, they're internal structure
         elif line.startswith('######'):
             pass  # These are always internal to subspells, never subspells themselves
@@ -222,7 +244,7 @@ def parse_spell_file(filepath):
         elif line.startswith('####') and not line.startswith('#####'):
             if not (line.startswith('#### Параметры') or line.startswith('#### Описание')):
                 # Skip section headers
-                section_headers = ['Способы Использования', 'Контуры Усиления']
+                section_headers = ['Способы Использования', 'Контуры Усиления', 'Требования к Ритуалу']
                 if not any(header in line for header in section_headers):
                     # Check next few lines to see if there are parameters/description
                     has_content = False
@@ -250,6 +272,9 @@ def parse_spell_file(filepath):
             current_section = 'parameters'
         elif line.startswith('#### Описание'):
             current_section = 'description'
+        elif line.startswith('#### Требования к Ритуалу'):
+            current_section = 'ritual'
+            current_ritual_subsection = None
         elif line.startswith('___'):
             current_section = None
         
@@ -287,15 +312,49 @@ def parse_spell_file(filepath):
                             spell['maintenance'] = clean_markdown_formatting(match.group(1)).strip()
             elif '**Школа Магии**:' in line:
                 spell['school'] = strip_wikilinks_to_text(line.split(':', 1)[1])
-            elif '**Источник Заклинания**:' in line:
-                spell['source'] = strip_wikilinks_to_text(line.split(':', 1)[1])
+            elif '**Требование к Уровню**:' in line:
+                level_text = strip_wikilinks_to_text(line.split(':', 1)[1]).strip()
+                level_match = re.search(r'\d+', level_text)
+                if level_match:
+                    spell['requiredLevel'] = int(level_match.group(0))
+            elif '**Ценность**:' in line:
+                value_text = strip_wikilinks_to_text(line.split(':', 1)[1]).strip()
+                value_match = re.search(r'\d+', value_text)
+                if value_match:
+                    spell['value'] = int(value_match.group(0))
             elif '**Вспомогательная магия**:' in line:
                 spell['supportMagic'] = strip_wikilinks_to_text(line.split(':', 1)[1])
             elif '**Тип Действия**:' in line or '**Тип Заклинания**:' in line:
                 spell['type'] = strip_wikilinks_to_text(line.split(':', 1)[1])
             elif '**Триггер**:' in line:
                 spell['trigger'] = strip_wikilinks_to_text(line.split(':', 1)[1])
-        
+
+        # Parse ritual requirements
+        elif current_section == 'ritual':
+            # Подзаголовки ритуальных требований
+            if line.startswith('##### '):
+                header = strip_wikilinks_to_text(line.replace('#####', '').strip())
+                if header.startswith('Время проведения'):
+                    current_ritual_subsection = 'time'
+                elif header.startswith('Обязательные участники'):
+                    current_ritual_subsection = 'participants'
+                elif header.startswith('Требуемые компоненты'):
+                    current_ritual_subsection = 'components'
+                    # Попробуем вытащить ценность из скобок в заголовке
+                    match_val = re.search(r'Ценность:\s*([^)]+)', header)
+                    if match_val:
+                        ritual_components_value = match_val.group(1).strip()
+                else:
+                    current_ritual_subsection = None
+            else:
+                # Накопление текста по текущему подразделу
+                if current_ritual_subsection == 'time' and line and not line.startswith('#'):
+                    ritual_time_lines.append(line)
+                elif current_ritual_subsection == 'participants' and line and not line.startswith('#'):
+                    ritual_participants_lines.append(line)
+                elif current_ritual_subsection == 'components' and line and not line.startswith('#'):
+                    ritual_components_lines.append(line)
+
         # Parse description with paragraph breaks
         elif current_section == 'description':
             if not line:
@@ -315,6 +374,22 @@ def parse_spell_file(filepath):
     if spell['description']:
         desc_html = convert_wikilinks_in_text(spell['description'], base_prefix='')
         spell['description'] = clean_markdown_formatting(desc_html)
+
+    # Собираем структуру ритуала, если есть данные
+    ritual = {}
+    if ritual_time_lines:
+        time_html = convert_wikilinks_in_text('\n\n'.join(ritual_time_lines), base_prefix='')
+        ritual['time'] = clean_markdown_formatting(time_html)
+    if ritual_participants_lines:
+        part_html = convert_wikilinks_in_text('\n\n'.join(ritual_participants_lines), base_prefix='')
+        ritual['participants'] = clean_markdown_formatting(part_html)
+    if ritual_components_lines:
+        comp_html = convert_wikilinks_in_text('\n\n'.join(ritual_components_lines), base_prefix='')
+        ritual['components'] = clean_markdown_formatting(comp_html)
+    if ritual_components_value:
+        ritual['componentsValue'] = ritual_components_value
+    if ritual:
+        spell['ritual'] = ritual
     
     # Remove None/empty fields (but keep non-empty arrays)
     spell_clean = {}
