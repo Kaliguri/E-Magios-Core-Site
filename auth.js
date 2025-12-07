@@ -15,6 +15,11 @@ function initFirebaseApp() {
     return null;
   }
 
+  // Переиспользуем уже инициализированное приложение, если оно есть
+  if (firebase.apps && firebase.apps.length > 0) {
+    return firebase.apps[0];
+  }
+
   try {
     const app = firebase.initializeApp(window.FIREBASE_CONFIG);
     return app;
@@ -169,6 +174,28 @@ function initCharacterEditorAuth() {
 
     if (typeof window.onAuthUserChanged === 'function') {
       window.onAuthUserChanged(user);
+    }
+  });
+}
+
+/**
+ * Универсальный слушатель авторизации для небольших виджетов (например, бросков кубов).
+ * Не рисует собственный UI, а просто прокидывает пользователя в переданный callback.
+ */
+function initDiceAuth(onUserChanged) {
+  const app = initFirebaseApp();
+  if (!app || typeof firebase === 'undefined' || !firebase.auth) {
+    if (typeof onUserChanged === 'function') {
+      onUserChanged(null);
+    }
+    return;
+  }
+
+  const auth = firebase.auth();
+
+  auth.onAuthStateChanged(function (user) {
+    if (typeof onUserChanged === 'function') {
+      onUserChanged(user);
     }
   });
 }

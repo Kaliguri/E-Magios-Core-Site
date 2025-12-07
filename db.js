@@ -8,6 +8,11 @@ let actionsData = [];
 let skillsData = [];
 let actionTypesData = [];
 let combatComponentsData = [];
+let craftComponentsData = [];
+let craftProfessionsData = [];
+let craftSpecializationsData = [];
+let recipeTypesData = [];
+let recipesData = [];
 
 let currentSpellSort = { field: 'name', ascending: true };
 let currentSchoolSort = { field: 'name', ascending: true };
@@ -17,13 +22,19 @@ let currentActionSort = { field: 'name', ascending: true };
 let currentSkillSort = { field: 'name', ascending: true };
 let currentActionTypeSort = { field: 'name', ascending: true };
 let currentCombatSort = { field: 'name', ascending: true };
+let currentCraftComponentSort = { field: 'name', ascending: true };
+let currentCraftProfessionSort = { field: 'name', ascending: true };
+let currentCraftSpecializationSort = { field: 'name', ascending: true };
+let currentRecipeTypeSort = { field: 'name', ascending: true };
+let currentRecipeSort = { field: 'name', ascending: true };
 
 let spellFilters = {
   type: [],
   school: [],
   damage: [],
   concentration: [],
-  requiredLevel: []
+  requiredLevel: [],
+  signature: [] // фильтр по наличию бонуса фирменного заклинания ("Да" / "Нет")
 };
 
 let tempSpellFilters = {
@@ -31,7 +42,8 @@ let tempSpellFilters = {
   school: [],
   damage: [],
   concentration: [],
-  requiredLevel: []
+  requiredLevel: [],
+  signature: []
 };
 
 let schoolFilters = {
@@ -68,6 +80,22 @@ let actionFilters = {
 
 let tempActionFilters = {
   kind: []
+};
+
+let recipeFilters = {
+  profession: [],
+  specialization: [],
+  recipeLevel: [],
+  recipeRarity: [],
+  recipeType: []
+};
+
+let tempRecipeFilters = {
+  profession: [],
+  specialization: [],
+  recipeLevel: [],
+  recipeRarity: [],
+  recipeType: []
 };
 
 function splitToArray(value) {
@@ -219,6 +247,69 @@ function collectSkillTypes() {
   return values;
 }
 
+function collectRecipeProfessions() {
+  const values = [];
+  recipesData.forEach(function (recipe) {
+    if (recipe.profession && values.indexOf(recipe.profession) === -1) {
+      values.push(recipe.profession);
+    }
+  });
+  values.sort();
+  return values;
+}
+
+function collectRecipeSpecializations() {
+  const values = [];
+  recipesData.forEach(function (recipe) {
+    if (recipe.specialization && values.indexOf(recipe.specialization) === -1) {
+      values.push(recipe.specialization);
+    }
+  });
+  values.sort();
+  return values;
+}
+
+function collectRecipeLevels() {
+  const values = [];
+  recipesData.forEach(function (recipe) {
+    if (typeof recipe.recipeLevel === 'number') {
+      const level = String(recipe.recipeLevel);
+      if (values.indexOf(level) === -1) {
+        values.push(level);
+      }
+    }
+  });
+  values.sort(function (a, b) {
+    return Number(a) - Number(b);
+  });
+  return values;
+}
+
+function collectRecipeRarities() {
+  const values = [];
+  recipesData.forEach(function (recipe) {
+    if (recipe.recipeRarity && values.indexOf(recipe.recipeRarity) === -1) {
+      values.push(recipe.recipeRarity);
+    }
+  });
+  values.sort();
+  return values;
+}
+
+function collectRecipeTypes() {
+  const values = [];
+  recipesData.forEach(function (recipe) {
+    const types = recipe.recipeTypes || [];
+    types.forEach(function (t) {
+      if (t && values.indexOf(t) === -1) {
+        values.push(t);
+      }
+    });
+  });
+  values.sort();
+  return values;
+}
+
 function toggleFilterCategory(headerElement) {
   const category = headerElement.closest('.filter-category');
   if (category) {
@@ -302,6 +393,11 @@ document.addEventListener('DOMContentLoaded', async function () {
   const skillId = urlParams.get('skill');
   const actionTypeId = urlParams.get('actionType');
   const combatId = urlParams.get('combat');
+   const craftComponentId = urlParams.get('craftComponent');
+   const craftProfessionId = urlParams.get('craftProfession');
+   const craftSpecializationId = urlParams.get('craftSpecialization');
+   const recipeTypeId = urlParams.get('recipeType');
+   const recipeId = urlParams.get('recipe');
   const openSpellFilters = urlParams.get('openSpellFilters');
 
   const detailModal = document.getElementById('spell-detail-modal');
@@ -336,12 +432,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
   } else {
     const openTab = urlParams.get('openTab');
-    if (openTab && ['spells', 'schools', 'archetypes', 'actions', 'effects', 'skills', 'action-types', 'combat'].indexOf(openTab) !== -1) {
+    if (openTab && ['spells', 'schools', 'archetypes', 'actions', 'effects', 'skills', 'action-types', 'combat', 'craft-components', 'craft-professions', 'craft-specializations', 'recipe-types', 'recipes'].indexOf(openTab) !== -1) {
       switchTab(openTab);
     } else {
       // Restore active tab
       const savedTab = sessionStorage.getItem('db_activeTab');
-      if (savedTab && ['spells', 'schools', 'archetypes', 'actions', 'effects', 'skills', 'action-types', 'combat'].indexOf(savedTab) !== -1) {
+      if (savedTab && ['spells', 'schools', 'archetypes', 'actions', 'effects', 'skills', 'action-types', 'combat', 'craft-components', 'craft-professions', 'craft-specializations', 'recipe-types', 'recipes'].indexOf(savedTab) !== -1) {
         switchTab(savedTab);
       }
     }
@@ -355,6 +451,11 @@ document.addEventListener('DOMContentLoaded', async function () {
   filterAndDisplaySkills();
   filterAndDisplayActionTypes();
   filterAndDisplayCombat();
+  filterAndDisplayCraftComponents();
+  filterAndDisplayCraftProfessions();
+  filterAndDisplayCraftSpecializations();
+  filterAndDisplayRecipeTypes();
+  filterAndDisplayRecipes();
 
   updateClearButtonsVisibility();
 
@@ -376,6 +477,16 @@ document.addEventListener('DOMContentLoaded', async function () {
     showActionTypePage(actionTypeId);
   } else if (combatId) {
     showCombatPage(combatId);
+  } else if (craftComponentId) {
+    showCraftComponentPage(craftComponentId);
+  } else if (craftProfessionId) {
+    showCraftProfessionPage(craftProfessionId);
+  } else if (craftSpecializationId) {
+    showCraftSpecializationPage(craftSpecializationId);
+  } else if (recipeTypeId) {
+    showRecipeTypePage(recipeTypeId);
+  } else if (recipeId) {
+    showRecipePage(recipeId);
   }
 });
 
@@ -388,7 +499,12 @@ async function loadAllData() {
     loadActions(),
     loadSkills(),
     loadActionTypes(),
-    loadCombatComponents()
+    loadCombatComponents(),
+    loadCraftComponents(),
+    loadCraftProfessions(),
+    loadCraftSpecializations(),
+    loadRecipeTypes(),
+    loadRecipes()
   ]);
 }
 
@@ -472,6 +588,56 @@ async function loadCombatComponents() {
   }
 }
 
+async function loadCraftComponents() {
+  try {
+    const response = await fetch('./data/craft_components.json', { cache: 'no-store' });
+    craftComponentsData = await response.json();
+  } catch (error) {
+    console.error('Error loading craft components:', error);
+    craftComponentsData = [];
+  }
+}
+
+async function loadCraftProfessions() {
+  try {
+    const response = await fetch('./data/craft_professions.json', { cache: 'no-store' });
+    craftProfessionsData = await response.json();
+  } catch (error) {
+    console.error('Error loading craft professions:', error);
+    craftProfessionsData = [];
+  }
+}
+
+async function loadCraftSpecializations() {
+  try {
+    const response = await fetch('./data/craft_specializations.json', { cache: 'no-store' });
+    craftSpecializationsData = await response.json();
+  } catch (error) {
+    console.error('Error loading craft specializations:', error);
+    craftSpecializationsData = [];
+  }
+}
+
+async function loadRecipeTypes() {
+  try {
+    const response = await fetch('./data/recipe_types.json', { cache: 'no-store' });
+    recipeTypesData = await response.json();
+  } catch (error) {
+    console.error('Error loading recipe types:', error);
+    recipeTypesData = [];
+  }
+}
+
+async function loadRecipes() {
+  try {
+    const response = await fetch('./data/recipes.json', { cache: 'no-store' });
+    recipesData = await response.json();
+  } catch (error) {
+    console.error('Error loading recipes:', error);
+    recipesData = [];
+  }
+}
+
 function initializeDynamicFilters() {
   // Для заклинаний используем полный список типов действий из базы типов действий,
   // чтобы фильтры охватывали всю типологию (даже если часть типов пока не задействована в заклинаниях)
@@ -489,12 +655,14 @@ function initializeDynamicFilters() {
   const spellSchoolOptions = collectSpellOptions('school', true);
   const spellDamageOptions = collectSpellOptions('damageType', true);
   const spellConcentrationOptions = ['Да', 'Нет'];
+  const spellSignatureOptions = ['Да', 'Нет'];
   const spellLevelOptions = collectSpellRequiredLevels();
 
   createFilterTags('spell-type-tags', spellTypeOptions, 'type', tempSpellFilters);
   createFilterTags('spell-school-tags', spellSchoolOptions, 'school', tempSpellFilters);
   createFilterTags('spell-damage-tags', spellDamageOptions, 'damage', tempSpellFilters);
   createFilterTags('spell-concentration-tags', spellConcentrationOptions, 'concentration', tempSpellFilters);
+  createFilterTags('spell-signature-tags', spellSignatureOptions, 'signature', tempSpellFilters);
   createFilterTags('spell-level-tags', spellLevelOptions, 'requiredLevel', tempSpellFilters);
 
   const rarityOptions = collectSchoolRarities();
@@ -513,6 +681,19 @@ function initializeDynamicFilters() {
 
   const actionKindOptions = ['Базовое', 'Отдых'];
   createFilterTags('action-kind-tags', actionKindOptions, 'kind', tempActionFilters);
+
+  // Рецепты ремесла
+  const recipeProfessionOptions = collectRecipeProfessions();
+  const recipeSpecializationOptions = collectRecipeSpecializations();
+  const recipeLevelOptions = collectRecipeLevels();
+  const recipeRarityOptions = collectRecipeRarities();
+  const recipeTypeOptions = collectRecipeTypes();
+
+  createFilterTags('recipe-profession-tags', recipeProfessionOptions, 'profession', tempRecipeFilters);
+  createFilterTags('recipe-specialization-tags', recipeSpecializationOptions, 'specialization', tempRecipeFilters);
+  createFilterTags('recipe-level-tags', recipeLevelOptions, 'recipeLevel', tempRecipeFilters);
+  createFilterTags('recipe-rarity-tags', recipeRarityOptions, 'recipeRarity', tempRecipeFilters);
+  createFilterTags('recipe-type-tags', recipeTypeOptions, 'recipeType', tempRecipeFilters);
 }
 
 function setupFilterListeners() {
@@ -577,6 +758,14 @@ function setupFilterListeners() {
     combatName.addEventListener('input', function() {
       saveFiltersToSession();
       filterAndDisplayCombat();
+    });
+  }
+
+  const recipeName = document.getElementById('recipe-name');
+  if (recipeName) {
+    recipeName.addEventListener('input', function() {
+      saveFiltersToSession();
+      filterAndDisplayRecipes();
     });
   }
 }
@@ -719,6 +908,37 @@ function toggleFiltersPanel(tabName) {
           tag.classList.remove('active');
         }
       });
+    } else if (tabName === 'recipes') {
+      tempRecipeFilters.profession = recipeFilters.profession.slice();
+      tempRecipeFilters.specialization = recipeFilters.specialization.slice();
+      tempRecipeFilters.recipeLevel = recipeFilters.recipeLevel.slice();
+      tempRecipeFilters.recipeRarity = recipeFilters.recipeRarity.slice();
+      tempRecipeFilters.recipeType = recipeFilters.recipeType.slice();
+
+      document.querySelectorAll('#recipes-filters-panel .filter-tag').forEach(function (tag) {
+        const value = tag.getAttribute('data-value');
+        const categoryElement = tag.closest('.filter-category');
+        const categoryName = categoryElement ? categoryElement.getAttribute('data-category') : null;
+
+        let isActive = false;
+        if (categoryName === 'profession') {
+          isActive = tempRecipeFilters.profession.indexOf(value) !== -1;
+        } else if (categoryName === 'specialization') {
+          isActive = tempRecipeFilters.specialization.indexOf(value) !== -1;
+        } else if (categoryName === 'recipeLevel') {
+          isActive = tempRecipeFilters.recipeLevel.indexOf(value) !== -1;
+        } else if (categoryName === 'recipeRarity') {
+          isActive = tempRecipeFilters.recipeRarity.indexOf(value) !== -1;
+        } else if (categoryName === 'recipeType') {
+          isActive = tempRecipeFilters.recipeType.indexOf(value) !== -1;
+        }
+
+        if (isActive) {
+          tag.classList.add('active');
+        } else {
+          tag.classList.remove('active');
+        }
+      });
     }
     
     panel.classList.add('open');
@@ -797,6 +1017,20 @@ function filterAndDisplaySpells() {
       }
     }
 
+    if (spellFilters.signature.length) {
+      const hasSignatureBonus = spellHasSignatureBonus(spell);
+      const needsSignature = spellFilters.signature.indexOf('Да') !== -1;
+      const needsNoSignature = spellFilters.signature.indexOf('Нет') !== -1;
+
+      if (needsSignature && needsNoSignature) {
+        // оба варианта выбраны — не фильтруем по этому признаку
+      } else if (needsSignature && !hasSignatureBonus) {
+        return false;
+      } else if (needsNoSignature && hasSignatureBonus) {
+        return false;
+      }
+    }
+
     if (spellFilters.requiredLevel.length) {
       const level = typeof spell.requiredLevel === 'number' ? String(spell.requiredLevel) : null;
       if (!level || spellFilters.requiredLevel.indexOf(level) === -1) {
@@ -868,6 +1102,7 @@ function clearSpellFilters() {
   tempSpellFilters.damage = [];
   tempSpellFilters.concentration = [];
   tempSpellFilters.requiredLevel = [];
+  tempSpellFilters.signature = [];
   
   document.querySelectorAll('#spells-filters-panel .filter-tag.active').forEach(function (tag) {
     tag.classList.remove('active');
@@ -880,6 +1115,7 @@ function applySpellFilters() {
   spellFilters.damage = tempSpellFilters.damage.slice();
   spellFilters.concentration = tempSpellFilters.concentration.slice();
   spellFilters.requiredLevel = tempSpellFilters.requiredLevel.slice();
+  spellFilters.signature = tempSpellFilters.signature.slice();
   
   saveFiltersToSession();
   filterAndDisplaySpells();
@@ -893,6 +1129,7 @@ function cancelSpellFilters() {
   tempSpellFilters.damage = spellFilters.damage.slice();
   tempSpellFilters.concentration = spellFilters.concentration.slice();
   tempSpellFilters.requiredLevel = spellFilters.requiredLevel.slice();
+  tempSpellFilters.signature = spellFilters.signature.slice();
   
   document.querySelectorAll('#spells-filters-panel .filter-tag').forEach(function (tag) {
     const value = tag.getAttribute('data-value');
@@ -908,6 +1145,8 @@ function cancelSpellFilters() {
       isActive = tempSpellFilters.damage.indexOf(value) !== -1;
     } else if (categoryName === 'concentration') {
       isActive = tempSpellFilters.concentration.indexOf(value) !== -1;
+    } else if (categoryName === 'signature') {
+      isActive = tempSpellFilters.signature.indexOf(value) !== -1;
     } else if (categoryName === 'requiredLevel') {
       isActive = tempSpellFilters.requiredLevel.indexOf(value) !== -1;
     }
@@ -1125,6 +1364,34 @@ function renderSpellDescription(text) {
     .join('');
 }
 
+// Оборачиваем формулы бросков (2d4, 3d8, 2d4+1 и т.п.) в кликабельные ссылки
+// spellName — название заклинания для контекста, source — строковый идентификатор источника
+function linkifyDiceExpressions(html, spellName, source) {
+  if (!html) {
+    return html;
+  }
+  var safeSpell = spellName || '';
+  var safeSource = source || 'db-spell';
+
+  return String(html).replace(/\b(\d{1,3})d(2|4|6|8|10|12|20|100)([+\-]\d+)?\b/g, function (match) {
+    var expr = match;
+    var escapedExpr = expr.replace(/"/g, '&quot;');
+    var escapedSpell = safeSpell.replace(/"/g, '&quot;');
+    var escapedSource = safeSource.replace(/"/g, '&quot;');
+    return (
+      '<a href="javascript:void(0)" class="dice-roll-link" data-dice-expression="' +
+      escapedExpr +
+      '" data-spell-name="' +
+      escapedSpell +
+      '" data-dice-source="' +
+      escapedSource +
+      '">' +
+      match +
+      '</a>'
+    );
+  });
+}
+
 function formatActionLabel(actionType) {
   const style = 'style="color: var(--accent-emerald); text-decoration: none;"';
   if (actionType === 'Реакция') {
@@ -1318,6 +1585,19 @@ function sortArray(array, field, ascending) {
       return 0;
     }
 
+    // Числовая сортировка для уровня рецепта
+    if (field === 'recipeLevel') {
+      valA = Number(valA) || 0;
+      valB = Number(valB) || 0;
+      if (valA < valB) {
+        return ascending ? -1 : 1;
+      }
+      if (valA > valB) {
+        return ascending ? 1 : -1;
+      }
+      return 0;
+    }
+
     valA = String(valA).toLowerCase();
     valB = String(valB).toLowerCase();
 
@@ -1369,6 +1649,11 @@ function restoreActiveFilterTags() {
       tag.classList.add('active');
     }
   });
+  document.querySelectorAll('#spell-signature-tags .filter-tag').forEach(function (tag) {
+    if (spellFilters.signature.indexOf(tag.textContent) !== -1) {
+      tag.classList.add('active');
+    }
+  });
   document.querySelectorAll('#spell-level-tags .filter-tag').forEach(function (tag) {
     if (spellFilters.requiredLevel.indexOf(tag.textContent) !== -1) {
       tag.classList.add('active');
@@ -1410,6 +1695,32 @@ function restoreActiveFilterTags() {
       tag.classList.add('active');
     }
   });
+
+  document.querySelectorAll('#recipe-profession-tags .filter-tag').forEach(function (tag) {
+    if (recipeFilters.profession.indexOf(tag.textContent) !== -1) {
+      tag.classList.add('active');
+    }
+  });
+  document.querySelectorAll('#recipe-specialization-tags .filter-tag').forEach(function (tag) {
+    if (recipeFilters.specialization.indexOf(tag.textContent) !== -1) {
+      tag.classList.add('active');
+    }
+  });
+  document.querySelectorAll('#recipe-level-tags .filter-tag').forEach(function (tag) {
+    if (recipeFilters.recipeLevel.indexOf(tag.textContent) !== -1) {
+      tag.classList.add('active');
+    }
+  });
+  document.querySelectorAll('#recipe-rarity-tags .filter-tag').forEach(function (tag) {
+    if (recipeFilters.recipeRarity.indexOf(tag.textContent) !== -1) {
+      tag.classList.add('active');
+    }
+  });
+  document.querySelectorAll('#recipe-type-tags .filter-tag').forEach(function (tag) {
+    if (recipeFilters.recipeType.indexOf(tag.textContent) !== -1) {
+      tag.classList.add('active');
+    }
+  });
 }
 
 /**
@@ -1422,6 +1733,7 @@ function saveFiltersToSession() {
     sessionStorage.setItem('db_effectFilters', JSON.stringify(effectFilters));
     sessionStorage.setItem('db_skillFilters', JSON.stringify(skillFilters));
     sessionStorage.setItem('db_actionFilters', JSON.stringify(actionFilters));
+    sessionStorage.setItem('db_recipeFilters', JSON.stringify(recipeFilters));
     sessionStorage.setItem('db_spellSort', JSON.stringify(currentSpellSort));
     sessionStorage.setItem('db_schoolSort', JSON.stringify(currentSchoolSort));
     sessionStorage.setItem('db_effectSort', JSON.stringify(currentEffectSort));
@@ -1430,6 +1742,11 @@ function saveFiltersToSession() {
     sessionStorage.setItem('db_skillSort', JSON.stringify(currentSkillSort));
     sessionStorage.setItem('db_actionTypeSort', JSON.stringify(currentActionTypeSort));
     sessionStorage.setItem('db_combatSort', JSON.stringify(currentCombatSort));
+    sessionStorage.setItem('db_craftComponentSort', JSON.stringify(currentCraftComponentSort));
+    sessionStorage.setItem('db_craftProfessionSort', JSON.stringify(currentCraftProfessionSort));
+    sessionStorage.setItem('db_craftSpecializationSort', JSON.stringify(currentCraftSpecializationSort));
+    sessionStorage.setItem('db_recipeTypeSort', JSON.stringify(currentRecipeTypeSort));
+    sessionStorage.setItem('db_recipeSort', JSON.stringify(currentRecipeSort));
     
     // Save search inputs
     const spellName = document.getElementById('spell-name');
@@ -1440,6 +1757,11 @@ function saveFiltersToSession() {
     const skillName = document.getElementById('skill-name');
     const actionTypeName = document.getElementById('action-type-name');
     const combatName = document.getElementById('combat-name');
+    const craftComponentName = document.getElementById('craft-component-name');
+    const craftProfessionName = document.getElementById('craft-profession-name');
+    const craftSpecializationName = document.getElementById('craft-specialization-name');
+    const recipeTypeName = document.getElementById('recipe-type-name');
+    const recipeName = document.getElementById('recipe-name');
     
     if (spellName) sessionStorage.setItem('db_spellName', spellName.value);
     if (schoolName) sessionStorage.setItem('db_schoolName', schoolName.value);
@@ -1449,6 +1771,11 @@ function saveFiltersToSession() {
     if (skillName) sessionStorage.setItem('db_skillName', skillName.value);
     if (actionTypeName) sessionStorage.setItem('db_actionTypeName', actionTypeName.value);
     if (combatName) sessionStorage.setItem('db_combatName', combatName.value);
+    if (craftComponentName) sessionStorage.setItem('db_craftComponentName', craftComponentName.value);
+    if (craftProfessionName) sessionStorage.setItem('db_craftProfessionName', craftProfessionName.value);
+    if (craftSpecializationName) sessionStorage.setItem('db_craftSpecializationName', craftSpecializationName.value);
+    if (recipeTypeName) sessionStorage.setItem('db_recipeTypeName', recipeTypeName.value);
+    if (recipeName) sessionStorage.setItem('db_recipeName', recipeName.value);
   } catch (e) {
     console.error('Failed to save filters:', e);
   }
@@ -1464,6 +1791,7 @@ function loadFiltersFromSession() {
     const savedEffectFilters = sessionStorage.getItem('db_effectFilters');
     const savedSkillFilters = sessionStorage.getItem('db_skillFilters');
     const savedActionFilters = sessionStorage.getItem('db_actionFilters');
+    const savedRecipeFilters = sessionStorage.getItem('db_recipeFilters');
     const savedSpellSort = sessionStorage.getItem('db_spellSort');
     const savedSchoolSort = sessionStorage.getItem('db_schoolSort');
     const savedEffectSort = sessionStorage.getItem('db_effectSort');
@@ -1472,6 +1800,11 @@ function loadFiltersFromSession() {
     const savedSkillSort = sessionStorage.getItem('db_skillSort');
     const savedActionTypeSort = sessionStorage.getItem('db_actionTypeSort');
     const savedCombatSort = sessionStorage.getItem('db_combatSort');
+    const savedCraftComponentSort = sessionStorage.getItem('db_craftComponentSort');
+    const savedCraftProfessionSort = sessionStorage.getItem('db_craftProfessionSort');
+    const savedCraftSpecializationSort = sessionStorage.getItem('db_craftSpecializationSort');
+    const savedRecipeTypeSort = sessionStorage.getItem('db_recipeTypeSort');
+    const savedRecipeSort = sessionStorage.getItem('db_recipeSort');
     
     if (savedSpellFilters) {
       const parsed = JSON.parse(savedSpellFilters);
@@ -1480,6 +1813,7 @@ function loadFiltersFromSession() {
       spellFilters.damage = parsed.damage || [];
       spellFilters.concentration = parsed.concentration || [];
       spellFilters.requiredLevel = parsed.requiredLevel || [];
+      spellFilters.signature = parsed.signature || [];
       
       // Copy to temp filters
       tempSpellFilters.type = spellFilters.type.slice();
@@ -1487,6 +1821,7 @@ function loadFiltersFromSession() {
       tempSpellFilters.damage = spellFilters.damage.slice();
       tempSpellFilters.concentration = spellFilters.concentration.slice();
       tempSpellFilters.requiredLevel = spellFilters.requiredLevel.slice();
+      tempSpellFilters.signature = spellFilters.signature.slice();
     }
     
     if (savedSchoolFilters) {
@@ -1521,6 +1856,21 @@ function loadFiltersFromSession() {
       actionFilters.kind = parsed.kind || [];
 
       tempActionFilters.kind = actionFilters.kind.slice();
+    }
+
+    if (savedRecipeFilters) {
+      const parsed = JSON.parse(savedRecipeFilters);
+      recipeFilters.profession = parsed.profession || [];
+      recipeFilters.specialization = parsed.specialization || [];
+      recipeFilters.recipeLevel = parsed.recipeLevel || [];
+      recipeFilters.recipeRarity = parsed.recipeRarity || [];
+      recipeFilters.recipeType = parsed.recipeType || [];
+
+      tempRecipeFilters.profession = recipeFilters.profession.slice();
+      tempRecipeFilters.specialization = recipeFilters.specialization.slice();
+      tempRecipeFilters.recipeLevel = recipeFilters.recipeLevel.slice();
+      tempRecipeFilters.recipeRarity = recipeFilters.recipeRarity.slice();
+      tempRecipeFilters.recipeType = recipeFilters.recipeType.slice();
     }
 
     if (savedSpellSort) {
@@ -1602,6 +1952,56 @@ function loadFiltersFromSession() {
         currentCombatSort.ascending = parsedSort.ascending;
       }
     }
+
+    if (savedCraftComponentSort) {
+      const parsedSort = JSON.parse(savedCraftComponentSort);
+      if (parsedSort.field) {
+        currentCraftComponentSort.field = parsedSort.field;
+      }
+      if (typeof parsedSort.ascending === 'boolean') {
+        currentCraftComponentSort.ascending = parsedSort.ascending;
+      }
+    }
+
+    if (savedCraftProfessionSort) {
+      const parsedSort = JSON.parse(savedCraftProfessionSort);
+      if (parsedSort.field) {
+        currentCraftProfessionSort.field = parsedSort.field;
+      }
+      if (typeof parsedSort.ascending === 'boolean') {
+        currentCraftProfessionSort.ascending = parsedSort.ascending;
+      }
+    }
+
+    if (savedCraftSpecializationSort) {
+      const parsedSort = JSON.parse(savedCraftSpecializationSort);
+      if (parsedSort.field) {
+        currentCraftSpecializationSort.field = parsedSort.field;
+      }
+      if (typeof parsedSort.ascending === 'boolean') {
+        currentCraftSpecializationSort.ascending = parsedSort.ascending;
+      }
+    }
+
+    if (savedRecipeTypeSort) {
+      const parsedSort = JSON.parse(savedRecipeTypeSort);
+      if (parsedSort.field) {
+        currentRecipeTypeSort.field = parsedSort.field;
+      }
+      if (typeof parsedSort.ascending === 'boolean') {
+        currentRecipeTypeSort.ascending = parsedSort.ascending;
+      }
+    }
+
+    if (savedRecipeSort) {
+      const parsedSort = JSON.parse(savedRecipeSort);
+      if (parsedSort.field) {
+        currentRecipeSort.field = parsedSort.field;
+      }
+      if (typeof parsedSort.ascending === 'boolean') {
+        currentRecipeSort.ascending = parsedSort.ascending;
+      }
+    }
     
     // Restore search inputs
     const spellName = document.getElementById('spell-name');
@@ -1612,6 +2012,11 @@ function loadFiltersFromSession() {
     const skillName = document.getElementById('skill-name');
     const actionTypeName = document.getElementById('action-type-name');
     const combatName = document.getElementById('combat-name');
+    const craftComponentName = document.getElementById('craft-component-name');
+    const craftProfessionName = document.getElementById('craft-profession-name');
+    const craftSpecializationName = document.getElementById('craft-specialization-name');
+    const recipeTypeName = document.getElementById('recipe-type-name');
+    const recipeName = document.getElementById('recipe-name');
     
     if (spellName) spellName.value = sessionStorage.getItem('db_spellName') || '';
     if (schoolName) schoolName.value = sessionStorage.getItem('db_schoolName') || '';
@@ -1621,6 +2026,11 @@ function loadFiltersFromSession() {
     if (skillName) skillName.value = sessionStorage.getItem('db_skillName') || '';
     if (actionTypeName) actionTypeName.value = sessionStorage.getItem('db_actionTypeName') || '';
     if (combatName) combatName.value = sessionStorage.getItem('db_combatName') || '';
+    if (craftComponentName) craftComponentName.value = sessionStorage.getItem('db_craftComponentName') || '';
+    if (craftProfessionName) craftProfessionName.value = sessionStorage.getItem('db_craftProfessionName') || '';
+    if (craftSpecializationName) craftSpecializationName.value = sessionStorage.getItem('db_craftSpecializationName') || '';
+    if (recipeTypeName) recipeTypeName.value = sessionStorage.getItem('db_recipeTypeName') || '';
+    if (recipeName) recipeName.value = sessionStorage.getItem('db_recipeName') || '';
   } catch (e) {
     console.error('Failed to load filters:', e);
   }
@@ -1838,7 +2248,11 @@ function buildSpellDetailHtml(spell) {
       
       if (subSpell.description) {
         subSpellsHTML += '<h4 style="margin-top: var(--spacing-md); margin-bottom: var(--spacing-sm); font-size: 1.0em;">Описание</h4>';
-        subSpellsHTML += renderSpellDescription(subSpell.description);
+        subSpellsHTML += linkifyDiceExpressions(
+          renderSpellDescription(subSpell.description),
+          spell.name,
+          'db-subspell-description'
+        );
       }
       
       subSpellsHTML += '</div></div>';
@@ -1905,7 +2319,9 @@ function buildSpellDetailHtml(spell) {
   // Основное описание заклинания
   let descriptionHTML = '';
   if (spell.description) {
-    descriptionHTML = '<h3>Описание</h3>' + renderSpellDescription(spell.description);
+    descriptionHTML =
+      '<h3>Описание</h3>' +
+      linkifyDiceExpressions(renderSpellDescription(spell.description), spell.name, 'db-spell-description');
   }
 
   return (
@@ -1927,10 +2343,50 @@ function buildSpellDetailHtml(spell) {
   );
 }
 
+function extractSpellRollInfo(spell) {
+  const result = {
+    hitBonus: null,
+    applyBonus: null
+  };
+
+  if (!spell || !spell.description) {
+    return result;
+  }
+
+  const text = String(spell.description);
+
+  try {
+    const hitMatch = text.match(/Бросок на попадание[\s\S]*?\(([+-]?\d+)\)/);
+    if (hitMatch && hitMatch[1] !== undefined) {
+      const hitValue = parseInt(hitMatch[1], 10);
+      if (!Number.isNaN(hitValue)) {
+        result.hitBonus = hitValue;
+      }
+    }
+  } catch (e) {
+    // no-op
+  }
+
+  try {
+    const applyMatch = text.match(/Бросок на наложение эффекта[\s\S]*?\(([+-]?\d+)\)/);
+    if (applyMatch && applyMatch[1] !== undefined) {
+      const applyValue = parseInt(applyMatch[1], 10);
+      if (!Number.isNaN(applyValue)) {
+        result.applyBonus = applyValue;
+      }
+    }
+  } catch (e) {
+    // no-op
+  }
+
+  return result;
+}
+
 function openDbDetailModal(title, html) {
   const overlay = document.getElementById('spell-detail-modal');
   const titleElement = document.getElementById('spell-detail-title');
   const contentElement = document.getElementById('spell-detail-content');
+  const footerElement = document.getElementById('spell-detail-footer');
 
   if (!overlay || !titleElement || !contentElement) {
     return;
@@ -1938,7 +2394,20 @@ function openDbDetailModal(title, html) {
 
   titleElement.textContent = title;
   contentElement.innerHTML = html;
+
+  // Очищаем нижнюю панель, чтобы не тянуть кнопки между разными типами сущностей
+  if (footerElement) {
+    footerElement.innerHTML = '';
+  }
+
   overlay.classList.remove('hidden');
+
+  // Привязываем кнопки бросков кубов, если они есть в контенте
+  try {
+    setupSpellRollButtons(title);
+  } catch (e) {
+    // no-op
+  }
 
   // Блокируем прокрутку основной страницы, пока открыт поп-ап
   try {
@@ -1947,6 +2416,118 @@ function openDbDetailModal(title, html) {
   } catch (e) {
     // no-op
   }
+}
+
+function setupSpellRollButtons(spellName) {
+  const footer = document.getElementById('spell-detail-footer');
+  if (!footer) {
+    return;
+  }
+
+  const buttons = footer.querySelectorAll('.spell-roll-btn');
+  if (!buttons || !buttons.length) {
+    return;
+  }
+
+  buttons.forEach(function (button) {
+    button.addEventListener('click', function () {
+      if (typeof openDiceRollerPanel === 'function') {
+        openDiceRollerPanel();
+      }
+
+      if (typeof handleDiceRollCommand !== 'function') {
+        console.error('Dice roller is not available.');
+        return;
+      }
+
+      const rawType = button.getAttribute('data-roll-type') || '';
+      const bonusAttr = button.getAttribute('data-roll-bonus') || '0';
+      const bonus = parseInt(bonusAttr, 10);
+      const safeBonus = Number.isNaN(bonus) ? 0 : bonus;
+
+      let expression = '1d12';
+      if (safeBonus > 0) {
+        expression += '+' + safeBonus;
+      } else if (safeBonus < 0) {
+        expression += safeBonus;
+      }
+
+      const label = button.textContent || '';
+
+      handleDiceRollCommand(expression, {
+        label: label,
+        spell: spellName,
+        source: 'db-spell-' + rawType
+      });
+    });
+  });
+}
+
+function renderSpellRollFooter(spell, rollInfo) {
+  const footer = document.getElementById('spell-detail-footer');
+  if (!footer) {
+    return;
+  }
+
+  footer.innerHTML = '';
+
+  if (!spell || !spell.name) {
+    return;
+  }
+
+  const hasHit = rollInfo.hitBonus !== null && rollInfo.hitBonus !== undefined;
+  const hasApply = rollInfo.applyBonus !== null && rollInfo.applyBonus !== undefined;
+  const hitLabelBonus =
+    hasHit && typeof rollInfo.hitBonus === 'number'
+      ? rollInfo.hitBonus >= 0
+        ? '+' + rollInfo.hitBonus
+        : String(rollInfo.hitBonus)
+      : '+0';
+  const applyLabelBonus =
+    hasApply && typeof rollInfo.applyBonus === 'number'
+      ? rollInfo.applyBonus >= 0
+        ? '+' + rollInfo.applyBonus
+        : String(rollInfo.applyBonus)
+      : '+0';
+
+  let html = '<div class="spell-roll-buttons">';
+
+  html +=
+    '<button type="button" class="btn btn-primary btn-sm spell-roll-btn" data-roll-type="arcana" data-roll-bonus="0">' +
+    'Бросок на Аркану (+0)' +
+    '</button>';
+
+  html +=
+    '<button type="button" class="btn btn-primary btn-sm spell-roll-btn' +
+    (hasHit ? '' : ' spell-roll-btn-disabled') +
+    '" data-roll-type="hit" data-roll-bonus="' +
+    (hasHit && typeof rollInfo.hitBonus === 'number' ? rollInfo.hitBonus : 0) +
+    '"' +
+    (hasHit ? '' : ' disabled') +
+    '>' +
+    'Бросок на попадание (' +
+    hitLabelBonus +
+    ')' +
+    '</button>';
+
+  html +=
+    '<button type="button" class="btn btn-primary btn-sm spell-roll-btn' +
+    (hasApply ? '' : ' spell-roll-btn-disabled') +
+    '" data-roll-type="apply" data-roll-bonus="' +
+    (hasApply && typeof rollInfo.applyBonus === 'number' ? rollInfo.applyBonus : 0) +
+    '"' +
+    (hasApply ? '' : ' disabled') +
+    '>' +
+    'Бросок на наложение эффекта (' +
+    applyLabelBonus +
+    ')' +
+    '</button>';
+
+  html += '</div>';
+
+  footer.innerHTML = html;
+
+  setupSpellRollButtons(spell.name);
 }
 
 function toggleSubSpell(subId) {
@@ -1985,6 +2566,10 @@ function showSpellPage(spellId) {
   }
   document.title = spell.name + ' — E\'Magios Core';
   openDbDetailModal(spell.name, buildSpellDetailHtml(spell));
+
+  // После открытия модального окна рендерим нижнюю панель бросков
+  const rollInfo = extractSpellRollInfo(spell);
+  renderSpellRollFooter(spell, rollInfo);
 }
 
 /**
@@ -2314,23 +2899,52 @@ function buildSummary(text, maxLength) {
     return '—';
   }
 
+  // Убираем HTML‑теги, чтобы в таблицах были «чистые» описания без разметки
+  var plain = clean.replace(/<[^>]*>/g, ' ');
+  plain = plain.replace(/\s+/g, ' ').trim();
+
+  if (!plain.length) {
+    return '—';
+  }
+
+  // Убираем служебные фразы вроде «Тип Действия X…» и «Связано с …»,
+  // чтобы в таблице не дублировалось название и не было «третьего раздела»
+  plain = plain.replace(/^Тип Действия\s+[^.]*\.\s*/u, '');
+  plain = plain.replace(/^Связано с\s+[^.]*\.\s*/u, '');
+
+  if (!plain.length) {
+    return '—';
+  }
+
   // Обрезаем по первому переводу строки
-  var newlineIndex = clean.indexOf('\n');
+  var newlineIndex = plain.indexOf('\n');
   if (newlineIndex !== -1) {
-    clean = clean.slice(0, newlineIndex).trim();
+    plain = plain.slice(0, newlineIndex).trim();
   }
 
   // Если есть точка достаточно рано — берём первое предложение
-  var sentenceEnd = clean.indexOf('.');
+  var sentenceEnd = plain.indexOf('.');
   if (sentenceEnd !== -1 && sentenceEnd < maxLength) {
-    return clean.slice(0, sentenceEnd + 1).trim();
+    return plain.slice(0, sentenceEnd + 1).trim();
   }
 
-  if (clean.length <= maxLength) {
-    return clean;
+  if (plain.length <= maxLength) {
+    return plain;
   }
 
-  return clean.slice(0, maxLength - 1).trimEnd() + '…';
+  return plain.slice(0, maxLength - 1).trimEnd() + '…';
+}
+
+/**
+ * Определить, есть ли у заклинания блок «Бонус Фирменного Заклинания»
+ */
+function spellHasSignatureBonus(spell) {
+  if (!spell || !spell.description) {
+    return false;
+  }
+  const text = String(spell.description);
+  // ищем заголовок/фразу бонуса фирменного заклинания
+  return text.indexOf('Бонус Фирменного Заклинания') !== -1;
 }
 
 function showActionTypePage(actionTypeId) {
@@ -2418,6 +3032,272 @@ function showCombatPage(combatId) {
     '<p class="text-muted"><strong>Связи:</strong> <a href="phb/combat.html" style="color: var(--accent-emerald); text-decoration: none;">Боевая система</a></p>';
 
   openDbDetailModal(component.name, html);
+}
+
+function showCraftComponentPage(componentId) {
+  const component = craftComponentsData.find(function (c) {
+    return c.id === componentId;
+  });
+  if (!component) {
+    return;
+  }
+
+  document.title = component.name + ' — E\'Magios Core';
+
+  const description = component.description || '—';
+  const html =
+    '<h3>Описание</h3>' +
+    renderSpellDescription(description) +
+    '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
+    '<p class="text-muted"><strong>Связи:</strong> <a href="craftbook/intro.html" style="color: var(--accent-emerald); text-decoration: none;">Ремесленная система</a></p>';
+
+  openDbDetailModal(component.name, html);
+}
+
+function showCraftProfessionPage(professionId) {
+  const profession = craftProfessionsData.find(function (p) {
+    return p.id === professionId;
+  });
+  if (!profession) {
+    return;
+  }
+
+  document.title = profession.name + ' — E\'Magios Core';
+
+  const description = profession.description || '—';
+  let specsHtml = '';
+  if (profession.specializations && profession.specializations.length) {
+    specsHtml = '<h3>Специализации</h3><ul>';
+    profession.specializations.forEach(function (name) {
+      const spec = craftSpecializationsData.find(function (s) {
+        return s.profession === profession.name && s.name === name;
+      });
+      if (spec) {
+        specsHtml +=
+          '<li><a href="javascript:void(0)" onclick="showCraftSpecializationPage(\'' +
+          spec.id +
+          '\')" style="color: var(--accent-emerald); text-decoration: none;">' +
+          name +
+          '</a></li>';
+      } else {
+        specsHtml += '<li>' + name + '</li>';
+      }
+    });
+    specsHtml += '</ul>';
+  }
+
+  const html =
+    '<h3>Описание</h3>' +
+    renderSpellDescription(description) +
+    specsHtml +
+    '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
+    '<p class="text-muted"><strong>Связи:</strong> <a href="craftbook/magical-crafts.html" style="color: var(--accent-emerald); text-decoration: none;">Ремесленные профессии</a></p>';
+
+  openDbDetailModal(profession.name, html);
+}
+
+function showCraftSpecializationPage(specializationId) {
+  const specialization = craftSpecializationsData.find(function (s) {
+    return s.id === specializationId;
+  });
+  if (!specialization) {
+    return;
+  }
+
+  document.title = specialization.name + ' — E\'Magios Core';
+
+  const description = specialization.description || '—';
+  const professionName = specialization.profession || null;
+
+  let params = [];
+  if (professionName) {
+    const prof = craftProfessionsData.find(function (p) {
+      return p.name === professionName;
+    });
+    if (prof) {
+      params.push(
+        '<li><strong>Профессия:</strong> <a href="javascript:void(0)" onclick="showCraftProfessionPage(\'' +
+          prof.id +
+          '\')" style="color: var(--accent-emerald); text-decoration: none;">' +
+          professionName +
+          '</a></li>'
+      );
+    } else {
+      params.push('<li><strong>Профессия:</strong> ' + professionName + '</li>');
+    }
+  }
+
+  let html = '';
+  if (params.length) {
+    html += '<h3>Параметры</h3><ul>' + params.join('') + '</ul><h3>Описание</h3>';
+  }
+
+  html +=
+    renderSpellDescription(description) +
+    '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
+    '<p class="text-muted"><strong>Связи:</strong> <a href="craftbook/magical-crafts.html" style="color: var(--accent-emerald); text-decoration: none;">Ремесленные специализации</a></p>';
+
+  openDbDetailModal(specialization.name, html);
+}
+
+function showRecipeTypePage(recipeTypeId) {
+  let type = recipeTypesData.find(function (t) {
+    return t.id === recipeTypeId;
+  });
+
+  if (!type) {
+    type = recipeTypesData.find(function (t) {
+      return t.name === recipeTypeId;
+    });
+  }
+
+  if (!type) {
+    return;
+  }
+
+  document.title = type.name + ' — E\'Magios Core';
+
+  const description = type.description || '—';
+
+  // Найдём рецепты этого типа
+  const related = recipesData.filter(function (r) {
+    const types = r.recipeTypes || [];
+    return types.indexOf(type.name) !== -1;
+  });
+
+  let relatedHtml = '';
+  if (related.length) {
+    relatedHtml =
+      '<h3>Рецепты этого типа</h3><ul>' +
+      related
+        .map(function (r) {
+          return (
+            '<li><a href="javascript:void(0)" onclick="showRecipePage(\'' +
+            r.id +
+            '\')" style="color: var(--accent-emerald); text-decoration: none;">' +
+            r.name +
+            '</a></li>'
+          );
+        })
+        .join('') +
+      '</ul>';
+  }
+
+  const html =
+    '<h3>Описание</h3>' +
+    renderSpellDescription(description) +
+    relatedHtml +
+    '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
+    '<p class="text-muted"><strong>Связи:</strong> <a href="craftbook/magical-crafts.html" style="color: var(--accent-emerald); text-decoration: none;">Типы рецептов</a></p>';
+
+  openDbDetailModal(type.name, html);
+}
+
+function showRecipePage(recipeId) {
+  const recipe = recipesData.find(function (r) {
+    return r.id === recipeId;
+  });
+  if (!recipe) {
+    return;
+  }
+
+  document.title = recipe.name + ' — E\'Magios Core';
+
+  const params = [];
+  if (recipe.profession) {
+    const prof = craftProfessionsData.find(function (p) {
+      return p.name === recipe.profession;
+    });
+    if (prof) {
+      params.push(
+        '<li><strong>Профессия:</strong> <a href="javascript:void(0)" onclick="showCraftProfessionPage(\'' +
+          prof.id +
+          '\')" style="color: var(--accent-emerald); text-decoration: none;">' +
+          recipe.profession +
+          '</a></li>'
+      );
+    } else {
+      params.push('<li><strong>Профессия:</strong> ' + recipe.profession + '</li>');
+    }
+  }
+
+  if (recipe.specialization) {
+    const spec = craftSpecializationsData.find(function (s) {
+      return s.name === recipe.specialization && (!recipe.profession || s.profession === recipe.profession);
+    });
+    if (spec) {
+      params.push(
+        '<li><strong>Специализация:</strong> <a href="javascript:void(0)" onclick="showCraftSpecializationPage(\'' +
+          spec.id +
+          '\')" style="color: var(--accent-emerald); text-decoration: none;">' +
+          recipe.specialization +
+          '</a></li>'
+      );
+    } else {
+      params.push('<li><strong>Специализация:</strong> ' + recipe.specialization + '</li>');
+    }
+  }
+
+  if (typeof recipe.recipeLevel === 'number') {
+    params.push('<li><strong>Уровень Рецепта:</strong> ' + recipe.recipeLevel + '</li>');
+  }
+
+  if (recipe.recipeRarity) {
+    params.push('<li><strong>Редкость Рецепта:</strong> ' + recipe.recipeRarity + '</li>');
+  }
+
+  if (recipe.recipeCost) {
+    params.push('<li><strong>Стоимость Рецепта:</strong> ' + recipe.recipeCost + '</li>');
+  }
+
+  if (recipe.recipeTypes && recipe.recipeTypes.length) {
+    const typesHtml = recipe.recipeTypes
+      .map(function (typeName) {
+        const type = recipeTypesData.find(function (t) {
+          return t.name === typeName;
+        });
+        if (type) {
+          return (
+            '<a href="javascript:void(0)" onclick="showRecipeTypePage(\'' +
+            type.id +
+            '\')" style="color: var(--accent-emerald); text-decoration: none;">' +
+            typeName +
+            '</a>'
+          );
+        }
+        return typeName;
+      })
+      .join(', ');
+    params.push('<li><strong>Тип Рецепта:</strong> ' + typesHtml + '</li>');
+  }
+
+  let html = '';
+  if (params.length) {
+    html += '<h3>Параметры</h3><ul>' + params.join('') + '</ul>';
+  }
+
+  if (recipe.steps && recipe.steps.length) {
+    html += '<h3>Этапы Создания</h3><ol>';
+    recipe.steps.forEach(function (step) {
+      const progress = typeof step.progress === 'number' ? ' — Очки Прогресса: ' + step.progress : '';
+      html += '<li>' + step.name + progress + '</li>';
+    });
+    html += '</ol>';
+  }
+
+  if (recipe.craftingNotes) {
+    html += '<h3>Процесс создания</h3>' + renderSpellDescription(recipe.craftingNotes);
+  }
+
+  if (recipe.itemDescription) {
+    html += '<h3>Описание предмета</h3>' + renderSpellDescription(recipe.itemDescription);
+  }
+
+  html +=
+    '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
+    '<p class="text-muted"><strong>Связи:</strong> <a href="craftbook/magical-crafts.html" style="color: var(--accent-emerald); text-decoration: none;">Ремесленная система</a></p>';
+
+  openDbDetailModal(recipe.name, html);
 }
 
 function displayArchetypes(archetypes) {
@@ -2688,12 +3568,311 @@ function sortCombat(field) {
   saveFiltersToSession();
 }
 
+function displayCraftComponents(components) {
+  const tbody = document.getElementById('craft-components-results');
+  const count = document.getElementById('craft-components-count');
+
+  count.textContent = `${components.length} ${getPlural(components.length, 'компонент', 'компонента', 'компонентов')}`;
+
+  if (!components.length) {
+    tbody.innerHTML = '<tr><td colspan="2" class="no-results">Ничего не найдено</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = components
+    .map(function (component) {
+      const desc = component.description || '';
+      const summary = buildSummary(desc, 120);
+      return (
+        '<tr>' +
+        `<td><strong><a href="javascript:void(0)" onclick="showCraftComponentPage('${component.id}')" style="color: var(--accent-emerald); text-decoration: none;">${component.name}</a></strong></td>` +
+        `<td>${summary}</td>` +
+        '</tr>'
+      );
+    })
+    .join('');
+}
+
+function filterAndDisplayCraftComponents() {
+  const nameInput = document.getElementById('craft-component-name');
+  const searchName = nameInput ? nameInput.value.toLowerCase() : '';
+
+  let filtered = craftComponentsData.filter(function (component) {
+    if (searchName && component.name.toLowerCase().indexOf(searchName) === -1) {
+      return false;
+    }
+    return true;
+  });
+
+  filtered = sortArray(filtered, currentCraftComponentSort.field, currentCraftComponentSort.ascending);
+  displayCraftComponents(filtered);
+}
+
+function sortCraftComponents(field) {
+  if (currentCraftComponentSort.field === field) {
+    currentCraftComponentSort.ascending = !currentCraftComponentSort.ascending;
+  } else {
+    currentCraftComponentSort.field = field;
+    currentCraftComponentSort.ascending = true;
+  }
+  filterAndDisplayCraftComponents();
+  saveFiltersToSession();
+}
+
+function displayCraftProfessions(professions) {
+  const tbody = document.getElementById('craft-professions-results');
+  const count = document.getElementById('craft-professions-count');
+
+  count.textContent = `${professions.length} ${getPlural(professions.length, 'профессия', 'профессии', 'профессий')}`;
+
+  if (!professions.length) {
+    tbody.innerHTML = '<tr><td colspan="2" class="no-results">Ничего не найдено</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = professions
+    .map(function (profession) {
+      const desc = profession.description || '';
+      const summary = buildSummary(desc, 160);
+      return (
+        '<tr>' +
+        `<td><strong><a href="javascript:void(0)" onclick="showCraftProfessionPage('${profession.id}')" style="color: var(--accent-emerald); text-decoration: none;">${profession.name}</a></strong></td>` +
+        `<td>${summary}</td>` +
+        '</tr>'
+      );
+    })
+    .join('');
+}
+
+function filterAndDisplayCraftProfessions() {
+  const nameInput = document.getElementById('craft-profession-name');
+  const searchName = nameInput ? nameInput.value.toLowerCase() : '';
+
+  let filtered = craftProfessionsData.filter(function (profession) {
+    if (searchName && profession.name.toLowerCase().indexOf(searchName) === -1) {
+      return false;
+    }
+    return true;
+  });
+
+  filtered = sortArray(filtered, currentCraftProfessionSort.field, currentCraftProfessionSort.ascending);
+  displayCraftProfessions(filtered);
+}
+
+function sortCraftProfessions(field) {
+  if (currentCraftProfessionSort.field === field) {
+    currentCraftProfessionSort.ascending = !currentCraftProfessionSort.ascending;
+  } else {
+    currentCraftProfessionSort.field = field;
+    currentCraftProfessionSort.ascending = true;
+  }
+  filterAndDisplayCraftProfessions();
+  saveFiltersToSession();
+}
+
+function displayCraftSpecializations(specializations) {
+  const tbody = document.getElementById('craft-specializations-results');
+  const count = document.getElementById('craft-specializations-count');
+
+  count.textContent = `${specializations.length} ${getPlural(specializations.length, 'специализация', 'специализации', 'специализаций')}`;
+
+  if (!specializations.length) {
+    tbody.innerHTML = '<tr><td colspan="3" class="no-results">Ничего не найдено</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = specializations
+    .map(function (spec) {
+      const desc = spec.description || '';
+      const summary = buildSummary(desc, 140);
+      const profession = spec.profession || '—';
+      return (
+        '<tr>' +
+        `<td><strong><a href="javascript:void(0)" onclick="showCraftSpecializationPage('${spec.id}')" style="color: var(--accent-emerald); text-decoration: none;">${spec.name}</a></strong></td>` +
+        `<td>${profession}</td>` +
+        `<td>${summary}</td>` +
+        '</tr>'
+      );
+    })
+    .join('');
+}
+
+function filterAndDisplayCraftSpecializations() {
+  const nameInput = document.getElementById('craft-specialization-name');
+  const searchName = nameInput ? nameInput.value.toLowerCase() : '';
+
+  let filtered = craftSpecializationsData.filter(function (spec) {
+    if (searchName && spec.name.toLowerCase().indexOf(searchName) === -1) {
+      return false;
+    }
+    return true;
+  });
+
+  filtered = sortArray(filtered, currentCraftSpecializationSort.field, currentCraftSpecializationSort.ascending);
+  displayCraftSpecializations(filtered);
+}
+
+function sortCraftSpecializations(field) {
+  if (currentCraftSpecializationSort.field === field) {
+    currentCraftSpecializationSort.ascending = !currentCraftSpecializationSort.ascending;
+  } else {
+    currentCraftSpecializationSort.field = field;
+    currentCraftSpecializationSort.ascending = true;
+  }
+  filterAndDisplayCraftSpecializations();
+  saveFiltersToSession();
+}
+
+function displayRecipeTypes(types) {
+  const tbody = document.getElementById('recipe-types-results');
+  const count = document.getElementById('recipe-types-count');
+
+  count.textContent = `${types.length} ${getPlural(types.length, 'тип', 'типа', 'типов')}`;
+
+  if (!types.length) {
+    tbody.innerHTML = '<tr><td colspan="2" class="no-results">Ничего не найдено</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = types
+    .map(function (type) {
+      const desc = type.description || '';
+      const summary = buildSummary(desc, 120);
+      return (
+        '<tr>' +
+        `<td><strong><a href="javascript:void(0)" onclick="showRecipeTypePage('${type.id}')" style="color: var(--accent-emerald); text-decoration: none;">${type.name}</a></strong></td>` +
+        `<td>${summary}</td>` +
+        '</tr>'
+      );
+    })
+    .join('');
+}
+
+function filterAndDisplayRecipeTypes() {
+  const nameInput = document.getElementById('recipe-type-name');
+  const searchName = nameInput ? nameInput.value.toLowerCase() : '';
+
+  let filtered = recipeTypesData.filter(function (type) {
+    if (searchName && type.name.toLowerCase().indexOf(searchName) === -1) {
+      return false;
+    }
+    return true;
+  });
+
+  filtered = sortArray(filtered, currentRecipeTypeSort.field, currentRecipeTypeSort.ascending);
+  displayRecipeTypes(filtered);
+}
+
+function sortRecipeTypes(field) {
+  if (currentRecipeTypeSort.field === field) {
+    currentRecipeTypeSort.ascending = !currentRecipeTypeSort.ascending;
+  } else {
+    currentRecipeTypeSort.field = field;
+    currentRecipeTypeSort.ascending = true;
+  }
+  filterAndDisplayRecipeTypes();
+  saveFiltersToSession();
+}
+
+function displayRecipes(recipes) {
+  const tbody = document.getElementById('recipes-results');
+  const count = document.getElementById('recipes-count');
+
+  count.textContent = `${recipes.length} ${getPlural(recipes.length, 'рецепт', 'рецепта', 'рецептов')}`;
+
+  if (!recipes.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="no-results">Ничего не найдено</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = recipes
+    .map(function (recipe) {
+      const prof = recipe.profession || '—';
+      const spec = recipe.specialization || '—';
+      const level = typeof recipe.recipeLevel === 'number' ? String(recipe.recipeLevel) : (recipe.recipeLevel || '—');
+      const rarity = recipe.recipeRarity || '—';
+      return (
+        '<tr>' +
+        `<td><strong><a href="javascript:void(0)" onclick="showRecipePage('${recipe.id}')" style="color: var(--accent-emerald); text-decoration: none;">${recipe.name}</a></strong></td>` +
+        `<td>${prof}</td>` +
+        `<td>${spec}</td>` +
+        `<td style="white-space: nowrap;">${level}</td>` +
+        `<td>${rarity}</td>` +
+        '</tr>'
+      );
+    })
+    .join('');
+}
+
+function filterAndDisplayRecipes() {
+  const nameInput = document.getElementById('recipe-name');
+  const searchName = nameInput ? nameInput.value.toLowerCase() : '';
+
+  let filtered = recipesData.filter(function (recipe) {
+    if (searchName && recipe.name.toLowerCase().indexOf(searchName) === -1) {
+      return false;
+    }
+
+    if (recipeFilters.profession.length) {
+      const prof = recipe.profession || '';
+      if (recipeFilters.profession.indexOf(prof) === -1) {
+        return false;
+      }
+    }
+
+    if (recipeFilters.specialization.length) {
+      const spec = recipe.specialization || '';
+      if (recipeFilters.specialization.indexOf(spec) === -1) {
+        return false;
+      }
+    }
+
+    if (recipeFilters.recipeLevel.length) {
+      const level = typeof recipe.recipeLevel === 'number' ? String(recipe.recipeLevel) : null;
+      if (!level || recipeFilters.recipeLevel.indexOf(level) === -1) {
+        return false;
+      }
+    }
+
+    if (recipeFilters.recipeRarity.length) {
+      const rarity = recipe.recipeRarity || '';
+      if (recipeFilters.recipeRarity.indexOf(rarity) === -1) {
+        return false;
+      }
+    }
+
+    if (recipeFilters.recipeType.length) {
+      const types = recipe.recipeTypes || [];
+      if (!hasAny(types, recipeFilters.recipeType)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  filtered = sortArray(filtered, currentRecipeSort.field, currentRecipeSort.ascending);
+  displayRecipes(filtered);
+}
+
+function sortRecipes(field) {
+  if (currentRecipeSort.field === field) {
+    currentRecipeSort.ascending = !currentRecipeSort.ascending;
+  } else {
+    currentRecipeSort.field = field;
+    currentRecipeSort.ascending = true;
+  }
+  filterAndDisplayRecipes();
+  saveFiltersToSession();
+}
+
 function hasActiveSpellFilters() {
   return spellFilters.type.length > 0 ||
          spellFilters.school.length > 0 ||
          spellFilters.damage.length > 0 ||
          spellFilters.concentration.length > 0 ||
-         spellFilters.requiredLevel.length > 0;
+         spellFilters.requiredLevel.length > 0 ||
+         spellFilters.signature.length > 0;
 }
 
 function hasActiveSchoolFilters() {
@@ -2714,12 +3893,23 @@ function hasActiveActionFilters() {
   return actionFilters.kind.length > 0;
 }
 
+function hasActiveRecipeFilters() {
+  return (
+    recipeFilters.profession.length > 0 ||
+    recipeFilters.specialization.length > 0 ||
+    recipeFilters.recipeLevel.length > 0 ||
+    recipeFilters.recipeRarity.length > 0 ||
+    recipeFilters.recipeType.length > 0
+  );
+}
+
 function updateClearButtonsVisibility() {
   const spellClearBtn = document.getElementById('spell-filters-clear');
   const schoolClearBtn = document.getElementById('school-filters-clear');
   const effectClearBtn = document.getElementById('effect-filters-clear');
   const skillClearBtn = document.getElementById('skill-filters-clear');
   const actionClearBtn = document.getElementById('action-filters-clear');
+  const recipeClearBtn = document.getElementById('recipe-filters-clear');
   
   if (spellClearBtn) {
     if (hasActiveSpellFilters()) {
@@ -2760,6 +3950,14 @@ function updateClearButtonsVisibility() {
       actionClearBtn.classList.remove('visible');
     }
   }
+
+  if (recipeClearBtn) {
+    if (hasActiveRecipeFilters()) {
+      recipeClearBtn.classList.add('visible');
+    } else {
+      recipeClearBtn.classList.remove('visible');
+    }
+  }
 }
 
 function quickClearSpellFilters() {
@@ -2768,12 +3966,14 @@ function quickClearSpellFilters() {
   spellFilters.damage = [];
   spellFilters.concentration = [];
   spellFilters.requiredLevel = [];
+  spellFilters.signature = [];
   
   tempSpellFilters.type = [];
   tempSpellFilters.school = [];
   tempSpellFilters.damage = [];
   tempSpellFilters.concentration = [];
   tempSpellFilters.requiredLevel = [];
+  tempSpellFilters.signature = [];
   
   saveFiltersToSession();
   filterAndDisplaySpells();
@@ -2886,6 +4086,84 @@ function quickClearActionFilters() {
 
   saveFiltersToSession();
   filterAndDisplayActions();
+  updateClearButtonsVisibility();
+}
+
+function clearRecipeFilters() {
+  tempRecipeFilters.profession = [];
+  tempRecipeFilters.specialization = [];
+  tempRecipeFilters.recipeLevel = [];
+  tempRecipeFilters.recipeRarity = [];
+  tempRecipeFilters.recipeType = [];
+
+  document.querySelectorAll('#recipes-filters-panel .filter-tag.active').forEach(function (tag) {
+    tag.classList.remove('active');
+  });
+}
+
+function applyRecipeFilters() {
+  recipeFilters.profession = tempRecipeFilters.profession.slice();
+  recipeFilters.specialization = tempRecipeFilters.specialization.slice();
+  recipeFilters.recipeLevel = tempRecipeFilters.recipeLevel.slice();
+  recipeFilters.recipeRarity = tempRecipeFilters.recipeRarity.slice();
+  recipeFilters.recipeType = tempRecipeFilters.recipeType.slice();
+
+  saveFiltersToSession();
+  filterAndDisplayRecipes();
+  updateClearButtonsVisibility();
+  closeFiltersPanel();
+}
+
+function cancelRecipeFilters() {
+  tempRecipeFilters.profession = recipeFilters.profession.slice();
+  tempRecipeFilters.specialization = recipeFilters.specialization.slice();
+  tempRecipeFilters.recipeLevel = recipeFilters.recipeLevel.slice();
+  tempRecipeFilters.recipeRarity = recipeFilters.recipeRarity.slice();
+  tempRecipeFilters.recipeType = recipeFilters.recipeType.slice();
+
+  document.querySelectorAll('#recipes-filters-panel .filter-tag').forEach(function (tag) {
+    const value = tag.getAttribute('data-value');
+    const categoryElement = tag.closest('.filter-category');
+    const categoryName = categoryElement ? categoryElement.getAttribute('data-category') : null;
+
+    let isActive = false;
+    if (categoryName === 'profession') {
+      isActive = tempRecipeFilters.profession.indexOf(value) !== -1;
+    } else if (categoryName === 'specialization') {
+      isActive = tempRecipeFilters.specialization.indexOf(value) !== -1;
+    } else if (categoryName === 'recipeLevel') {
+      isActive = tempRecipeFilters.recipeLevel.indexOf(value) !== -1;
+    } else if (categoryName === 'recipeRarity') {
+      isActive = tempRecipeFilters.recipeRarity.indexOf(value) !== -1;
+    } else if (categoryName === 'recipeType') {
+      isActive = tempRecipeFilters.recipeType.indexOf(value) !== -1;
+    }
+
+    if (isActive) {
+      tag.classList.add('active');
+    } else {
+      tag.classList.remove('active');
+    }
+  });
+
+  closeFiltersPanel();
+}
+
+function quickClearRecipeFilters() {
+  recipeFilters.profession = [];
+  recipeFilters.specialization = [];
+  recipeFilters.recipeLevel = [];
+  recipeFilters.recipeRarity = [];
+  recipeFilters.recipeType = [];
+
+  tempRecipeFilters.profession = [];
+  tempRecipeFilters.specialization = [];
+  tempRecipeFilters.recipeLevel = [];
+  tempRecipeFilters.recipeRarity = [];
+  tempRecipeFilters.recipeType = [];
+
+  saveFiltersToSession();
+  filterAndDisplayRecipes();
   updateClearButtonsVisibility();
 }
 

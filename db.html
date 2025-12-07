@@ -39,6 +39,7 @@
       gap: var(--spacing-sm);
       margin-bottom: var(--spacing-lg);
       border-bottom: 2px solid var(--border-color);
+      flex-wrap: wrap;
     }
 
     .tab {
@@ -91,6 +92,22 @@
     .results-table table {
       margin: 0;
       border: none;
+    }
+
+    /* Ширина колонок для таблиц с описанием (Типы действий, Боевая система) */
+    #action-types-tab table th:first-child,
+    #action-types-tab table td:first-child,
+    #combat-tab table th:first-child,
+    #combat-tab table td:first-child {
+      white-space: nowrap;
+      width: 260px;
+    }
+
+    #action-types-tab table th:nth-child(2),
+    #action-types-tab table td:nth-child(2),
+    #combat-tab table th:nth-child(2),
+    #combat-tab table td:nth-child(2) {
+      width: auto;
     }
 
     .results-table th {
@@ -517,6 +534,15 @@
       list-style-position: inside;
     }
 
+    #spell-detail-modal .spell-detail-footer {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 0.3rem var(--spacing-lg) 0.5rem;
+      border-top: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+    }
+
     #spell-detail-modal .modal-close-btn {
       background: none;
       border: none;
@@ -572,6 +598,11 @@
         <button class="tab" data-tab="skills" onclick="switchTab('skills')">Навыки</button>
         <button class="tab" data-tab="action-types" onclick="switchTab('action-types')">Типы Действий</button>
         <button class="tab" data-tab="combat" onclick="switchTab('combat')">Боевая система</button>
+        <button class="tab" data-tab="craft-components" onclick="switchTab('craft-components')">Ремесленная система</button>
+        <button class="tab" data-tab="craft-professions" onclick="switchTab('craft-professions')">Профессии ремесла</button>
+        <button class="tab" data-tab="craft-specializations" onclick="switchTab('craft-specializations')">Специализации ремесла</button>
+        <button class="tab" data-tab="recipe-types" onclick="switchTab('recipe-types')">Типы Рецептов</button>
+        <button class="tab" data-tab="recipes" onclick="switchTab('recipes')">Рецепты</button>
       </div>
 
       <!-- Spells Tab -->
@@ -647,6 +678,18 @@
                     <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
                   </div>
                   <div class="filter-category-content" id="spell-concentration-tags"></div>
+                </div>
+
+                <div class="filter-category" data-category="signature">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Фирменное Заклинание</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('spell-signature-tags', 'signature', tempSpellFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('spell-signature-tags', 'signature', tempSpellFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="spell-signature-tags"></div>
                 </div>
 
                 <div class="filter-category" data-category="requiredLevel">
@@ -1051,6 +1094,237 @@
           </table>
         </div>
       </div>
+
+      <!-- Craft Components Tab -->
+      <div id="craft-components-tab" class="tab-content">
+        <div class="results-header">
+          <h3>Компоненты ремесленной системы</h3>
+          <span class="results-count" id="craft-components-count">0 компонентов</span>
+        </div>
+
+        <div class="filters">
+          <div class="filters-row">
+            <div class="form-group">
+              <input type="text" id="craft-component-name" placeholder="Поиск по названию">
+            </div>
+          </div>
+        </div>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" onclick="sortCraftComponents('name')">Название</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody id="craft-components-results">
+              <tr><td colspan="2" class="no-results">Загрузка...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Craft Professions Tab -->
+      <div id="craft-professions-tab" class="tab-content">
+        <div class="results-header">
+          <h3>Профессии ремесла</h3>
+          <span class="results-count" id="craft-professions-count">0 профессий</span>
+        </div>
+
+        <div class="filters">
+          <div class="filters-row">
+            <div class="form-group">
+              <input type="text" id="craft-profession-name" placeholder="Поиск по названию">
+            </div>
+          </div>
+        </div>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" onclick="sortCraftProfessions('name')">Название</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody id="craft-professions-results">
+              <tr><td colspan="2" class="no-results">Загрузка...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Craft Specializations Tab -->
+      <div id="craft-specializations-tab" class="tab-content">
+        <div class="results-header">
+          <h3>Специализации ремесла</h3>
+          <span class="results-count" id="craft-specializations-count">0 специализаций</span>
+        </div>
+
+        <div class="filters">
+          <div class="filters-row">
+            <div class="form-group">
+              <input type="text" id="craft-specialization-name" placeholder="Поиск по названию">
+            </div>
+          </div>
+        </div>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" onclick="sortCraftSpecializations('name')">Название</th>
+                <th class="sortable" onclick="sortCraftSpecializations('profession')">Профессия</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody id="craft-specializations-results">
+              <tr><td colspan="3" class="no-results">Загрузка...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recipe Types Tab -->
+      <div id="recipe-types-tab" class="tab-content">
+        <div class="results-header">
+          <h3>Типы Рецептов</h3>
+          <span class="results-count" id="recipe-types-count">0 типов</span>
+        </div>
+
+        <div class="filters">
+          <div class="filters-row">
+            <div class="form-group">
+              <input type="text" id="recipe-type-name" placeholder="Поиск по названию">
+            </div>
+          </div>
+        </div>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" onclick="sortRecipeTypes('name')">Название</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody id="recipe-types-results">
+              <tr><td colspan="2" class="no-results">Загрузка...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recipes Tab -->
+      <div id="recipes-tab" class="tab-content">
+        <div class="results-header">
+          <h3>Рецепты</h3>
+          <span class="results-count" id="recipes-count">0 рецептов</span>
+        </div>
+
+        <div class="filters">
+          <div class="filters-row">
+            <div class="form-group">
+              <input type="text" id="recipe-name" placeholder="Поиск по названию">
+            </div>
+            <button type="button" class="btn btn-secondary filters-toggle-btn" onclick="toggleFiltersPanel('recipes')">
+              Фильтр
+            </button>
+            <button type="button" class="btn btn-secondary filters-clear-btn" id="recipe-filters-clear" onclick="quickClearRecipeFilters()" title="Сбросить фильтры">
+              ×
+            </button>
+          </div>
+          <div id="recipes-filters-panel" class="filters-panel">
+            <div class="filters-panel-inner">
+              <div class="filters-modal-header">
+                <div class="filters-modal-title">Фильтры</div>
+                <button type="button" class="filters-modal-close" onclick="closeFiltersPanel()">×</button>
+              </div>
+              
+              <div class="filters-modal-body">
+                <div class="filter-category" data-category="profession">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Профессия</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('recipe-profession-tags', 'profession', tempRecipeFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('recipe-profession-tags', 'profession', tempRecipeFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="recipe-profession-tags"></div>
+                </div>
+
+                <div class="filter-category" data-category="specialization">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Специализация</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('recipe-specialization-tags', 'specialization', tempRecipeFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('recipe-specialization-tags', 'specialization', tempRecipeFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="recipe-specialization-tags"></div>
+                </div>
+
+                <div class="filter-category" data-category="recipeLevel">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Уровень Рецепта</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('recipe-level-tags', 'recipeLevel', tempRecipeFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('recipe-level-tags', 'recipeLevel', tempRecipeFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="recipe-level-tags"></div>
+                </div>
+
+                <div class="filter-category" data-category="recipeRarity">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Редкость Рецепта</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('recipe-rarity-tags', 'recipeRarity', tempRecipeFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('recipe-rarity-tags', 'recipeRarity', tempRecipeFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="recipe-rarity-tags"></div>
+                </div>
+
+                <div class="filter-category" data-category="recipeType">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Тип Рецепта</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('recipe-type-tags', 'recipeType', tempRecipeFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('recipe-type-tags', 'recipeType', tempRecipeFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="recipe-type-tags"></div>
+                </div>
+              </div>
+
+              <div class="filters-modal-footer">
+                <button class="btn btn-secondary" onclick="applyRecipeFilters()">Применить изменения</button>
+                <button class="btn btn-secondary" onclick="cancelRecipeFilters()">Отменить изменения</button>
+                <button class="btn btn-secondary" onclick="clearRecipeFilters()">Очистить фильтры</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" onclick="sortRecipes('name')">Название</th>
+                <th class="sortable" onclick="sortRecipes('profession')">Профессия</th>
+                <th class="sortable" onclick="sortRecipes('specialization')">Специализация</th>
+                <th class="sortable" onclick="sortRecipes('recipeLevel')" style="white-space: nowrap;">Уровень</th>
+                <th class="sortable" onclick="sortRecipes('recipeRarity')">Редкость</th>
+              </tr>
+            </thead>
+            <tbody id="recipes-results">
+              <tr><td colspan="5" class="no-results">Загрузка...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div> <!-- database-view -->
     </main>
   </div> <!-- page-with-sidebar -->
@@ -1064,14 +1338,35 @@
       <div class="modal-body">
         <div id="spell-detail-content"></div>
       </div>
+      <div class="spell-detail-footer" id="spell-detail-footer">
+        <!-- Кнопки бросков заклинаний будут добавлены через db.js -->
+      </div>
     </div>
   </div>
 
   <!-- Scroll to top button -->
   <button id="scroll-to-top" class="scroll-to-top" aria-label="Наверх">↑</button>
 
-  <script src="common.js?v=1.3"></script>
-  <script src="db.js?v=2.8"></script>
+  <script src="common.js?v=1.4"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <script>
+    window.FIREBASE_CONFIG = {
+      apiKey: "AIzaSyClJ4mEng2FT46hhUILWFmHhAOep5GXUrI",
+      authDomain: "e-magios-core-site.firebaseapp.com",
+      projectId: "e-magios-core-site",
+      storageBucket: "e-magios-core-site.firebasestorage.app",
+      messagingSenderId: "682279052886",
+      appId: "1:682279052886:web:7525c0261bdf4fd5917df7",
+      measurementId: "G-ZM296D8VQG"
+    };
+  </script>
+
+  <script src="auth.js?v=1.2"></script>
+  <script src="db.js?v=3.0"></script>
 </body>
 </html>
 

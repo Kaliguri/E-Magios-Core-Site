@@ -67,8 +67,16 @@ def parse_effect_file(filepath):
             else:
                 effect['description'] = line
     
-    # Clean up description (wikilinks -> HTML + markdown)
-    if effect['description']:
+    # If no structured описание было найдено (старый или простой формат файла),
+    # используем весь текст файла как описание по умолчанию
+    if not effect['description']:
+        raw = content.strip()
+        if raw:
+            desc_html = convert_wikilinks_in_text(raw, base_prefix='')
+            effect['description'] = clean_markdown_formatting(desc_html)
+    else:
+        # В обычном случае сначала конвертируем wikilinks в HTML-ссылки,
+        # затем убираем markdown-форматирование
         desc_html = convert_wikilinks_in_text(effect['description'], base_prefix='')
         effect['description'] = clean_markdown_formatting(desc_html)
     
