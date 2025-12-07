@@ -48,6 +48,34 @@ let tempSchoolSelectFilters = {
 };
 let schoolSelectFiltersInitialized = false;
 
+// --- Вспомогательные функции для заклинаний ---
+// Определяем, считается ли заклинание фирменным по блоку «Бонус Фирменного Заклинания» в описании
+function editorSpellHasSignatureBonus(spell) {
+  if (!spell || !spell.description) {
+    return false;
+  }
+  const text = String(spell.description);
+  return text.indexOf('Бонус Фирменного Заклинания') !== -1;
+}
+
+// Возвращаем человеко-читаемый источник заклинания:
+// - если есть явное поле source — используем его;
+// - если поля нет, но есть бонус фирменного заклинания — считаем «Фирменное»;
+// - иначе оставляем пустым (учебные/прочие без явного ярлыка).
+function getSpellSourceLabel(spell) {
+  if (!spell) {
+    return '';
+  }
+  const rawSource = typeof spell.source === 'string' ? spell.source.trim() : '';
+  if (rawSource === 'Учебное' || rawSource === 'Фирменное') {
+    return rawSource;
+  }
+  if (editorSpellHasSignatureBonus(spell)) {
+    return 'Фирменное';
+  }
+  return '';
+}
+
 function renderSpellDescription(text) {
   if (!text) {
     return '<p>—</p>';
@@ -68,6 +96,34 @@ function renderSpellDescription(text) {
       return '<p>' + p + '</p>';
     })
     .join('');
+}
+
+// Оборачиваем формулы бросков (2d4, 3d8, 2d4+1 и т.п.) в кликабельные ссылки
+// spellName — название заклинания для контекста, source — строковый идентификатор источника
+function editorLinkifyDiceExpressions(html, spellName, source) {
+  if (!html) {
+    return html;
+  }
+  var safeSpell = spellName || '';
+  var safeSource = source || 'editor-spell';
+
+  return String(html).replace(/\b(\d{1,3})d(2|4|6|8|10|12|20|100)([+\-]\d+)?\b/g, function (match) {
+    var expr = match;
+    var escapedExpr = expr.replace(/"/g, '&quot;');
+    var escapedSpell = safeSpell.replace(/"/g, '&quot;');
+    var escapedSource = safeSource.replace(/"/g, '&quot;');
+    return (
+      '<a href="javascript:void(0)" class="dice-roll-link" data-dice-expression="' +
+      escapedExpr +
+      '" data-spell-name="' +
+      escapedSpell +
+      '" data-dice-source="' +
+      escapedSource +
+      '">' +
+      match +
+      '</a>'
+    );
+  });
 }
 
 function formatActionLabel(actionType) {
@@ -1131,8 +1187,9 @@ function buildSpellDetailsHtml(spell) {
       '</a></li>';
   }
 
-  if (spell.source) {
-    parametersHTML += '<li><strong>Источник Заклинания:</strong> ' + spell.source + '</li>';
+  const sourceLabel = getSpellSourceLabel(spell);
+  if (sourceLabel) {
+    parametersHTML += '<li><strong>Источник Заклинания:</strong> ' + sourceLabel + '</li>';
   }
 
   if (spell.supportMagic) {
@@ -1205,7 +1262,11 @@ function buildSpellDetailsHtml(spell) {
       if (subSpell.description) {
         subSpellsHTML +=
           '<h4 style="margin-top: var(--spacing-md); margin-bottom: var(--spacing-sm); font-size: 1.1em;">Описание</h4>';
-        subSpellsHTML += renderSpellDescription(subSpell.description);
+        subSpellsHTML += editorLinkifyDiceExpressions(
+          renderSpellDescription(subSpell.description),
+          spell.name,
+          'editor-subspell-description'
+        );
       }
 
       subSpellsHTML += '</div>';
@@ -1215,7 +1276,11 @@ function buildSpellDetailsHtml(spell) {
   return (
     parametersHTML +
     '<h3>Описание</h3>' +
-    renderSpellDescription(spell.description) +
+    editorLinkifyDiceExpressions(
+      renderSpellDescription(spell.description),
+      spell.name,
+      'editor-spell-description'
+    ) +
     subSpellsHTML +
     '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
     '<p class="text-muted"><strong>Связи:</strong> ' +
@@ -1437,8 +1502,23 @@ function getSpellsForType(type) {
     if (!spell || typeof spell.id !== 'string') {
       continue;
     }
-    if (String(spell.source).trim() === 'Учебное') {
-      result.push(spell);
+    // Определяем источник заклинания:
+    // учитываем как старое поле source, так и новый способ определения по «Бонус Фирменного Заклинания»
+    const sourceLabel = getSpellSourceLabel(spell);
+    const isSignature = sourceLabel === 'Фирменное';
+    const isStudy = !isSignature;
+
+    if (type === 'signature') {
+      // Для фирменных заклинаний показываем только явно помеченные как "Фирменное"
+      if (isSignature) {
+        result.push(spell);
+      }
+    } else {
+      // Для учебных заклинаний показываем всё, что помечено как "Учебное"
+      // или не имеет источника (старые данные без поля source)
+      if (isStudy) {
+        result.push(spell);
+      }
     }
   }
   return result;
@@ -2506,7 +2586,7 @@ function renderSpellSelectList() {
     const name = typeof spell.name === 'string' ? spell.name : '';
     const school = typeof spell.school === 'string' ? spell.school : '';
     const type = typeof spell.type === 'string' ? spell.type : '';
-    const source = typeof spell.source === 'string' ? spell.source : '';
+    const source = getSpellSourceLabel(spell);
 
     if (search && name.toLowerCase().indexOf(search) === -1) {
       return;

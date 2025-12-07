@@ -2,6 +2,57 @@
 
 const NEWS_ENTRIES = [
   {
+    id: '2025-12-07-fortune-blessing',
+    date: '7 декабря 2025',
+    title: 'Благословение Фортуны — Обновление E\'Magios Core',
+    features: [
+      { text: 'Глобальный виджет бросков: плавающая кнопка D12, чат-окно истории бросков и быстрые кнопки D2–D100.' },
+      { text: 'Система команд /roll с поддержкой сложных выражений (2d4+3d6-1, 1d12*2/3 и т.п.) и подробной расшифровкой результата.' },
+      { text: 'Привязка бросков к заклинаниям: три кнопки (Аркана, Попадание, Наложение эффекта) в поп-апах заклинаний с автоматическим разбором бонусов из описания.' },
+      { text: 'Критические броски D12 (значение 12) для проверки Арканы и Броска на Попадание помечаются как КРИТ и визуально подсвечиваются в истории (для Наложения эффекта подсветка отключена).' },
+      { text: 'Интеграция с Google/Firebase: история бросков хранится в Firestore на аккаунте и автоматически подгружается после входа.' },
+      { text: 'Обновление интерфейса: увеличенные шрифты, кликабельные карточки результатов, улучшенные панели и независимость окна бросков от других поп-апов.' },
+      { text: 'База данных заклинаний: новый фильтр «Фирменное Заклинание (Да/Нет)», автоматически определяющий фирменные спеллы по блоку «Бонус Фирменного Заклинания» в описании.' },
+      { text: 'База данных: списки «Типы Действий» и «Компоненты Боевой системы» теперь показывают компактное, очищенное от служебных фраз саммари, совпадающее по смыслу с книгами правил.' },
+      { text: 'Заклинания в базе и редакторе персонажа: все формулы бросков (2d4, 3d8, 2d4+1 и т.п.) стали кликабельными — при нажатии открывается виджет кубов и автоматически исполняется указанный бросок с пометкой заклинания в истории.' },
+      { text: 'Записи в истории бросков теперь всегда содержат исходное выражение: для контекстных бросков (например, «Бросок на попадание (+2) — Огненный Ворон Селены (1d12+2)»), а для свободных бросков — формат «Свободный Бросок — (1d10)».' },
+      { text: 'Кнопки бросков в поп-апе заклинаний теперь используют читаемые подписи с бонусом («Бросок на Аркану (+0)», «Бросок на попадание (+2)» и т.п.), чтобы подчёркивать итоговую формулу броска.' }
+    ],
+    newObjects: {
+      // Новые заклинания после "Кузни Героев" (ядовитая ветка и фирменное заклинание Селены)
+      spells: [
+        'антидот',
+        'двойственный-яд',
+        'иглы-стойкости',
+        'лечебные-галлюцинации',
+        'модернизация-автоматонов-дагнилифа',
+        'нестабильный-заряд-элая',
+        'огненный-ворон-селены',
+        'передвижной-факел',
+        'спасительный-яд',
+        'яд-берсерка'
+      ],
+      schools: [],
+      // Новый эффект состояния
+      effects: ['близок-к-смерти'],
+      archetypes: [],
+      // Новое базовое действие
+      actions: ['стабилизация'],
+      skills: [],
+      actionTypes: [],
+      combatComponents: [],
+      // Новые ремесленные сущности целиком
+      craftComponents: 'all',
+      craftProfessions: 'all',
+      craftSpecializations: 'all',
+      recipeTypes: 'all',
+      recipes: 'all'
+    },
+    links: [
+      { text: 'База данных — заклинания', url: 'db.html?openTab=spells' }
+    ]
+  },
+  {
     id: '2025-11-28-db-update',
     date: '28 ноября 2025',
     title: 'Кузня Героев — Обновление E\'Magios Core',
@@ -144,6 +195,110 @@ const INITIAL_EFFECT_NAMES = [
   'Тошнота'
 ];
 
+// Фиксированные списки объектов для новости "Кузня Героев — Обновление E'Magios Core"
+// чтобы они совпадали с продакшн-версией HTML на 28 ноября 2025
+const DB_UPDATE_SPELL_NAMES = [
+  'Блуждающий Разум',
+  'Великое Обнаружение Магии',
+  'Великое Подводное Дыхание',
+  'Взрывные Грибы',
+  'Вихрь из Меток Пламени',
+  'Влюбленность',
+  'Водяная Клетка',
+  'Возведение Земли',
+  'Всполох Мести',
+  'Генератор Щита МК1',
+  'Глаз Бури',
+  'Глаз-Разведчик МК1',
+  'Животные Чувства',
+  'Жнец МК1',
+  'Защита Территории',
+  'Защитник МК1',
+  'Изучение крови',
+  'Источник Огня',
+  'Коррозийная Стрела',
+  'Магический Слуга',
+  'Обнаружение Магии',
+  'Обнаружение Ядов',
+  'Общение Воспоминаниями',
+  'Огненная Бомба',
+  'Огненная Вспышка',
+  'Огненная Кара',
+  'Огненная Стена',
+  'Передача образа',
+  'Поглощение Стихии',
+  'Подводное Дыхание',
+  'Поиск Следов',
+  'Поиск животных и растений',
+  'Призыв Землетрясения',
+  'Призыв Торнадо',
+  'Призыв Цунами',
+  'Призыв воды',
+  'Пробуждение вулкана',
+  'Противоядие',
+  'Психический Щит',
+  'Путешествие в Воспоминание',
+  'Разговор с Животными',
+  'Разрушение в Защиту',
+  'Робот-Рука МК1',
+  'Сбивающий яд',
+  'Сверхлегкий Клинок М1',
+  'Слепая Ярость',
+  'Слияние с Природой',
+  'Смертельный Сон',
+  'Телепатическая Связь',
+  'Трех-контурное Наступательное Усиление',
+  'Трехзарядный Магический Револьвер М1',
+  'Универсальный Протез Руки М1',
+  'Устройства Связи',
+  'Усыпляющий Дождь',
+  'Хождение по Воде',
+  'Энергетическая Броня МК1'
+];
+
+const DB_UPDATE_ACTION_NAMES = [
+  'Вспомнить Информацию',
+  'Длительный отдых',
+  'Заклинания',
+  'Исследование',
+  'Концентрация',
+  'Короткий отдых',
+  'Лечение ран',
+  'Медитация',
+  'Оборона',
+  'Передвижение',
+  'Поиск Слабого Места',
+  'Починка',
+  'Преодоление',
+  'Создание',
+  'Создание Метамагии',
+  'Создание Спотнанного Заклинания',
+  'Спасбросок',
+  'Удар',
+  'Фокус'
+];
+
+const DB_UPDATE_COMBAT_COMPONENT_NAMES = [
+  'Аркана',
+  'Атакующие действия',
+  'Бонус к Наложению',
+  'Бонус к Попаданию',
+  'Воля',
+  'Действия в ходу',
+  'Защита',
+  'Здоровье',
+  'Концентрация',
+  'Правило Наибольшего Значения',
+  'Реакции',
+  'Сопротивление',
+  'Спасбросок',
+  'Стойкость',
+  'Уклонение',
+  'Уровень',
+  'Уровни Повреждений',
+  'Уязвимость'
+];
+
 function loadJSON(path) {
   return fetch(path, { cache: 'no-store' }).then(function (response) {
     return response.json();
@@ -179,6 +334,21 @@ function formatObjectsList(items, type) {
     }
     if (type === 'combatComponent') {
       return '<a href="db.html#combat-tab" onclick="event.preventDefault(); window.location.href = \'db.html?openTab=combat\';">' + item.name + '</a>';
+    }
+    if (type === 'craftComponent') {
+      return '<a href="db.html?craftComponent=' + encodeURIComponent(item.id) + '">' + item.name + '</a>';
+    }
+    if (type === 'craftProfession') {
+      return '<a href="db.html?craftProfession=' + encodeURIComponent(item.id) + '">' + item.name + '</a>';
+    }
+    if (type === 'craftSpecialization') {
+      return '<a href="db.html?craftSpecialization=' + encodeURIComponent(item.id) + '">' + item.name + '</a>';
+    }
+    if (type === 'recipeType') {
+      return '<a href="db.html?recipeType=' + encodeURIComponent(item.id) + '">' + item.name + '</a>';
+    }
+    if (type === 'recipe') {
+      return '<a href="db.html?recipe=' + encodeURIComponent(item.id) + '">' + item.name + '</a>';
     }
     return item.name;
   });
@@ -225,7 +395,7 @@ function calculateTotalChapters() {
   return total;
 }
 
-function renderNews(spells, schools, effects, archetypes, actions, skills, actionTypes, combatComponents) {
+function renderNews(spells, schools, effects, archetypes, actions, skills, actionTypes, combatComponents, craftComponents, craftProfessions, craftSpecializations, recipeTypes, recipes) {
   const container = document.getElementById('news-list');
   if (!container) {
     return;
@@ -242,26 +412,61 @@ function renderNews(spells, schools, effects, archetypes, actions, skills, actio
   const totalSkills = skills.length;
   const totalActionTypes = actionTypes.length;
   const totalCombatComponents = combatComponents.length;
+  const totalCraftComponents = craftComponents.length;
+  const totalCraftProfessions = craftProfessions.length;
+  const totalCraftSpecializations = craftSpecializations.length;
+  const totalRecipeTypes = recipeTypes.length;
+  const totalRecipes = recipes.length;
 
-  const totalObjects = totalSpells + totalSchools + totalEffects + totalArchetypes + totalActions + totalSkills + totalActionTypes + totalCombatComponents;
-  const totalChars = countTextLengthFromCollections([spells, schools, effects, archetypes, actions, skills, actionTypes, combatComponents]);
+  const totalObjects =
+    totalSpells +
+    totalSchools +
+    totalEffects +
+    totalArchetypes +
+    totalActions +
+    totalSkills +
+    totalActionTypes +
+    totalCombatComponents +
+    totalCraftComponents +
+    totalCraftProfessions +
+    totalCraftSpecializations +
+    totalRecipeTypes +
+    totalRecipes;
+
+  const totalChars = countTextLengthFromCollections([
+    spells,
+    schools,
+    effects,
+    archetypes,
+    actions,
+    skills,
+    actionTypes,
+    combatComponents,
+    craftComponents,
+    craftProfessions,
+    craftSpecializations,
+    recipeTypes,
+    recipes
+  ]);
   const totalChapters = calculateTotalChapters();
 
   NEWS_ENTRIES.forEach(function (entry) {
     const section = document.createElement('article');
     section.className = 'news-entry';
 
-    // Заклинания: для стартового и текущего обновления используем имена,
-    // чтобы разделить "старые" и "новые" объекты
+    // Заклинания: для стартового и обновления от 28.11 используем фиксированные списки имён,
+    // чтобы разделить "старые" и "новые" объекты строго по продакшн-снимку
     let newSpells;
     if (entry.id === '2025-11-27-initial') {
       newSpells = spells.filter(function (spell) {
         return INITIAL_SPELL_NAMES.indexOf(spell.name) !== -1;
       });
     } else if (entry.id === '2025-11-28-db-update') {
-      newSpells = spells.filter(function (spell) {
-        return INITIAL_SPELL_NAMES.indexOf(spell.name) === -1;
-      });
+      newSpells = DB_UPDATE_SPELL_NAMES.map(function (name) {
+        return spells.find(function (s) {
+          return s.name === name;
+        });
+      }).filter(Boolean);
     } else if (entry.newObjects.spells === 'all') {
       newSpells = spells;
     } else {
@@ -296,9 +501,20 @@ function renderNews(spells, schools, effects, archetypes, actions, skills, actio
       return entry.newObjects.archetypes.indexOf(archetype.id) !== -1;
     });
 
-    const newActions = entry.newObjects.actions === 'all' ? actions : actions.filter(function (action) {
-      return entry.newObjects.actions.indexOf(action.id) !== -1;
-    });
+    let newActions;
+    if (entry.id === '2025-11-28-db-update') {
+      newActions = DB_UPDATE_ACTION_NAMES.map(function (name) {
+        return actions.find(function (a) {
+          return a.name === name;
+        });
+      }).filter(Boolean);
+    } else if (entry.newObjects.actions === 'all') {
+      newActions = actions;
+    } else {
+      newActions = actions.filter(function (action) {
+        return (entry.newObjects.actions || []).indexOf(action.id) !== -1;
+      });
+    }
 
     const newSkills = entry.newObjects.skills === 'all' ? skills : (entry.newObjects.skills || []).map(function (id) {
       return skills.find(function (s) { return s.id === id; });
@@ -308,9 +524,79 @@ function renderNews(spells, schools, effects, archetypes, actions, skills, actio
       return actionTypes.find(function (t) { return t.id === id; });
     }).filter(Boolean);
 
-    const newCombatComponents = entry.newObjects.combatComponents === 'all' ? combatComponents : (entry.newObjects.combatComponents || []).map(function (id) {
-      return combatComponents.find(function (c) { return c.id === id; });
-    }).filter(Boolean);
+    let newCombatComponents;
+    if (entry.id === '2025-11-28-db-update') {
+      newCombatComponents = DB_UPDATE_COMBAT_COMPONENT_NAMES.map(function (name) {
+        return combatComponents.find(function (c) {
+          return c.name === name;
+        });
+      }).filter(Boolean);
+    } else if (entry.newObjects.combatComponents === 'all') {
+      newCombatComponents = combatComponents;
+    } else {
+      newCombatComponents = (entry.newObjects.combatComponents || [])
+        .map(function (id) {
+          return combatComponents.find(function (c) {
+            return c.id === id;
+          });
+        })
+        .filter(Boolean);
+    }
+
+    const newCraftComponents =
+      entry.newObjects.craftComponents === 'all'
+        ? craftComponents
+        : (entry.newObjects.craftComponents || [])
+            .map(function (id) {
+              return craftComponents.find(function (c) {
+                return c.id === id;
+              });
+            })
+            .filter(Boolean);
+
+    const newCraftProfessions =
+      entry.newObjects.craftProfessions === 'all'
+        ? craftProfessions
+        : (entry.newObjects.craftProfessions || [])
+            .map(function (id) {
+              return craftProfessions.find(function (p) {
+                return p.id === id;
+              });
+            })
+            .filter(Boolean);
+
+    const newCraftSpecializations =
+      entry.newObjects.craftSpecializations === 'all'
+        ? craftSpecializations
+        : (entry.newObjects.craftSpecializations || [])
+            .map(function (id) {
+              return craftSpecializations.find(function (s) {
+                return s.id === id;
+              });
+            })
+            .filter(Boolean);
+
+    const newRecipeTypes =
+      entry.newObjects.recipeTypes === 'all'
+        ? recipeTypes
+        : (entry.newObjects.recipeTypes || [])
+            .map(function (id) {
+              return recipeTypes.find(function (t) {
+                return t.id === id;
+              });
+            })
+            .filter(Boolean);
+
+    const newRecipes =
+      entry.newObjects.recipes === 'all'
+        ? recipes
+        : (entry.newObjects.recipes || [])
+            .map(function (id) {
+              return recipes.find(function (r) {
+                return r.id === id;
+              });
+            })
+            .filter(Boolean);
 
     const featuresHtml = entry.features.map(function (feature) {
       return '<li>' + feature.text + '</li>';
@@ -325,7 +611,37 @@ function renderNews(spells, schools, effects, archetypes, actions, skills, actio
     objectsHtmlParts.push('<p><strong>Новые базовые действия:</strong> ' + formatObjectsList(newActions, 'action') + '</p>');
     objectsHtmlParts.push('<p><strong>Новые навыки:</strong> ' + formatObjectsList(newSkills, 'skill') + '</p>');
     objectsHtmlParts.push('<p><strong>Новые типы действий:</strong> ' + formatObjectsList(newActionTypes, 'actionType') + '</p>');
-    objectsHtmlParts.push('<p><strong>Новые компоненты боевой системы:</strong> ' + formatObjectsList(newCombatComponents, 'combatComponent') + '</p>');
+    objectsHtmlParts.push(
+      '<p><strong>Новые компоненты боевой системы:</strong> ' +
+        formatObjectsList(newCombatComponents, 'combatComponent') +
+        '</p>'
+    );
+
+    if (entry.id === '2025-12-07-fortune-blessing') {
+      objectsHtmlParts.push(
+        '<p><strong>Новые ремесленные компоненты:</strong> ' +
+          formatObjectsList(newCraftComponents, 'craftComponent') +
+          '</p>'
+      );
+      objectsHtmlParts.push(
+        '<p><strong>Новые профессии ремесла:</strong> ' +
+          formatObjectsList(newCraftProfessions, 'craftProfession') +
+          '</p>'
+      );
+      objectsHtmlParts.push(
+        '<p><strong>Новые специализации ремесла:</strong> ' +
+          formatObjectsList(newCraftSpecializations, 'craftSpecialization') +
+          '</p>'
+      );
+      objectsHtmlParts.push(
+        '<p><strong>Новые типы рецептов:</strong> ' +
+          formatObjectsList(newRecipeTypes, 'recipeType') +
+          '</p>'
+      );
+      objectsHtmlParts.push(
+        '<p><strong>Новые рецепты:</strong> ' + formatObjectsList(newRecipes, 'recipe') + '</p>'
+      );
+    }
 
     let statsHtml = '';
     if (entry.id === '2025-11-28-db-update') {
@@ -347,22 +663,67 @@ function renderNews(spells, schools, effects, archetypes, actions, skills, actio
 
     section.innerHTML =
       '<header class="news-entry-header">' +
-        '<h2>' + entry.title + '</h2>' +
-        '<p class="text-muted">' + entry.date + '</p>' +
+      '<h2>' +
+      entry.title +
+      '</h2>' +
+      '<p class="text-muted">' +
+      entry.date +
+      '</p>' +
       '</header>' +
       '<section class="news-entry-section">' +
-        '<h3>Новый функционал на сайте</h3>' +
-        '<ul>' + featuresHtml + '</ul>' +
-        linksHtml +
+      '<h3>Новый функционал на сайте</h3>' +
+      '<ul>' +
+      featuresHtml +
+      '</ul>' +
+      linksHtml +
       '</section>' +
       '<section class="news-entry-section">' +
-        '<h3>Новые объекты в базе данных</h3>' +
-        objectsHtmlParts.join('') +
+      '<h3>Новые объекты в базе данных</h3>' +
+      objectsHtmlParts.join('') +
       '</section>' +
       (entry.id === '2025-11-28-db-update'
         ? '<section class="news-entry-section">' +
-            '<h3>Статистика после обновления</h3>' +
-            statsHtml +
+          '<h3>Статистика после обновления</h3>' +
+          statsHtml +
+          '</section>'
+        : entry.id === '2025-12-07-fortune-blessing'
+        ? '<section class="news-entry-section">' +
+          '<h3>Статистика после обновления</h3>' +
+          '<p><strong>Всего символов в данных базы:</strong> ' +
+          totalChars.toLocaleString('ru-RU') +
+          '</p>' +
+          '<p><strong>Всего глав (разделов) в книгах:</strong> ' +
+          totalChapters +
+          '</p>' +
+          '<p><strong>Всего объектов в базе данных:</strong> ' +
+          totalObjects +
+          ' (заклинания: ' +
+          totalSpells +
+          ', школы: ' +
+          totalSchools +
+          ', эффекты: ' +
+          totalEffects +
+          ', архетипы: ' +
+          totalArchetypes +
+          ', базовые действия: ' +
+          totalActions +
+          ', навыки: ' +
+          totalSkills +
+          ', типы действий: ' +
+          totalActionTypes +
+          ', компоненты боя: ' +
+          totalCombatComponents +
+          ', ремесленные компоненты: ' +
+          totalCraftComponents +
+          ', профессии ремесла: ' +
+          totalCraftProfessions +
+          ', специализации ремесла: ' +
+          totalCraftSpecializations +
+          ', типы рецептов: ' +
+          totalRecipeTypes +
+          ', рецепты: ' +
+          totalRecipes +
+          ')</p>' +
           '</section>'
         : '');
 
@@ -379,23 +740,50 @@ document.addEventListener('DOMContentLoaded', function () {
     loadJSON('./data/actions.json'),
     loadJSON('./data/skills.json'),
     loadJSON('./data/action_types.json'),
-    loadJSON('./data/combat_components.json')
-  ]).then(function (results) {
-    const spells = results[0];
-    const schools = results[1];
-    const effects = results[2];
-    const archetypes = results[3];
-    const actions = results[4];
-    const skills = results[5];
-    const actionTypes = results[6];
-    const combatComponents = results[7];
-    renderNews(spells, schools, effects, archetypes, actions, skills, actionTypes, combatComponents);
-  }).catch(function () {
-    const container = document.getElementById('news-list');
-    if (container) {
-      container.innerHTML = '<p class="text-muted">Не удалось загрузить данные для списка изменений.</p>';
-    }
-  });
+    loadJSON('./data/combat_components.json'),
+    loadJSON('./data/craft_components.json'),
+    loadJSON('./data/craft_professions.json'),
+    loadJSON('./data/craft_specializations.json'),
+    loadJSON('./data/recipe_types.json'),
+    loadJSON('./data/recipes.json')
+  ])
+    .then(function (results) {
+      const spells = results[0];
+      const schools = results[1];
+      const effects = results[2];
+      const archetypes = results[3];
+      const actions = results[4];
+      const skills = results[5];
+      const actionTypes = results[6];
+      const combatComponents = results[7];
+      const craftComponents = results[8];
+      const craftProfessions = results[9];
+      const craftSpecializations = results[10];
+      const recipeTypes = results[11];
+      const recipes = results[12];
+
+      renderNews(
+        spells,
+        schools,
+        effects,
+        archetypes,
+        actions,
+        skills,
+        actionTypes,
+        combatComponents,
+        craftComponents,
+        craftProfessions,
+        craftSpecializations,
+        recipeTypes,
+        recipes
+      );
+    })
+    .catch(function () {
+      const container = document.getElementById('news-list');
+      if (container) {
+        container.innerHTML = '<p class="text-muted">Не удалось загрузить данные для списка изменений.</p>';
+      }
+    });
 });
 
 

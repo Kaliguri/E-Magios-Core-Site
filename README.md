@@ -194,9 +194,9 @@ python -m http.server 8000
 Все JS файлы подключаются с версией для предотвращения проблем с кешированием:
 
 ```html
-<script src="common.js?v=1.3"></script>
-<script src="db.js?v=1.0"></script>
-<script src="character-editor.js?v=1.1"></script>
+<script src="common.js?v=1.4"></script>
+<script src="db.js?v=3.0"></script>
+<script src="character-editor.js?v=2.5"></script>
 ```
 
 **При изменении JS файла:**
@@ -208,7 +208,7 @@ python -m http.server 8000
 ```powershell
 # Обновить версию common.js во всех HTML файлах
 Get-ChildItem -Path . -Include "*.html" -Recurse | ForEach-Object { 
-  (Get-Content $_.FullName -Raw -Encoding UTF8) -replace 'common\.js\?v=[\d\.]+', 'common.js?v=1.3' | 
+  (Get-Content $_.FullName -Raw -Encoding UTF8) -replace 'common\.js\?v=[\d\.]+', 'common.js?v=1.4' | 
   Set-Content $_.FullName -Encoding UTF8 -NoNewline 
 }
 ```

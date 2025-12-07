@@ -758,7 +758,7 @@ strong {
 /* Scroll to Top Button */
 .scroll-to-top {
   position: fixed;
-  bottom: 2rem;
+  bottom: 6rem;
   right: 2rem;
   width: 3rem;
   height: 3rem;
@@ -854,7 +854,7 @@ strong {
 /* Responsive adjustments for new features */
 @media (max-width: 768px) {
   .scroll-to-top {
-    bottom: 1rem;
+    bottom: 4.5rem;
     right: 1rem;
     width: 2.5rem;
     height: 2.5rem;
@@ -870,6 +870,325 @@ strong {
   .next-chapter {
     width: 100%;
     text-align: center;
+  }
+}
+
+/* Dice roller widget */
+.dice-roller-toggle {
+  position: fixed;
+  bottom: 2rem; /* теперь ниже кнопки наверх */
+  right: 2rem;
+  width: 3rem;
+  height: 3rem;
+  background: var(--accent-emerald);
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  z-index: 2001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.dice-roller-toggle:hover {
+  background: var(--accent-emerald-dark);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55);
+  transform: translateY(-2px);
+}
+
+.dice-roller-toggle:active {
+  transform: translateY(0);
+}
+
+.dice-roller-panel {
+  position: fixed;
+  right: 2rem;
+  bottom: 6.5rem;
+  width: 380px;
+  max-height: 680px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.65);
+  z-index: 2002;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dice-roller-panel.hidden {
+  display: none !important;
+}
+
+.dice-roller-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.9rem;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dice-roller-title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.dice-roller-header button {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dice-roller-header button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--accent-emerald);
+}
+
+.dice-roller-body {
+  padding: 0.6rem 0.9rem;
+  flex: 1;
+  overflow-y: auto;
+  font-size: 0.95rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg-elevated) var(--bg-secondary);
+}
+
+.dice-roller-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dice-roller-body::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.dice-roller-body::-webkit-scrollbar-thumb {
+  background: var(--bg-elevated);
+  border-radius: 3px;
+}
+
+.dice-roller-body::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+.dice-roller-empty {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.dice-message {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dice-message-crit {
+  border-color: var(--accent-emerald);
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.4);
+}
+
+.dice-message:hover {
+  background: var(--bg-secondary);
+  border-color: var(--border-hover);
+}
+
+.dice-message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 0.25rem;
+}
+
+.dice-message-expression {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.dice-message-total {
+  font-weight: 600;
+  color: var(--accent-emerald);
+  white-space: nowrap;
+  font-size: 0.95rem;
+}
+
+.dice-crit-label {
+  display: inline-block;
+  margin-left: 0.25rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  background: var(--accent-emerald);
+  color: #ffffff;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.dice-message-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.dice-message-details-toggle {
+  background: none;
+  border: none;
+  color: var(--accent-emerald);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0;
+}
+
+.dice-message-details {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border-color);
+  padding-top: 0.25rem;
+}
+
+.dice-roller-footer {
+  padding: 0.5rem 0.9rem 0.6rem;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-elevated);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.dice-quick-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.dice-quick-button {
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.dice-quick-button:hover {
+  background: var(--accent-emerald);
+  border-color: var(--accent-emerald);
+  color: #ffffff;
+}
+
+.dice-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.dice-input-row input[type="text"] {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.dice-input-row button {
+  padding: 0.25rem 0.7rem;
+  font-size: 0.9rem;
+}
+
+.dice-auth-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.dice-auth-hint a {
+  color: var(--accent-emerald);
+}
+
+.dice-auth-hint a:hover {
+  color: var(--accent-emerald-dark);
+}
+
+.spell-roll-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: var(--spacing-sm) 0;
+}
+
+.spell-roll-buttons .btn {
+  font-size: 0.95rem;
+}
+
+.spell-roll-btn-disabled {
+  opacity: 1;
+  cursor: not-allowed;
+  background: var(--bg-elevated);
+  border-color: var(--border-color);
+  color: var(--text-muted);
+}
+
+.spell-roll-btn-disabled:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border-color);
+  color: var(--text-muted);
+}
+
+/* Менее яркий зелёный для активных кнопок бросков в поп-апе заклинаний */
+.spell-roll-buttons .btn-primary {
+  background: #0b8b6a;
+  border-color: #0b8b6a;
+  color: #f9fafb;
+}
+
+.spell-roll-buttons .btn-primary:hover {
+  background: #0a7b5e;
+  border-color: #0a7b5e;
+  color: #ffffff;
+}
+
+/* Повторно фиксируем стиль неактивных после переопределения btn-primary */
+.spell-roll-buttons .spell-roll-btn-disabled {
+  background: var(--bg-elevated);
+  border-color: var(--border-color);
+  color: var(--text-muted);
+}
+
+.spell-roll-buttons .spell-roll-btn-disabled:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border-color);
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .dice-roller-toggle {
+    bottom: 1rem;
+    right: 1rem;
+    width: 2.6rem;
+    height: 2.6rem;
+    font-size: 1.1rem;
+  }
+
+  .dice-roller-panel {
+    right: 0.75rem;
+    bottom: 5rem;
+    width: calc(100% - 1.5rem);
+    max-width: 400px;
   }
 }
 
