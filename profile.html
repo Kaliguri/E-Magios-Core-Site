@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
@@ -8,10 +8,16 @@
 </head>
 <body data-page="profile">
   <div class="page-with-sidebar">
+    <div id="page-loader" class="page-loader content-only">
+      <div class="page-loader-content">
+        <div class="page-loader-spinner"></div>
+        <p id="page-loader-message" class="page-loader-message">Загружаем профиль...</p>
+      </div>
+    </div>
     <!-- Sidebar will be injected here by common.js -->
 
     <main class="main-content">
-      <div class="container">
+      <div class="container profile-container">
         <h1>Профиль</h1>
         <p class="text-muted">Управление аккаунтом и персональными данными</p>
 
@@ -20,6 +26,23 @@
             <p class="text-muted">Проверка статуса авторизации...</p>
           </div>
         </div>
+
+        <section id="profile-guest" class="form-section">
+          <h2>Требуется авторизация</h2>
+          <p class="text-muted" style="font-size: 1.05rem; max-width: 720px;">
+            Для доступа ко всем возможностям сайта, включая сохранение персонажей,
+            историю бросков и интеграцию с Discord, требуется вход через Google.
+          </p>
+          <p class="text-muted" style="margin-top: 0.5rem; max-width: 720px;">
+            После входа вы сможете настроить профиль, сохранить свои данные и связать броски кубов с Discord.
+          </p>
+
+          <div style="margin-top: var(--spacing-lg);">
+            <button type="button" class="btn btn-primary" id="profile-google-login-btn" style="min-width: 260px; font-size: 1.05rem;">
+              Войти через Google
+            </button>
+          </div>
+        </section>
 
         <section id="profile-content" class="form-section">
           <div class="profile-header">
@@ -42,41 +65,108 @@
               <input type="text" id="profile-email" readonly>
             </div>
           </div>
-
-          <div style="margin-top: var(--spacing-lg); display:flex; gap: var(--spacing-sm); align-items: center;">
-            <button type="button" class="btn btn-primary" id="profile-save-btn">Сохранить</button>
-            <button type="button" class="btn btn-primary" id="profile-reset-btn">Сбросить изменения</button>
-            <button type="button" class="btn btn-primary" id="profile-logout-btn">Выйти</button>
-          </div>
-          <p id="profile-status" class="text-muted" style="margin-top: 0.5rem;"></p>
         </section>
+
+        <section id="profile-discord-section" class="form-section" style="margin-top: var(--spacing-xl);">
+          <h2>Интеграция с Discord</h2>
+          <p class="text-muted">
+            Здесь вы можете настроить отправку ваших бросков кубов в Discord через вебхук.
+            Настройки сохраняются для вашего аккаунта и используются на всех страницах.
+          </p>
+
+          <div class="form-group">
+            <label for="discord-webhook-url">URL вебхука Discord</label>
+            <input
+              type="text"
+              id="discord-webhook-url"
+              placeholder="https://discord.com/api/webhooks/..."
+            >
+            <p class="text-muted" style="margin-top: 0.25rem;">
+              Получите ссылку вебхука в настройках Discord-сервера
+              (Интеграции → Вебхуки) и вставьте её сюда.
+            </p>
+          </div>
+
+          <div class="form-grid-2" style="margin-top: var(--spacing-md);">
+            <div class="form-group">
+              <label for="discord-display-name">Имя в Discord для бросков</label>
+              <input
+                type="text"
+                id="discord-display-name"
+                placeholder="Например: Эльдриан, маг 5 уровня"
+              >
+              <p class="text-muted" style="margin-top: 0.25rem;">
+                Это имя будет отображаться как имя отправителя сообщений о бросках.
+                Если оставить пустым, будет использовано ваше отображаемое имя профиля.
+              </p>
+            </div>
+            <div class="form-group">
+              <label for="discord-color">Цвет сообщений (HEX)</label>
+              <div class="discord-color-row">
+                <button type="button" class="discord-color-preview-btn" id="discord-color-preview" aria-label="Выбрать цвет сообщений"></button>
+                <input
+                  type="text"
+                  id="discord-color"
+                  placeholder="#10b981"
+                >
+              </div>
+              <p class="text-muted" style="margin-top: 0.25rem;">
+                Необязательный цвет рамки сообщения в формате HEX
+                (например, <code>#10b981</code>).
+              </p>
+              <div class="discord-color-palette-popover hidden" id="discord-color-popover">
+                <div class="discord-color-palette" id="discord-color-palette">
+                  <button type="button" class="discord-color-swatch" data-color="#EF4444" title="#EF4444"></button>
+                  <button type="button" class="discord-color-swatch" data-color="#F97316" title="#F97316"></button>
+                  <button type="button" class="discord-color-swatch" data-color="#FACC15" title="#FACC15"></button>
+                  <button type="button" class="discord-color-swatch" data-color="#22C55E" title="#22C55E"></button>
+                  <button type="button" class="discord-color-swatch" data-color="#10B981" title="#10B981"></button>
+                  <button type="button" class="discord-color-swatch" data-color="#14B8A6" title="#14B8A6"></button>
+                  <button type="button" class="discord-color-swatch" data-color="#0EA5E9" title="#0EA5E9"></button>
+                  <button type="button" class="discord-color-swatch" data-color="#6366F1" title="#6366F1"></button>
+                  <button type="button" class="discord-color-swatch" data-color="#A855F7" title="#A855F7"></button>
+                  <button type="button" class="discord-color-swatch" data-color="#EC4899" title="#EC4899"></button>
+                  <button type="button" class="discord-color-swatch" data-color="#64748B" title="#64748B"></button>
+                  <button type="button" class="discord-color-swatch" data-color="#9CA3AF" title="#9CA3AF"></button>
+                  <button type="button" class="discord-color-swatch" data-color="#FFFFFF" title="#FFFFFF"></button>
+                  <button type="button" class="discord-color-swatch" data-color="#1F2937" title="#1F2937"></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: var(--spacing-md); display:flex; gap: var(--spacing-sm); align-items: center;">
+            <button type="button" class="btn btn-primary" id="discord-test-btn">
+              Отправить тест в Discord
+            </button>
+            <p id="discord-status" class="text-muted" style="margin-top: 0.25rem;"></p>
+          </div>
+        </section>
+
+        <div class="profile-actions-bar">
+          <div class="profile-actions-bar-inner">
+            <p id="profile-status" class="text-muted profile-status-text"></p>
+            <div class="profile-actions-buttons">
+              <button type="button" class="btn btn-primary" id="profile-save-btn">Сохранить</button>
+              <button type="button" class="btn btn-secondary" id="profile-reset-btn">Сбросить изменения</button>
+              <button type="button" class="btn btn-secondary" id="profile-logout-btn">Выйти из аккаунта</button>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   </div>
 
-  <!-- Scroll to top button -->
-  <button id="scroll-to-top" class="scroll-to-top" aria-label="Наверх">↑</button>
+  <script type="module" src="common.js"></script>
 
-  <script src="common.js?v=1.4"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script defer src="firebase-config.js"></script>
 
-  <script>
-    window.FIREBASE_CONFIG = {
-      apiKey: "AIzaSyClJ4mEng2FT46hhUILWFmHhAOep5GXUrI",
-      authDomain: "e-magios-core-site.firebaseapp.com",
-      projectId: "e-magios-core-site",
-      storageBucket: "e-magios-core-site.firebasestorage.app",
-      messagingSenderId: "682279052886",
-      appId: "1:682279052886:web:7525c0261bdf4fd5917df7",
-      measurementId: "G-ZM296D8VQG"
-    };
-  </script>
-
-  <script src="auth.js?v=1.2"></script>
-  <script src="profile.js?v=1.0"></script>
+  <script defer src="auth.js"></script>
+  <script defer src="profile.js"></script>
 </body>
 </html>
 

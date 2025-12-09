@@ -20,6 +20,68 @@ def clean_markdown_formatting(text):
     text = re.sub(r'\*([^\*]+)\*', r'\1', text)
     return text.strip()
 
+def _append_line_to_buffer(buffer: str, line: str) -> str:
+    """
+    Helper to accumulate human‑readable text with paragraph breaks:
+    - пустая строка → ставим двойной перенос, если его ещё нет
+    - непустая строка → добавляем с пробелом, если строка не первая
+    """
+    stripped = line.strip()
+    if not stripped:
+        if buffer and not buffer.endswith('\n\n'):
+            buffer += '\n\n'
+        return buffer
+    
+    if buffer and not buffer.endswith('\n\n'):
+        buffer += ' ' + stripped
+    else:
+        buffer += stripped
+    return buffer
+
+def parse_effect_description_and_stacks(lines):
+    """
+    Разобрать секцию "Описание" эффекта на:
+    - общее описание (до первых заголовков уровней)
+    - уровни/стеки эффекта, оформленные заголовками `#### ...`
+
+    Пример структуры (Эффект - Слепота):
+    - текст
+    - #### Слепота (1) — ...
+    - описание уровня 1
+    - #### Слепота (2) — ...
+    - описание уровня 2
+    """
+    description = ""
+    stacks = []
+    current_stack = None
+
+    for raw_line in lines:
+        line = raw_line.strip()
+
+        # Новый уровень эффекта
+        if line.startswith('####'):
+            # Сохраняем предыдущий, если в нём есть содержимое
+            if current_stack and current_stack.get('description'):
+                stacks.append(current_stack)
+            # Имя уровня — текст заголовка без ####
+            stack_name = line.replace('####', '').strip()
+            current_stack = {"name": stack_name, "description": ""}
+            continue
+
+        # Обычная строка описания
+        if current_stack is None:
+            # Базовое описание эффекта (до первого уровня)
+            description = _append_line_to_buffer(description, raw_line)
+        else:
+            # Описание конкретного уровня/стека
+            current_stack['description'] = _append_line_to_buffer(current_stack['description'], raw_line)
+
+    # Добавляем последний стек, если он есть
+    if current_stack and current_stack.get('description'):
+        stacks.append(current_stack)
+
+    return description.strip(), stacks
+
 def parse_effect_file(filepath):
     """Parse an effect file and extract all data."""
     with open(filepath, 'r', encoding='utf-8') as f:
@@ -41,43 +103,63 @@ def parse_effect_file(filepath):
     
     lines = content.split('\n')
     current_section = None
+    description_lines = []
     
     for line in lines:
-        line = line.strip()
+        stripped = line.strip()
         
         # Detect sections
-        if line.startswith('#### Параметры'):
+        if stripped.startswith('#### Параметры'):
             current_section = 'parameters'
-        elif line.startswith('#### Описание'):
+        elif stripped.startswith('#### Описание'):
             current_section = 'description'
-        elif line.startswith('___'):
-            current_section = None
-        elif line.startswith('####'):
+        elif stripped.startswith('___'):
             current_section = None
         
         # Parse parameters
-        elif current_section == 'parameters' and line.startswith('-'):
-            if '**Тип Действия**:' in line:
-                effect['actionType'] = strip_wikilinks_to_text(line.split(':', 1)[1])
+        elif current_section == 'parameters' and stripped.startswith('-'):
+            if '**Тип Действия**:' in stripped:
+                effect['actionType'] = strip_wikilinks_to_text(stripped.split(':', 1)[1])
         
-        # Parse description
-        elif current_section == 'description' and line and not line.startswith('#'):
-            if effect['description']:
-                effect['description'] += ' ' + line
-            else:
-                effect['description'] = line
+        # Accumulate raw description lines (включая заголовки уровней-стеков)
+        elif current_section == 'description':
+            description_lines.append(line)
     
-    # If no structured описание было найдено (старый или простой формат файла),
+    # Если нашли структурированную секцию "Описание" —
+    # разбираем её на базовое описание и уровни/стеки
+    if description_lines:
+        base_description, stacks = parse_effect_description_and_stacks(description_lines)
+
+        if base_description:
+            desc_html = convert_wikilinks_in_text(base_description, base_prefix='')
+            effect['description'] = clean_markdown_formatting(desc_html)
+
+        # Преобразуем стеки в структуру, похожую на подзаклинания:
+        # каждый стек имеет name и description, отрендеренные через convert_wikilinks_in_text
+        if stacks:
+            effect_stacks = []
+            for stack in stacks:
+                desc = stack.get('description', '').strip()
+                name = stack.get('name', '').strip()
+                if not name and not desc:
+                    continue
+                stack_obj = {}
+                if name:
+                    stack_obj['name'] = name
+                if desc:
+                    desc_html = convert_wikilinks_in_text(desc, base_prefix='')
+                    stack_obj['description'] = clean_markdown_formatting(desc_html)
+                if stack_obj:
+                    effect_stacks.append(stack_obj)
+            if effect_stacks:
+                effect['stacks'] = effect_stacks
+
+    # Если структурированного описания не нашли (старый или простой формат файла),
     # используем весь текст файла как описание по умолчанию
-    if not effect['description']:
+    if not effect.get('description'):
         raw = content.strip()
         if raw:
             desc_html = convert_wikilinks_in_text(raw, base_prefix='')
-            effect['description'] = clean_markdown_formatting(desc_html)
-    else:
-        # В обычном случае сначала конвертируем wikilinks в HTML-ссылки,
-        # затем убираем markdown-форматирование
-        desc_html = convert_wikilinks_in_text(effect['description'], base_prefix='')
         effect['description'] = clean_markdown_formatting(desc_html)
     
     return effect

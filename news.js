@@ -1,22 +1,60 @@
 /* E'Magios Core - News / Changelog */
 
+import { BOOKS } from './books.js';
+
 const NEWS_ENTRIES = [
+  {
+    id: '2025-12-08-alfred-gift',
+    date: '9 декабря 2025',
+    title: 'Подарок от Альфреда — Обновление E\'Magios Core',
+    brief: 'Улучшенные броски - Интеграция с Discord - Экран Загрузки - Лобби (BETA)',
+    features: [
+      { text: 'Добавлено приглашение гостю войти через Google; профиль и поля Discord теперь скрыты до авторизации.' },
+      { text: 'Добавлена фиксированная панель внизу профиля с кнопками: Сохранить, Сбросить изменения, Выйти (с подтверждением).' },
+      { text: 'Добавлено дублирование бросков в Discord через сохранённый вебхук (URL, имя и цвет хранятся в профиле).' },
+      { text: 'Улучшен выбор цвета сообщений: палитра со свотчами и живым превью на базе оттенков #10B981.' },
+      { text: 'Добавлена автокнопка «Наверх» на всех страницах.' },
+      { text: 'Добавлена кнопка «Очистить историю» в виджете кубов: очищает локальные броски и, при авторизации, последние сохранённые броски в профиле.' },
+      { text: 'Улучшен парсинг многоуровневых эффектов (Слепота, Скрытый, Подавление Магии): все уровни отображаются как раскрывающиеся подэффекты в базе данных.' },
+      { text: 'Изменено оформление категорий базы: три строки с общим фоном для блоков «основы системы», «магия» и «ремесло», служебный текст над вкладками убран.' },
+      { text: 'Добавлен единый экран загрузки для профиля, редактора и лобби — убирает вспышки авторизации и подготавливает данные перед показом.' },
+      { text: 'Добавлены первые онлайн-лобби (BETA): список комнат, вход по ссылке или коду, чат и общий холст.' },
+      { text: 'Упрощена поддержка базы: таблицы и попапы читают единую схему колонок и фильтров из schema.js, правки делаются в одном месте.' }
+    ],
+    newObjects: {
+      spells: [],
+      schools: [],
+      effects: [],
+      archetypes: [],
+      actions: [],
+      basics: [],
+      skills: [],
+      actionTypes: [],
+      combatComponents: [],
+      craftComponents: [],
+      craftProfessions: [],
+      craftSpecializations: [],
+      recipeTypes: [],
+      recipes: []
+    },
+    links: [
+      { text: 'Профиль', url: 'profile.html' }
+    ]
+  },
   {
     id: '2025-12-07-fortune-blessing',
     date: '7 декабря 2025',
     title: 'Благословение Фортуны — Обновление E\'Magios Core',
+    brief: 'Виджет кубов - Формулы бросков - Кликабельные формулы - Фильтры БД - Новые заклинания',
     features: [
-      { text: 'Глобальный виджет бросков: плавающая кнопка D12, чат-окно истории бросков и быстрые кнопки D2–D100.' },
-      { text: 'Система команд /roll с поддержкой сложных выражений (2d4+3d6-1, 1d12*2/3 и т.п.) и подробной расшифровкой результата.' },
-      { text: 'Привязка бросков к заклинаниям: три кнопки (Аркана, Попадание, Наложение эффекта) в поп-апах заклинаний с автоматическим разбором бонусов из описания.' },
-      { text: 'Критические броски D12 (значение 12) для проверки Арканы и Броска на Попадание помечаются как КРИТ и визуально подсвечиваются в истории (для Наложения эффекта подсветка отключена).' },
-      { text: 'Интеграция с Google/Firebase: история бросков хранится в Firestore на аккаунте и автоматически подгружается после входа.' },
-      { text: 'Обновление интерфейса: увеличенные шрифты, кликабельные карточки результатов, улучшенные панели и независимость окна бросков от других поп-апов.' },
-      { text: 'База данных заклинаний: новый фильтр «Фирменное Заклинание (Да/Нет)», автоматически определяющий фирменные спеллы по блоку «Бонус Фирменного Заклинания» в описании.' },
-      { text: 'База данных: списки «Типы Действий» и «Компоненты Боевой системы» теперь показывают компактное, очищенное от служебных фраз саммари, совпадающее по смыслу с книгами правил.' },
-      { text: 'Заклинания в базе и редакторе персонажа: все формулы бросков (2d4, 3d8, 2d4+1 и т.п.) стали кликабельными — при нажатии открывается виджет кубов и автоматически исполняется указанный бросок с пометкой заклинания в истории.' },
-      { text: 'Записи в истории бросков теперь всегда содержат исходное выражение: для контекстных бросков (например, «Бросок на попадание (+2) — Огненный Ворон Селены (1d12+2)»), а для свободных бросков — формат «Свободный Бросок — (1d10)».' },
-      { text: 'Кнопки бросков в поп-апе заклинаний теперь используют читаемые подписи с бонусом («Бросок на Аркану (+0)», «Бросок на попадание (+2)» и т.п.), чтобы подчёркивать итоговую формулу броска.' }
+      { text: 'Добавлен плавающий виджет кубов: кнопка D12, история бросков и быстрые броски D2–D100.' },
+      { text: 'Расширена команда /roll: поддерживает сложные формулы (2d4+3d6-1, 1d12*2/3) и показывает расшифровку.' },
+      { text: 'Добавлены авто-кнопки в поп-апах заклинаний (Аркана, Попадание, Наложение) — сразу подставляют бонусы из описания.' },
+      { text: 'Добавлена подсветка критов D12 для Арканы и Попадания; история бросков синхронизируется через Google/Firebase.' },
+      { text: 'Улучшен интерфейс кубов: крупнее элементы, кликабельные результаты, окно не блокирует другие поп-апы.' },
+      { text: 'Добавлен фильтр «Фирменное Заклинание (Да/Нет)» в базе заклинаний с автоопределением.' },
+      { text: 'Сделаны кликабельными формулы бросков в базе и редакторе: открывают виджет, сразу выполняют бросок и сохраняют исходное выражение.' },
+      { text: 'Добавлено саммари в таблицы «Типы действий» и «Компоненты боя»; кнопки бросков используют понятные подписи с бонусом.' }
     ],
     newObjects: {
       // Новые заклинания после "Кузни Героев" (ядовитая ветка и фирменное заклинание Селены)
@@ -38,6 +76,7 @@ const NEWS_ENTRIES = [
       archetypes: [],
       // Новое базовое действие
       actions: ['стабилизация'],
+      basics: [],
       skills: [],
       actionTypes: [],
       combatComponents: [],
@@ -56,27 +95,16 @@ const NEWS_ENTRIES = [
     id: '2025-11-28-db-update',
     date: '28 ноября 2025',
     title: 'Кузня Героев — Обновление E\'Magios Core',
+    brief: 'Авторизация - Редактор Персонажа - Новые Заклинания - Новые разделы БД',
     features: [
-      { text: 'Авторизация через Google: вход в систему через Google-аккаунт и подготовка к синхронизации данных профиля' },
-      { text: 'Редактор персонажей: отдельное окно создания и управления персонажами на сайте' },
-      { text: '50 новых заклинаний в Spellbook и базе данных (группы, комбо, подзаклинания)' },
-      { text: 'Новые разделы базы данных: «Навыки», «Типы Действий» и «Боевая система»' },
-      { text: 'Работа над внешним видом и удобством: обновлённые поп-апы базы данных, кастомные скроллбары, кликабельные ссылки и улучшенные фильтры' },
-      { text: 'Spellbook: повторный перенос и унификация всех заклинаний (новая структура без источника, поддержка мультишкол, подзаклинания и комбо)' },
-      { text: 'База данных заклинаний: новые фильтры по типу действия, типу урона, концентрации и требуемому уровню' },
-      { text: 'База данных заклинаний: корректная поддержка заклинаний, относящихся сразу к нескольким школам (фильтры и таблицы учитывают все школы)' },
-      { text: 'База данных заклинаний: кликабельные школы и типы действий в таблице и карточках заклинаний, открывающие поп-апы без смены раздела' },
-      { text: 'База данных: объединены Базовые Действия и Действия Отдыха (19 записей) с фильтром по типу действия' },
-      { text: 'Навыки: уровни навыков личности и магии отображаются отдельными подзаголовками внутри описания' },
-      { text: 'Типы Действий и Компоненты Боевой системы: в списке — короткое саммари, в карточке — полное описание из книг' },
-      { text: 'Архетипы: улучшенное отображение описаний и улучшений, добавлен архетип «Легендарный Ремесленник» и обновлены все 13 архетипов' },
-      { text: 'Эффекты: обновлён раздел эффектов (17 эффектов) с корректной разбивкой на абзацы и типы действий' },
-      { text: 'Модальные окна базы данных: обновлённый тёмный стиль, кастомные скроллбары и блокировка прокрутки фона при открытии поп-апа' },
-      { text: 'Spellbook: тип действия «Автоматон» с оформленным примером пассивного режима как подзаклинания' },
-      { text: 'Ритуальные заклинания: отдельный блок «Требования к ритуалу» с временем, участниками и компонентами прямо в карточке заклинания' },
-      { text: 'Комбо- и групповые заклинания: подзаклинания сворачиваются/разворачиваются, показывая тип действия и параметры по клику' },
-      { text: 'Wikilinks из Obsidian: кликабельные связи между школами, заклинаниями, эффектами, действиями, навыками и боевыми компонентами внутри базы' },
-      { text: 'Поп-апы базы и фильтров: выравнивание шапки, ширины и скроллбаров для более компактного и читаемого отображения' }
+      { text: 'Добавлен вход через Google — профили готовы к синхронизации.' },
+      { text: 'Добавлен новый редактор персонажей в отдельном окне.' },
+      { text: 'Добавлено 50+ заклинаний в Spellbook и базу, включая группы, комбо и подзаклинания.' },
+      { text: 'Добавлены новые разделы базы: Навыки, Типы действий, Боевая система; базовые и отдых-действия объединены (19 записей).' },
+      { text: 'Расширены фильтры заклинаний: тип действия, урон, концентрация, требуемый уровень; поддерживаются заклинания с несколькими школами.' },
+      { text: 'Улучшены карточки заклинаний: кликабельные школы и типы действий, сворачиваемые подзаклинания, блок требований для ритуалов.' },
+      { text: 'Обновлены архетипы (добавлен «Легендарный Ремесленник») и эффекты (17) с оформленными описаниями.' },
+      { text: 'Обновлены поп-апы базы и фильтров: тёмный стиль, кастомные скроллбары, аккуратная шапка.' }
     ],
     newObjects: {
       spells: 'all',
@@ -84,6 +112,26 @@ const NEWS_ENTRIES = [
       effects: 'all',
       archetypes: ['легендарный-ремесленник'],
       actions: 'all',
+      basics: [
+        'abstract-categories',
+        'archetypes',
+        'actions',
+        'intro',
+        'long-term-projects',
+        'combat',
+        'critical-success',
+        'metamagic',
+        'leveling',
+        'wounds',
+        'rituals',
+        'creation',
+        'spontaneous-spells',
+        'study-spells',
+        'signature-spells',
+        'stats',
+        'equipment',
+        'effects'
+      ],
       skills: ['атлетика', 'восприятие', 'знания', 'контакты', 'общение', 'конструирование', 'метамагия', 'ритуалогия', 'созидание', 'спонтанность'],
       actionTypes: ['автоматон', 'атака', 'группа-заклинаний', 'защита', 'комбо', 'контроль', 'магическое-приспособление', 'небоевое', 'пассивно', 'поддержка', 'призыв-объекта', 'ритуал'],
       combatComponents: ['аркана', 'атакующие-действия', 'бонус-к-наложению', 'бонус-к-попаданию', 'воля', 'действия-в-ходу', 'защита', 'здоровье', 'концентрация', 'правило-наибольшего-значения', 'реакции', 'сопротивление', 'спасбросок', 'стойкость', 'уклонение', 'уровень', 'уровни-повреждений', 'уязвимость']
@@ -98,21 +146,20 @@ const NEWS_ENTRIES = [
     id: '2025-11-27-initial',
     date: '27 ноября 2025',
     title: 'Первородный — Первая версия сайта E\'Magios Core',
+    brief: 'Запуск: книги правил, база данных, редактор персонажей, парольная защита',
     features: [
-      { text: 'Player\'s Handbook: публикация основных правил для игроков (главы и разделы)' },
-      { text: 'Spellbook: публикация школ магии и связанных с ними разделов' },
-      { text: 'Master\'s Handbook: базовая структура и первые разделы' },
-      { text: 'Craftbook: основные разделы о ремёслах и создании' },
-      { text: 'Compendium of Rumors: стартовые материалы и идеи' },
-      { text: 'База данных с фильтрами и детальными страницами заклинаний, школ, эффектов, архетипов и действий' },
-      { text: 'Защищённые разделы с единым паролем и кнопкой сброса доступа' }
+      { text: 'Запущены Player\'s Handbook, Spellbook, Master\'s Handbook, Craftbook и Compendium of Rumors на сайте с оглавлением и якорями.' },
+      { text: 'Добавлена база данных с фильтрами и карточками заклинаний, школ, эффектов, архетипов и действий.' },
+      { text: 'Добавлен редактор персонажей: считает характеристики по уровню, сохраняет несколько профилей, экспортирует в JSON.' },
+      { text: 'Добавлена защита закрытых разделов единым паролем и кнопкой сброса доступа.' }
     ],
     newObjects: {
       spells: 'all',
       schools: 'all',
       effects: 'all',
       archetypes: 'all',
-      actions: 'all'
+      actions: 'all',
+      basics: 'all'
     },
     links: [
       { text: 'Player\'s Handbook', url: 'phb.html' },
@@ -194,6 +241,51 @@ const INITIAL_EFFECT_NAMES = [
   'Сон',
   'Тошнота'
 ];
+
+// Фиксированный список «Основ системы» для обновления базы от 28.11.2025,
+// чтобы не зависеть от будущих изменений basics.json
+const DB_UPDATE_BASIC_IDS = [
+  'abstract-categories',
+  'archetypes',
+  'actions',
+  'intro',
+  'long-term-projects',
+  'combat',
+  'critical-success',
+  'metamagic',
+  'leveling',
+  'wounds',
+  'rituals',
+  'creation',
+  'spontaneous-spells',
+  'study-spells',
+  'signature-spells',
+  'stats',
+  'equipment',
+  'effects'
+];
+
+// Зафиксированная статистика (контент + БД) на момент последних обновлений
+const LATEST_STATS_SNAPSHOT = {
+  totalContentChars: 207093,
+  totalChapters: 38,
+  totalObjects: 290,
+  counts: {
+    spells: 113,
+    schools: 38,
+    effects: 18,
+    archetypes: 13,
+    actions: 22,
+    skills: 10,
+    actionTypes: 13,
+    combatComponents: 21,
+    craftComponents: 11,
+    craftProfessions: 6,
+    craftSpecializations: 21,
+    recipeTypes: 3,
+    recipes: 1
+  }
+};
 
 // Фиксированные списки объектов для новости "Кузня Героев — Обновление E'Magios Core"
 // чтобы они совпадали с продакшн-версией HTML на 28 ноября 2025
@@ -326,6 +418,9 @@ function formatObjectsList(items, type) {
     if (type === 'action') {
       return '<a href="db.html?action=' + encodeURIComponent(item.id) + '">' + item.name + '</a>';
     }
+    if (type === 'basic') {
+      return '<a href="db.html?basic=' + encodeURIComponent(item.id) + '">' + item.name + '</a>';
+    }
     if (type === 'skill') {
       return '<a href="db.html#skills-tab" onclick="event.preventDefault(); window.location.href = \'db.html?openTab=skills\';">' + item.name + '</a>';
     }
@@ -395,7 +490,7 @@ function calculateTotalChapters() {
   return total;
 }
 
-function renderNews(spells, schools, effects, archetypes, actions, skills, actionTypes, combatComponents, craftComponents, craftProfessions, craftSpecializations, recipeTypes, recipes) {
+function renderNews(spells, schools, effects, archetypes, actions, basics, skills, actionTypes, combatComponents, craftComponents, craftProfessions, craftSpecializations, recipeTypes, recipes) {
   const container = document.getElementById('news-list');
   if (!container) {
     return;
@@ -408,6 +503,7 @@ function renderNews(spells, schools, effects, archetypes, actions, skills, actio
   const totalEffects = effects.length;
   const totalArchetypes = archetypes.length;
   const totalActions = actions.length;
+  const totalBasics = basics.length;
 
   const totalSkills = skills.length;
   const totalActionTypes = actionTypes.length;
@@ -417,21 +513,6 @@ function renderNews(spells, schools, effects, archetypes, actions, skills, actio
   const totalCraftSpecializations = craftSpecializations.length;
   const totalRecipeTypes = recipeTypes.length;
   const totalRecipes = recipes.length;
-
-  const totalObjects =
-    totalSpells +
-    totalSchools +
-    totalEffects +
-    totalArchetypes +
-    totalActions +
-    totalSkills +
-    totalActionTypes +
-    totalCombatComponents +
-    totalCraftComponents +
-    totalCraftProfessions +
-    totalCraftSpecializations +
-    totalRecipeTypes +
-    totalRecipes;
 
   const totalChars = countTextLengthFromCollections([
     spells,
@@ -448,6 +529,29 @@ function renderNews(spells, schools, effects, archetypes, actions, skills, actio
     recipeTypes,
     recipes
   ]);
+
+  const totalObjects =
+    totalSpells +
+    totalSchools +
+    totalEffects +
+    totalArchetypes +
+    totalActions +
+    totalBasics +
+    totalSkills +
+    totalActionTypes +
+    totalCombatComponents +
+    totalCraftComponents +
+    totalCraftProfessions +
+    totalCraftSpecializations +
+    totalRecipeTypes +
+    totalRecipes;
+
+  // Контент (книги + БД)
+  const totalContentChars = totalChars;
+
+  // Приблизительная оценка объёма кода сайта (HTML/CSS/JS) — базовое значение + контент.
+  const BASE_CODE_CHARS = 120000;
+  const totalCodeChars = BASE_CODE_CHARS + totalContentChars;
   const totalChapters = calculateTotalChapters();
 
   NEWS_ENTRIES.forEach(function (entry) {
@@ -515,6 +619,13 @@ function renderNews(spells, schools, effects, archetypes, actions, skills, actio
         return (entry.newObjects.actions || []).indexOf(action.id) !== -1;
       });
     }
+
+    const newBasics =
+      entry.newObjects.basics === 'all'
+        ? basics
+        : (entry.newObjects.basics || []).map(function (id) {
+            return basics.find(function (b) { return b.id === id; });
+          }).filter(Boolean);
 
     const newSkills = entry.newObjects.skills === 'all' ? skills : (entry.newObjects.skills || []).map(function (id) {
       return skills.find(function (s) { return s.id === id; });
@@ -609,6 +720,7 @@ function renderNews(spells, schools, effects, archetypes, actions, skills, actio
     objectsHtmlParts.push('<p><strong>Новые эффекты:</strong> ' + formatObjectsList(newEffects, 'effect') + '</p>');
     objectsHtmlParts.push('<p><strong>Новые архетипы:</strong> ' + formatObjectsList(newArchetypes, 'archetype') + '</p>');
     objectsHtmlParts.push('<p><strong>Новые базовые действия:</strong> ' + formatObjectsList(newActions, 'action') + '</p>');
+    objectsHtmlParts.push('<p><strong>Новые основы системы:</strong> ' + formatObjectsList(newBasics, 'basic') + '</p>');
     objectsHtmlParts.push('<p><strong>Новые навыки:</strong> ' + formatObjectsList(newSkills, 'skill') + '</p>');
     objectsHtmlParts.push('<p><strong>Новые типы действий:</strong> ' + formatObjectsList(newActionTypes, 'actionType') + '</p>');
     objectsHtmlParts.push(
@@ -651,6 +763,48 @@ function renderNews(spells, schools, effects, archetypes, actions, skills, actio
         '<p><strong>Всего глав (разделов) в книгах:</strong> 39</p>',
         '<p><strong>Всего объектов в базе данных:</strong> 230 (заклинания: 103, школы: 38, эффекты: 17, архетипы: 13, базовые действия: 19, навыки: 10, типы действий: 12, компоненты боя: 18)</p>'
       ].join('');
+    } else if (entry.id === '2025-12-07-fortune-blessing' || entry.id === '2025-12-08-alfred-gift') {
+      // Статистика зафиксирована константой, чтобы не зависеть от будущего роста базы
+      const s = LATEST_STATS_SNAPSHOT;
+      const c = s.counts;
+      statsHtml =
+        '<p><strong>Всего символов в контенте (Книги, БД):</strong> ' +
+        s.totalContentChars.toLocaleString('ru-RU') +
+        '</p>' +
+        '<p><strong>Всего глав (разделов) в книгах:</strong> ' +
+        s.totalChapters +
+        '</p>' +
+        '<p><strong>Всего объектов в базе данных:</strong> ' +
+        s.totalObjects +
+        ' (заклинания: ' +
+        c.spells +
+        ', школы: ' +
+        c.schools +
+        ', эффекты: ' +
+        c.effects +
+        ', архетипы: ' +
+        c.archetypes +
+        ', базовые действия: ' +
+        c.actions +
+        ', основы системы: ' +
+        basics.length +
+        ', навыки: ' +
+        c.skills +
+        ', типы действий: ' +
+        c.actionTypes +
+        ', компоненты боя: ' +
+        c.combatComponents +
+        ', ремесленные компоненты: ' +
+        c.craftComponents +
+        ', профессии ремесла: ' +
+        c.craftProfessions +
+        ', специализации ремесла: ' +
+        c.craftSpecializations +
+        ', типы рецептов: ' +
+        c.recipeTypes +
+        ', рецепты: ' +
+        c.recipes +
+        ')</p>';
     }
 
     let linksHtml = '';
@@ -661,71 +815,55 @@ function renderNews(spells, schools, effects, archetypes, actions, skills, actio
       linksHtml = '<p class="news-entry-links">См. также: ' + linksParts.join(' · ') + '</p>';
     }
 
+    const isLatest = entry.id === NEWS_ENTRIES[0].id;
+    const openAttr = isLatest ? ' open' : '';
+
+    const briefHtml = entry.brief
+      ? '<div class="news-entry-brief">' + entry.brief + '</div>'
+      : '';
+
     section.innerHTML =
-      '<header class="news-entry-header">' +
-      '<h2>' +
+      '<details class="news-entry-details"' +
+      openAttr +
+      '>' +
+      '<summary class="news-entry-summary">' +
+      '<div class="news-summary-top">' +
+      '<span class="news-entry-title">' +
       entry.title +
-      '</h2>' +
-      '<p class="text-muted">' +
+      '</span>' +
+      '<span class="news-entry-date">' +
       entry.date +
-      '</p>' +
-      '</header>' +
-      '<section class="news-entry-section">' +
-      '<h3>Новый функционал на сайте</h3>' +
+      '</span>' +
+      '<span class="news-entry-toggle">▾</span>' +
+      '</div>' +
+      briefHtml +
+      '</summary>' +
+      '<div class="news-entry-body">' +
+      '<section class="news-entry-section news-section-features">' +
+      '<details open>' +
+      '<summary class="news-section-summary"><span>Новый функционал на сайте</span></summary>' +
       '<ul>' +
       featuresHtml +
       '</ul>' +
       linksHtml +
+      '</details>' +
       '</section>' +
-      '<section class="news-entry-section">' +
-      '<h3>Новые объекты в базе данных</h3>' +
+      '<section class="news-entry-section news-section-objects">' +
+      '<details open>' +
+      '<summary class="news-section-summary"><span>Новые объекты в базе данных</span></summary>' +
       objectsHtmlParts.join('') +
+      '</details>' +
       '</section>' +
-      (entry.id === '2025-11-28-db-update'
-        ? '<section class="news-entry-section">' +
-          '<h3>Статистика после обновления</h3>' +
+      (statsHtml
+        ? '<section class="news-entry-section news-section-stats">' +
+          '<details>' +
+          '<summary class="news-section-summary"><span>Статистика после обновления</span></summary>' +
           statsHtml +
+          '</details>' +
           '</section>'
-        : entry.id === '2025-12-07-fortune-blessing'
-        ? '<section class="news-entry-section">' +
-          '<h3>Статистика после обновления</h3>' +
-          '<p><strong>Всего символов в данных базы:</strong> ' +
-          totalChars.toLocaleString('ru-RU') +
-          '</p>' +
-          '<p><strong>Всего глав (разделов) в книгах:</strong> ' +
-          totalChapters +
-          '</p>' +
-          '<p><strong>Всего объектов в базе данных:</strong> ' +
-          totalObjects +
-          ' (заклинания: ' +
-          totalSpells +
-          ', школы: ' +
-          totalSchools +
-          ', эффекты: ' +
-          totalEffects +
-          ', архетипы: ' +
-          totalArchetypes +
-          ', базовые действия: ' +
-          totalActions +
-          ', навыки: ' +
-          totalSkills +
-          ', типы действий: ' +
-          totalActionTypes +
-          ', компоненты боя: ' +
-          totalCombatComponents +
-          ', ремесленные компоненты: ' +
-          totalCraftComponents +
-          ', профессии ремесла: ' +
-          totalCraftProfessions +
-          ', специализации ремесла: ' +
-          totalCraftSpecializations +
-          ', типы рецептов: ' +
-          totalRecipeTypes +
-          ', рецепты: ' +
-          totalRecipes +
-          ')</p>' +
-          '</section>'
-        : '');
+        : '') +
+      '</div>' +
+      '</details>';
 
     container.appendChild(section);
   });
@@ -738,6 +876,7 @@ document.addEventListener('DOMContentLoaded', function () {
     loadJSON('./data/effects.json'),
     loadJSON('./data/archetypes.json'),
     loadJSON('./data/actions.json'),
+    loadJSON('./data/basics.json'),
     loadJSON('./data/skills.json'),
     loadJSON('./data/action_types.json'),
     loadJSON('./data/combat_components.json'),
@@ -753,14 +892,15 @@ document.addEventListener('DOMContentLoaded', function () {
       const effects = results[2];
       const archetypes = results[3];
       const actions = results[4];
-      const skills = results[5];
-      const actionTypes = results[6];
-      const combatComponents = results[7];
-      const craftComponents = results[8];
-      const craftProfessions = results[9];
-      const craftSpecializations = results[10];
-      const recipeTypes = results[11];
-      const recipes = results[12];
+      const basics = results[5];
+      const skills = results[6];
+      const actionTypes = results[7];
+      const combatComponents = results[8];
+      const craftComponents = results[9];
+      const craftProfessions = results[10];
+      const craftSpecializations = results[11];
+      const recipeTypes = results[12];
+      const recipes = results[13];
 
       renderNews(
         spells,
@@ -768,6 +908,7 @@ document.addEventListener('DOMContentLoaded', function () {
         effects,
         archetypes,
         actions,
+        basics,
         skills,
         actionTypes,
         combatComponents,

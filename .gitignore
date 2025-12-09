@@ -10,3 +10,12 @@ Thumbs.db
 *.tmp
 *.log
 
+# Python bytecode / cache
+*.pyc
+__pycache__/
+
+# Generated hashed assets (cache-busting copies)
+styles.*.css
+*.????????.js
+*.????????.css
+

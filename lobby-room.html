@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Лобби — Комната</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="lobby-room" class="lobby-body">
+  <div id="page-loader" class="page-loader">
+    <div class="page-loader-content">
+      <div class="page-loader-spinner"></div>
+      <p id="page-loader-message" class="page-loader-message">Подключаемся к комнате...</p>
+    </div>
+  </div>
+
+  <!-- Auth Guard Overlay -->
+  <section id="lobby-auth-guard" class="lobby-guard-overlay hidden">
+    <div class="lobby-guard-content glass-panel">
+      <h2>Требуется вход через Google</h2>
+      <p class="text-muted">Авторизуйтесь, чтобы войти в комнату.</p>
+      <div class="lobby-guard-actions">
+        <button id="lobby-google-login-btn" class="btn btn-primary" type="button">Войти через Google</button>
+        <a href="profile.html" class="btn btn-secondary">Открыть профиль</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Lobby Interface -->
+  <div id="lobby-main" class="lobby-main-layout hidden">
+    
+    <!-- Left/Main: Canvas Area -->
+    <main class="lobby-canvas-area">
+      <div class="glass-panel canvas-panel">
+        <div class="panel-header stage-header">
+          <div class="header-title canvas-header-row">
+            <h3 id="canvas-area-label" class="canvas-heading">Основная область</h3>
+            <span class="title-separator">—</span>
+            <h3 id="canvas-title" class="canvas-heading">Холст - №1</h3>
+            <div id="canvas-board-tabs" class="canvas-board-tabs"></div>
+          </div>
+          <div class="canvas-toolbar">
+            <label class="color-swatch" title="Белый"><input type="radio" name="brush-color" value="#ffffff" checked><span style="background:#ffffff;"></span></label>
+            <label class="color-swatch" title="Изумруд"><input type="radio" name="brush-color" value="#10b981"><span style="background:#10b981;"></span></label>
+            <label class="color-swatch" title="Красный"><input type="radio" name="brush-color" value="#ef4444"><span style="background:#ef4444;"></span></label>
+            <label class="color-swatch" title="Синий"><input type="radio" name="brush-color" value="#3b82f6"><span style="background:#3b82f6;"></span></label>
+            <label class="color-swatch" title="Жёлтый"><input type="radio" name="brush-color" value="#facc15"><span style="background:#facc15;"></span></label>
+            <label class="color-swatch" title="Фиолетовый"><input type="radio" name="brush-color" value="#a855f7"><span style="background:#a855f7;"></span></label>
+            <div class="vr"></div>
+            <div class="size-control">
+              <input id="brush-size" type="range" min="2" max="20" value="4" title="Толщина кисти">
+            </div>
+            <div class="vr"></div>
+            <button id="canvas-undo-btn" class="btn btn-icon" type="button" title="Отменить (Ctrl+Z)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>
+            </button>
+            <button id="canvas-redo-btn" class="btn btn-icon" type="button" title="Повторить (Ctrl+Y)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 14 20 9 15 4"></polyline><path d="M4 20v-7a4 4 0 0 1 4-4h12"></path></svg>
+            </button>
+            <div class="vr"></div>
+            <button id="canvas-clear-btn" class="btn btn-icon" type="button" title="Очистить холст">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </div>
+        </div>
+        
+        <div class="panel-body canvas-wrapper">
+          <div id="canvas-loader" class="canvas-loader hidden">
+            <div class="canvas-loader-content">
+              <div class="page-loader-spinner"></div>
+              <p class="canvas-loader-message">Загружаем холсты...</p>
+            </div>
+          </div>
+          <canvas id="battle-canvas"></canvas>
+          <div id="canvas-empty-hint" class="canvas-hint text-muted">Рисуйте мышкой</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right: Chat & Sidebar -->
+    <aside class="lobby-sidebar-area">
+      <div class="glass-panel chat-panel">
+        <div class="panel-header chat-header">
+          <div class="header-title">
+            <p class="eyebrow">Комната</p>
+            <h3 id="lobby-room-title">Лобби</h3>
+          </div>
+          <div class="header-actions">
+            <button id="lobby-copy-link" class="room-icon-btn" title="Скопировать ссылку">
+              <span class="icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              </span>
+              <span class="label">Скопировать</span>
+            </button>
+            <button id="lobby-leave-btn" class="room-icon-btn danger" title="Выйти">
+              <span class="icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              </span>
+              <span class="label">Выйти</span>
+            </button>
+            <button id="lobby-delete-btn" class="room-icon-btn subtle hidden" title="Удалить лобби">
+              <span class="icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </span>
+              <span class="label">Удалить</span>
+            </button>
+          </div>
+        </div>
+        
+        <div class="chat-meta-bar">
+          <span id="lobby-members-pill" class="meta-pill">Участников: 1</span>
+          <span id="chat-status" class="meta-status text-muted">Онлайн</span>
+        </div>
+
+        <div class="panel-body chat-body" id="lobby-chat-body">
+          <div id="chat-loading" class="chat-system-msg">Загрузка...</div>
+          <div id="chat-older-loader" class="chat-system-msg hidden">Загрузка старых...</div>
+          <div id="chat-list" class="chat-list"></div>
+          <div id="chat-empty" class="chat-system-msg hidden">Нет сообщений</div>
+        </div>
+
+        <div class="panel-footer chat-footer">
+          <form id="chat-form">
+            <div class="chat-input-row">
+              <input id="chat-input" type="text" placeholder="Сообщение или /roll 2d6" autocomplete="off">
+              <button id="chat-send-btn" class="btn btn-primary btn-icon" type="submit">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </aside>
+    
+    <!-- Hidden elements required by logic -->
+    <div id="lobby-room-view" class="hidden"></div>
+    <div id="lobby-room-subtitle" class="hidden"></div>
+    <input id="lobby-invite-link" type="hidden">
+    <div id="lobby-owner-pill" class="hidden"></div>
+
+  </div>
+
+  <script type="module" src="common.js"></script>
+  
+  <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  
+  <script defer src="firebase-config.js"></script>
+  <script defer src="auth.js"></script>
+  <script type="module" src="lobby.js"></script>
+
+</body>
+</html>

@@ -46,6 +46,9 @@ function initCharacterEditorAuth() {
   const app = initFirebaseApp();
   if (!app) {
     container.innerHTML = '<p class="text-muted">Онлайн-авторизация пока не настроена.</p>';
+    if (typeof hidePageLoader === 'function') {
+      hidePageLoader();
+    }
     return;
   }
 
@@ -119,17 +122,7 @@ function initCharacterEditorAuth() {
 
     if (isProfilePage) {
       container.innerHTML =
-        '<p class="text-muted">Вы не вошли в аккаунт.</p>' +
-        '<button type="button" class="btn btn-secondary btn-sm" id="btn-google-signin">Войти через Google</button>';
-
-      const btn = document.getElementById('btn-google-signin');
-      if (btn) {
-        btn.addEventListener('click', function () {
-          auth.signInWithPopup(provider).catch(function (error) {
-            console.error('Google sign-in failed:', error);
-          });
-        });
-      }
+        '<p class="text-muted">Вы не вошли в аккаунт. Используйте форму ниже, чтобы войти через Google.</p>';
       return;
     }
 

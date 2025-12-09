@@ -6,6 +6,7 @@ let effectsData = [];
 let archetypesData = [];
 let actionsData = [];
 let skillsData = [];
+let basicsData = [];
 let actionTypesData = [];
 let combatComponentsData = [];
 let craftComponentsData = [];
@@ -20,6 +21,7 @@ let currentEffectSort = { field: 'name', ascending: true };
 let currentArchetypeSort = { field: 'name', ascending: true };
 let currentActionSort = { field: 'name', ascending: true };
 let currentSkillSort = { field: 'name', ascending: true };
+let currentBasicSort = { field: 'name', ascending: true };
 let currentActionTypeSort = { field: 'name', ascending: true };
 let currentCombatSort = { field: 'name', ascending: true };
 let currentCraftComponentSort = { field: 'name', ascending: true };
@@ -97,6 +99,225 @@ let tempRecipeFilters = {
   recipeRarity: [],
   recipeType: []
 };
+
+// ----- Schema helpers -----
+function getDbSchema(entity) {
+  return window.DB_SCHEMAS && window.DB_SCHEMAS[entity] ? window.DB_SCHEMAS[entity] : null;
+}
+
+function getFilterContainerId(entity, key) {
+  const map = {
+    // spells
+    'spells:type': 'spell-type-tags',
+    'spells:school': 'spell-school-tags',
+    'spells:damage': 'spell-damage-tags',
+    'spells:concentration': 'spell-concentration-tags',
+    'spells:requiredLevel': 'spell-level-tags',
+    'spells:signature': 'spell-signature-tags',
+    'spells:source': 'spell-source-tags',
+    // schools
+    'schools:rarity': 'school-rarity-tags',
+    'schools:properties': 'school-properties-tags',
+    'schools:difficulty': 'school-difficulty-tags',
+    // effects
+    'effects:actionType': 'effect-type-tags',
+    // skills
+    'skills:type': 'skill-type-tags',
+    // actions
+    'actions:kind': 'action-kind-tags',
+    // recipes
+    'recipes:profession': 'recipe-profession-tags',
+    'recipes:specialization': 'recipe-specialization-tags',
+    'recipes:recipeLevel': 'recipe-level-tags',
+    'recipes:recipeRarity': 'recipe-rarity-tags',
+    'recipes:recipeType': 'recipe-type-tags'
+  };
+  return map[entity + ':' + key] || '';
+}
+
+function collectGenericOptions(list, field, split) {
+  const values = [];
+  if (!Array.isArray(list)) {
+    return values;
+  }
+  list.forEach(function (item) {
+    const raw = item[field];
+    if (!raw && raw !== 0) {
+      return;
+    }
+    let parts;
+    if (Array.isArray(raw)) {
+      parts = raw;
+    } else if (split) {
+      parts = String(raw)
+        .split(',')
+        .map(function (p) {
+          return p.trim();
+        })
+        .filter(Boolean);
+    } else {
+      parts = [String(raw).trim()];
+    }
+    parts.forEach(function (v) {
+      if (v && values.indexOf(v) === -1) {
+        values.push(v);
+      }
+    });
+  });
+  values.sort();
+  return values;
+}
+
+function getFilterOptions(entity, filter) {
+  if (filter.options) {
+    return filter.options;
+  }
+  switch (entity) {
+    case 'spells':
+      switch (filter.key) {
+        case 'type':
+          if (actionTypesData && actionTypesData.length) {
+            return actionTypesData
+              .map(function (t) {
+                return t.name;
+              })
+              .filter(function (name, index, arr) {
+                return !!name && arr.indexOf(name) === index;
+              })
+              .sort();
+          }
+          return collectSpellOptions('type', true);
+        case 'school':
+          return collectSpellOptions('school', false);
+        case 'damage':
+          return collectSpellOptions('damageType', true);
+        case 'concentration':
+          return ['Да', 'Нет'];
+        case 'requiredLevel':
+          return collectSpellRequiredLevels();
+        case 'signature':
+          return ['Да', 'Нет'];
+        case 'source':
+          return ['Учебное', 'Фирменное'];
+        default:
+          return [];
+      }
+    case 'schools':
+      switch (filter.key) {
+        case 'rarity':
+          return collectSchoolRarities();
+        case 'properties':
+          return collectSchoolProperties();
+        case 'difficulty':
+          return collectSchoolDifficulties();
+        default:
+          return [];
+      }
+    case 'effects':
+      if (filter.key === 'actionType') {
+        return collectGenericOptions(effectsData, 'actionType', false);
+      }
+      return [];
+    case 'skills':
+      if (filter.key === 'type') {
+        return collectSkillTypes();
+      }
+      return [];
+    case 'actions':
+      if (filter.key === 'kind') {
+        return collectGenericOptions(actionsData, 'kind', false);
+      }
+      return [];
+    case 'recipes':
+      switch (filter.key) {
+        case 'profession':
+          return collectRecipeProfessions();
+        case 'specialization':
+          return collectRecipeSpecializations();
+        case 'recipeLevel':
+          return collectRecipeLevels();
+        case 'recipeRarity':
+          return collectRecipeRarities();
+        case 'recipeType':
+          return collectRecipeTypes();
+        default:
+          return [];
+      }
+    default:
+      return [];
+  }
+}
+
+function initFiltersFromSchema(entity, tempObject) {
+  const schema = getDbSchema(entity);
+  if (!schema || !Array.isArray(schema.filters)) {
+    return;
+  }
+  schema.filters.forEach(function (filter) {
+    const containerId = getFilterContainerId(entity, filter.key);
+    if (!containerId) {
+      return;
+    }
+    const options = getFilterOptions(entity, filter);
+    createFilterTags(containerId, options, filter.key, tempObject);
+  });
+}
+
+function applyTableHeadFromSchema(entity, selector, context) {
+  const schema = getDbSchema(entity);
+  if (!schema || !Array.isArray(schema.columns)) {
+    return;
+  }
+  const thead = document.querySelector(selector);
+  if (!thead) {
+    return;
+  }
+  const sortMap = {
+    spells: 'sortSpells',
+    schools: 'sortSchools',
+    effects: 'sortEffects',
+    skills: 'sortSkills',
+    actions: 'sortActions',
+    recipes: 'sortRecipes',
+    archetypes: 'sortArchetypes',
+    basics: 'sortBasics',
+    'action-types': 'sortActionTypes',
+    combat: 'sortCombat',
+    'craft-components': 'sortCraftComponents',
+    'craft-professions': 'sortCraftProfessions',
+    'craft-specializations': 'sortCraftSpecializations',
+    'recipe-types': 'sortRecipeTypes'
+  };
+  const sortHandler = sortMap[entity] || '';
+  const cols = schema.columns.filter(function (col) {
+    if (!col.contexts || !col.contexts.length) {
+      return true;
+    }
+    return col.contexts.indexOf(context) !== -1;
+  });
+  if (!cols.length) {
+    return;
+  }
+  thead.innerHTML =
+    '<tr>' +
+    cols
+      .map(function (col) {
+        if (sortHandler) {
+          return (
+            '<th class="sortable" onclick="' +
+            sortHandler +
+            "('" +
+            col.key +
+            "')\">" +
+            col.label +
+            '</th>'
+          );
+        }
+        return '<th>' + col.label + '</th>';
+      })
+      .join('') +
+    '</tr>';
+}
 
 function splitToArray(value) {
   if (!value) {
@@ -310,79 +531,24 @@ function collectRecipeTypes() {
   return values;
 }
 
-function toggleFilterCategory(headerElement) {
-  const category = headerElement.closest('.filter-category');
-  if (category) {
-    category.classList.toggle('collapsed');
-  }
-}
-
-function selectAllInCategory(containerId, filterKey, filterObject) {
-  const container = document.getElementById(containerId);
-  if (!container) {
-    return;
-  }
-  
-  const tags = container.querySelectorAll('.filter-tag');
-  tags.forEach(function (tag) {
-    const value = tag.getAttribute('data-value');
-    if (value && filterObject[filterKey].indexOf(value) === -1) {
-      filterObject[filterKey].push(value);
-      tag.classList.add('active');
-    }
-  });
-}
-
-function clearAllInCategory(containerId, filterKey, filterObject) {
-  const container = document.getElementById(containerId);
-  if (!container) {
-    return;
-  }
-  
-  filterObject[filterKey] = [];
-  
-  const tags = container.querySelectorAll('.filter-tag');
-  tags.forEach(function (tag) {
-    tag.classList.remove('active');
-  });
-}
-
-function createFilterTags(containerId, options, filterCategory, filterObject) {
-  const container = document.getElementById(containerId);
-  if (!container) {
-    return;
-  }
-  
-  container.innerHTML = '';
-  
-  options.forEach(function (value) {
-    const tag = document.createElement('div');
-    tag.className = 'filter-tag';
-    tag.textContent = value;
-    tag.setAttribute('data-value', value);
-    
-    const isActive = filterObject[filterCategory].indexOf(value) !== -1;
-    if (isActive) {
-      tag.classList.add('active');
-    }
-    
-    tag.addEventListener('click', function () {
-      const index = filterObject[filterCategory].indexOf(value);
-      if (index === -1) {
-        filterObject[filterCategory].push(value);
-        tag.classList.add('active');
-      } else {
-        filterObject[filterCategory].splice(index, 1);
-        tag.classList.remove('active');
-      }
-    });
-    
-    container.appendChild(tag);
-  });
-}
-
 document.addEventListener('DOMContentLoaded', async function () {
   await loadAllData();
+  
+  // Применяем заголовки таблиц из единой схемы
+  applyTableHeadFromSchema('spells', '#spells-tab table thead', 'db');
+  applyTableHeadFromSchema('schools', '#schools-tab table thead', 'db');
+  applyTableHeadFromSchema('effects', '#effects-tab table thead', 'db');
+  applyTableHeadFromSchema('skills', '#skills-tab table thead', 'db');
+  applyTableHeadFromSchema('actions', '#actions-tab table thead', 'db');
+  applyTableHeadFromSchema('recipes', '#recipes-tab table thead', 'db');
+  applyTableHeadFromSchema('archetypes', '#archetypes-tab table thead', 'db');
+  applyTableHeadFromSchema('basics', '#basics-tab table thead', 'db');
+  applyTableHeadFromSchema('action-types', '#action-types-tab table thead', 'db');
+  applyTableHeadFromSchema('combat', '#combat-tab table thead', 'db');
+  applyTableHeadFromSchema('craft-components', '#craft-components-tab table thead', 'db');
+  applyTableHeadFromSchema('craft-professions', '#craft-professions-tab table thead', 'db');
+  applyTableHeadFromSchema('craft-specializations', '#craft-specializations-tab table thead', 'db');
+  applyTableHeadFromSchema('recipe-types', '#recipe-types-tab table thead', 'db');
   
   const urlParams = new URLSearchParams(window.location.search);
   const spellId = urlParams.get('spell');
@@ -391,6 +557,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   const archetypeId = urlParams.get('archetype');
   const actionId = urlParams.get('action');
   const skillId = urlParams.get('skill');
+  const basicId = urlParams.get('basic');
   const actionTypeId = urlParams.get('actionType');
   const combatId = urlParams.get('combat');
    const craftComponentId = urlParams.get('craftComponent');
@@ -432,12 +599,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
   } else {
     const openTab = urlParams.get('openTab');
-    if (openTab && ['spells', 'schools', 'archetypes', 'actions', 'effects', 'skills', 'action-types', 'combat', 'craft-components', 'craft-professions', 'craft-specializations', 'recipe-types', 'recipes'].indexOf(openTab) !== -1) {
+    if (openTab && ['spells', 'schools', 'archetypes', 'actions', 'effects', 'skills', 'basics', 'action-types', 'combat', 'craft-components', 'craft-professions', 'craft-specializations', 'recipe-types', 'recipes'].indexOf(openTab) !== -1) {
       switchTab(openTab);
     } else {
       // Restore active tab
       const savedTab = sessionStorage.getItem('db_activeTab');
-      if (savedTab && ['spells', 'schools', 'archetypes', 'actions', 'effects', 'skills', 'action-types', 'combat', 'craft-components', 'craft-professions', 'craft-specializations', 'recipe-types', 'recipes'].indexOf(savedTab) !== -1) {
+      if (savedTab && ['spells', 'schools', 'archetypes', 'actions', 'effects', 'skills', 'basics', 'action-types', 'combat', 'craft-components', 'craft-professions', 'craft-specializations', 'recipe-types', 'recipes'].indexOf(savedTab) !== -1) {
         switchTab(savedTab);
       }
     }
@@ -449,6 +616,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   filterAndDisplayArchetypes();
   filterAndDisplayActions();
   filterAndDisplaySkills();
+  filterAndDisplayBasics();
   filterAndDisplayActionTypes();
   filterAndDisplayCombat();
   filterAndDisplayCraftComponents();
@@ -473,6 +641,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     showActionPage(actionId);
   } else if (skillId) {
     showSkillPage(skillId);
+  } else if (basicId) {
+    showBasicPage(basicId);
   } else if (actionTypeId) {
     showActionTypePage(actionTypeId);
   } else if (combatId) {
@@ -498,6 +668,7 @@ async function loadAllData() {
     loadArchetypes(),
     loadActions(),
     loadSkills(),
+    loadBasics(),
     loadActionTypes(),
     loadCombatComponents(),
     loadCraftComponents(),
@@ -565,6 +736,16 @@ async function loadSkills() {
   } catch (error) {
     console.error('Error loading skills:', error);
     skillsData = [];
+  }
+}
+
+async function loadBasics() {
+  try {
+    const response = await fetch('./data/basics.json', { cache: 'no-store' });
+    basicsData = await response.json();
+  } catch (error) {
+    console.error('Error loading basics:', error);
+    basicsData = [];
   }
 }
 
@@ -639,61 +820,12 @@ async function loadRecipes() {
 }
 
 function initializeDynamicFilters() {
-  // Для заклинаний используем полный список типов действий из базы типов действий,
-  // чтобы фильтры охватывали всю типологию (даже если часть типов пока не задействована в заклинаниях)
-  let spellTypeOptions = [];
-  if (actionTypesData && actionTypesData.length) {
-    spellTypeOptions = actionTypesData
-      .map(function (t) { return t.name; })
-      .filter(function (name, index, arr) {
-        return !!name && arr.indexOf(name) === index;
-      })
-      .sort();
-  } else {
-    spellTypeOptions = collectSpellOptions('type', true);
-  }
-  const spellSchoolOptions = collectSpellOptions('school', true);
-  const spellDamageOptions = collectSpellOptions('damageType', true);
-  const spellConcentrationOptions = ['Да', 'Нет'];
-  const spellSignatureOptions = ['Да', 'Нет'];
-  const spellLevelOptions = collectSpellRequiredLevels();
-
-  createFilterTags('spell-type-tags', spellTypeOptions, 'type', tempSpellFilters);
-  createFilterTags('spell-school-tags', spellSchoolOptions, 'school', tempSpellFilters);
-  createFilterTags('spell-damage-tags', spellDamageOptions, 'damage', tempSpellFilters);
-  createFilterTags('spell-concentration-tags', spellConcentrationOptions, 'concentration', tempSpellFilters);
-  createFilterTags('spell-signature-tags', spellSignatureOptions, 'signature', tempSpellFilters);
-  createFilterTags('spell-level-tags', spellLevelOptions, 'requiredLevel', tempSpellFilters);
-
-  const rarityOptions = collectSchoolRarities();
-  const propertiesOptions = collectSchoolProperties();
-  const difficultyOptions = collectSchoolDifficulties();
-
-  createFilterTags('school-rarity-tags', rarityOptions, 'rarity', tempSchoolFilters);
-  createFilterTags('school-properties-tags', propertiesOptions, 'properties', tempSchoolFilters);
-  createFilterTags('school-difficulty-tags', difficultyOptions, 'difficulty', tempSchoolFilters);
-
-  const effectTypeOptions = ['Обычный', 'Относительное'];
-  createFilterTags('effect-type-tags', effectTypeOptions, 'actionType', tempEffectFilters);
-
-  const skillTypeOptions = collectSkillTypes();
-  createFilterTags('skill-type-tags', skillTypeOptions, 'type', tempSkillFilters);
-
-  const actionKindOptions = ['Базовое', 'Отдых'];
-  createFilterTags('action-kind-tags', actionKindOptions, 'kind', tempActionFilters);
-
-  // Рецепты ремесла
-  const recipeProfessionOptions = collectRecipeProfessions();
-  const recipeSpecializationOptions = collectRecipeSpecializations();
-  const recipeLevelOptions = collectRecipeLevels();
-  const recipeRarityOptions = collectRecipeRarities();
-  const recipeTypeOptions = collectRecipeTypes();
-
-  createFilterTags('recipe-profession-tags', recipeProfessionOptions, 'profession', tempRecipeFilters);
-  createFilterTags('recipe-specialization-tags', recipeSpecializationOptions, 'specialization', tempRecipeFilters);
-  createFilterTags('recipe-level-tags', recipeLevelOptions, 'recipeLevel', tempRecipeFilters);
-  createFilterTags('recipe-rarity-tags', recipeRarityOptions, 'recipeRarity', tempRecipeFilters);
-  createFilterTags('recipe-type-tags', recipeTypeOptions, 'recipeType', tempRecipeFilters);
+  initFiltersFromSchema('spells', tempSpellFilters);
+  initFiltersFromSchema('schools', tempSchoolFilters);
+  initFiltersFromSchema('effects', tempEffectFilters);
+  initFiltersFromSchema('skills', tempSkillFilters);
+  initFiltersFromSchema('actions', tempActionFilters);
+  initFiltersFromSchema('recipes', tempRecipeFilters);
 }
 
 function setupFilterListeners() {
@@ -742,6 +874,14 @@ function setupFilterListeners() {
     skillName.addEventListener('input', function() {
       saveFiltersToSession();
       filterAndDisplaySkills();
+    });
+  }
+
+  const basicName = document.getElementById('basic-name');
+  if (basicName) {
+    basicName.addEventListener('input', function() {
+      saveFiltersToSession();
+      filterAndDisplayBasics();
     });
   }
 
@@ -1443,9 +1583,6 @@ function linkifySchoolProperty(property) {
   if (property === 'Запретная') {
     return '<a href="spellbook/schools.html#property-forbidden" ' + style + '>' + property + '</a>';
   }
-  if (property === 'Вспомогательная') {
-    return '<a href="spellbook/schools.html#property-support" ' + style + '>' + property + '</a>';
-  }
   return property;
 }
 
@@ -1740,6 +1877,7 @@ function saveFiltersToSession() {
     sessionStorage.setItem('db_archetypeSort', JSON.stringify(currentArchetypeSort));
     sessionStorage.setItem('db_actionSort', JSON.stringify(currentActionSort));
     sessionStorage.setItem('db_skillSort', JSON.stringify(currentSkillSort));
+    sessionStorage.setItem('db_basicSort', JSON.stringify(currentBasicSort));
     sessionStorage.setItem('db_actionTypeSort', JSON.stringify(currentActionTypeSort));
     sessionStorage.setItem('db_combatSort', JSON.stringify(currentCombatSort));
     sessionStorage.setItem('db_craftComponentSort', JSON.stringify(currentCraftComponentSort));
@@ -1755,6 +1893,7 @@ function saveFiltersToSession() {
     const archetypeName = document.getElementById('archetype-name');
     const actionName = document.getElementById('action-name');
     const skillName = document.getElementById('skill-name');
+    const basicName = document.getElementById('basic-name');
     const actionTypeName = document.getElementById('action-type-name');
     const combatName = document.getElementById('combat-name');
     const craftComponentName = document.getElementById('craft-component-name');
@@ -1769,6 +1908,7 @@ function saveFiltersToSession() {
     if (archetypeName) sessionStorage.setItem('db_archetypeName', archetypeName.value);
     if (actionName) sessionStorage.setItem('db_actionName', actionName.value);
     if (skillName) sessionStorage.setItem('db_skillName', skillName.value);
+    if (basicName) sessionStorage.setItem('db_basicName', basicName.value);
     if (actionTypeName) sessionStorage.setItem('db_actionTypeName', actionTypeName.value);
     if (combatName) sessionStorage.setItem('db_combatName', combatName.value);
     if (craftComponentName) sessionStorage.setItem('db_craftComponentName', craftComponentName.value);
@@ -1798,6 +1938,7 @@ function loadFiltersFromSession() {
     const savedArchetypeSort = sessionStorage.getItem('db_archetypeSort');
     const savedActionSort = sessionStorage.getItem('db_actionSort');
     const savedSkillSort = sessionStorage.getItem('db_skillSort');
+    const savedBasicSort = sessionStorage.getItem('db_basicSort');
     const savedActionTypeSort = sessionStorage.getItem('db_actionTypeSort');
     const savedCombatSort = sessionStorage.getItem('db_combatSort');
     const savedCraftComponentSort = sessionStorage.getItem('db_craftComponentSort');
@@ -1933,6 +2074,16 @@ function loadFiltersFromSession() {
       }
     }
 
+    if (savedBasicSort) {
+      const parsedSort = JSON.parse(savedBasicSort);
+      if (parsedSort.field) {
+        currentBasicSort.field = parsedSort.field;
+      }
+      if (typeof parsedSort.ascending === 'boolean') {
+        currentBasicSort.ascending = parsedSort.ascending;
+      }
+    }
+
     if (savedActionTypeSort) {
       const parsedSort = JSON.parse(savedActionTypeSort);
       if (parsedSort.field) {
@@ -2010,6 +2161,7 @@ function loadFiltersFromSession() {
     const archetypeName = document.getElementById('archetype-name');
     const actionName = document.getElementById('action-name');
     const skillName = document.getElementById('skill-name');
+    const basicName = document.getElementById('basic-name');
     const actionTypeName = document.getElementById('action-type-name');
     const combatName = document.getElementById('combat-name');
     const craftComponentName = document.getElementById('craft-component-name');
@@ -2024,6 +2176,7 @@ function loadFiltersFromSession() {
     if (archetypeName) archetypeName.value = sessionStorage.getItem('db_archetypeName') || '';
     if (actionName) actionName.value = sessionStorage.getItem('db_actionName') || '';
     if (skillName) skillName.value = sessionStorage.getItem('db_skillName') || '';
+    if (basicName) basicName.value = sessionStorage.getItem('db_basicName') || '';
     if (actionTypeName) actionTypeName.value = sessionStorage.getItem('db_actionTypeName') || '';
     if (combatName) combatName.value = sessionStorage.getItem('db_combatName') || '';
     if (craftComponentName) craftComponentName.value = sessionStorage.getItem('db_craftComponentName') || '';
@@ -2171,9 +2324,6 @@ function buildSpellDetailHtml(spell) {
     params.push('<li><strong>Ценность:</strong> ' + spell.value + '</li>');
   }
 
-  if (spell.supportMagic) {
-    params.push('<li><strong>Вспомогательная Магия:</strong> ' + spell.supportMagic + '</li>');
-  }
 
   if (spell.type) {
     params.push('<li><strong>Тип Действия:</strong> ' + spell.type + '</li>');
@@ -2556,11 +2706,21 @@ function closeSpellDetailModal() {
 /**
  * Show spell detail (used for deep links and table links)
  */
-function showSpellPage(spellId) {
+function showSpellPage(spellIdOrName) {
   switchTab('spells');
-  const spell = spellsData.find(function (s) {
-    return s.id === spellId;
-  });
+  const findSpell = function (value) {
+    if (!value) return null;
+    const direct = spellsData.find(function (s) {
+      return s.id === value || s.name === value;
+    });
+    if (direct) return direct;
+    const lowered = String(value).toLowerCase();
+    return spellsData.find(function (s) {
+      return String(s.id).toLowerCase() === lowered || String(s.name).toLowerCase() === lowered;
+    });
+  };
+
+  const spell = findSpell(spellIdOrName);
   if (!spell) {
     return;
   }
@@ -2700,7 +2860,8 @@ function showEffectPage(effectId) {
 
   document.title = effect.name + ' — E\'Magios Core';
 
-  const description = effect.description || '—';
+  const description = effect.description || '';
+  const hasStacks = effect.stacks && effect.stacks.length > 0;
 
   const params = ['<li><strong>Тип Действия:</strong> ' + (effect.actionType || '—') + '</li>'];
   const hasParameters = params.length > 0;
@@ -2711,8 +2872,47 @@ function showEffectPage(effectId) {
     html += '<h3>Описание</h3>';
   }
 
+  // Основное описание эффекта
+  if (description) {
+    html += renderSpellDescription(description);
+  } else {
+    html += '—';
+  }
+
+  // Уровни/стеки эффекта — оформлены в том же стиле, что и подзаклинания
+  if (hasStacks) {
+    html += '<h3>Уровни эффекта</h3>';
+    effect.stacks.forEach(function (stack, index) {
+      const stackId = 'effect-stack-' + (effect.id || 'effect') + '-' + index;
+      const stackName = stack.name || ('Уровень ' + (index + 1));
+
+      html += '<div class="subspell-block" style="margin-bottom: var(--spacing-lg); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); background: rgba(42, 42, 42, 0.4);">';
   html +=
-    renderSpellDescription(description) +
+        '<div class="subspell-header" style="display:flex; align-items:center; justify-content:space-between; padding: var(--spacing-md); cursor:pointer;" onclick="toggleSubSpell(\'' +
+        stackId +
+        '\')">' +
+        '<div style="display:flex; flex-direction:column; gap:2px;">' +
+        '<h3 style="margin: 0; color: var(--accent-emerald); font-size: 1.05em;">' +
+        stackName +
+        '</h3>' +
+        '</div>' +
+        '<span style="font-size: 0.85em; color: var(--text-muted); margin-left: var(--spacing-md);">Показать детали</span>' +
+        '</div>';
+
+      html +=
+        '<div id="' +
+        stackId +
+        '" class="subspell-body" style="display: none; padding: 0 var(--spacing-md) var(--spacing-md);">';
+
+      if (stack.description) {
+        html += renderSpellDescription(stack.description);
+      }
+
+      html += '</div></div>';
+    });
+  }
+
+  html +=
     '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
     '<p class="text-muted"><strong>Связи:</strong> <a href="phb/effects.html" style="color: var(--accent-emerald); text-decoration: none;">Эффекты</a></p>';
 
@@ -3000,6 +3200,24 @@ function showActionTypePage(actionTypeId) {
     '<p class="text-muted"><strong>Связи:</strong> <a href="phb/actions.html" style="color: var(--accent-emerald); text-decoration: none;">Действия</a></p>';
 
   openDbDetailModal(actionType.name, html);
+}
+
+function showBasicPage(basicId) {
+  switchTab('basics');
+  const item = basicsData.find(function (b) {
+    return b.id === basicId;
+  });
+  if (!item) {
+    return;
+  }
+
+  document.title = item.name + ' — E\'Magios Core';
+
+  const description = item.description || '—';
+  let html = '';
+  html += renderSpellDescription(description);
+
+  openDbDetailModal(item.name, html);
 }
 
 function showCombatPage(combatId) {
@@ -3463,6 +3681,57 @@ function sortSkills(field) {
     currentSkillSort.ascending = true;
   }
   filterAndDisplaySkills();
+  saveFiltersToSession();
+}
+
+function displayBasics(items) {
+  const tbody = document.getElementById('basics-results');
+  const count = document.getElementById('basics-count');
+
+  count.textContent = `${items.length} ${getPlural(items.length, 'материал', 'материала', 'материалов')}`;
+
+  if (!items.length) {
+    tbody.innerHTML = '<tr><td colspan="2" class="no-results">Ничего не найдено</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = items
+    .map(function (item) {
+      const desc = item.description || '';
+      const summary = buildSummary(desc, 140);
+      return (
+        '<tr>' +
+        `<td><strong><a href="javascript:void(0)" onclick="showBasicPage('${item.id}')" style="color: var(--accent-emerald); text-decoration: none;">${item.name}</a></strong></td>` +
+        `<td>${summary}</td>` +
+        '</tr>'
+      );
+    })
+    .join('');
+}
+
+function filterAndDisplayBasics() {
+  const nameInput = document.getElementById('basic-name');
+  const searchName = nameInput ? nameInput.value.toLowerCase() : '';
+
+  let filtered = basicsData.filter(function (item) {
+    if (searchName && item.name.toLowerCase().indexOf(searchName) === -1) {
+      return false;
+    }
+    return true;
+  });
+
+  filtered = sortArray(filtered, currentBasicSort.field, currentBasicSort.ascending);
+  displayBasics(filtered);
+}
+
+function sortBasics(field) {
+  if (currentBasicSort.field === field) {
+    currentBasicSort.ascending = !currentBasicSort.ascending;
+  } else {
+    currentBasicSort.field = field;
+    currentBasicSort.ascending = true;
+  }
+  filterAndDisplayBasics();
   saveFiltersToSession();
 }
 

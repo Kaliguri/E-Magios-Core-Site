@@ -8,7 +8,7 @@ import re
 
 from link_resolver import strip_wikilinks_to_text, convert_wikilinks_in_text
 
-def convert_markdown_to_html(md_content, book_code=''):
+def convert_markdown_to_html(md_content, book_code='', base_prefix='../', allow_special_pages=True):
     """Convert markdown content to HTML."""
     lines = md_content.split('\n')
     html = []
@@ -83,7 +83,8 @@ def convert_markdown_to_html(md_content, book_code=''):
             html.append('<table>')
             html.append('<thead><tr>')
             for header in table_headers:
-                header_clean = convert_wikilinks_in_text(header, base_prefix='../')
+                header_clean = convert_wikilinks_in_text(header, base_prefix=base_prefix, allow_special_pages=allow_special_pages)
+                header_clean = convert_wikilinks_in_text(header, base_prefix=base_prefix, allow_special_pages=allow_special_pages)
                 header_clean = re.sub(r'\*\*([^\*]+)\*\*', r'<strong>\1</strong>', header_clean)
                 html.append(f'<th>{header_clean}</th>')
             html.append('</tr></thead>')
@@ -110,7 +111,7 @@ def convert_markdown_to_html(md_content, book_code=''):
             if not in_list:
                 html.append('<ul>')
                 in_list = True
-            item = convert_wikilinks_in_text(line[2:], base_prefix='../')
+            item = convert_wikilinks_in_text(line[2:], base_prefix=base_prefix, allow_special_pages=allow_special_pages)
             item = re.sub(r'\*\*([^\*]+)\*\*', r'<strong>\1</strong>', item)
             item = re.sub(r'\*([^\*]+)\*', r'<em>\1</em>', item)
             html.append(f'<li>{item}</li>')
@@ -132,7 +133,9 @@ def convert_markdown_to_html(md_content, book_code=''):
                 in_table = False
             
             if line and not line.startswith('Связи:'):
-                text = convert_wikilinks_in_text(line, base_prefix='../')
+                text = convert_wikilinks_in_text(
+                    line, base_prefix=base_prefix, allow_special_pages=allow_special_pages
+                )
                 text = re.sub(r'\*\*([^\*]+)\*\*', r'<strong>\1</strong>', text)
                 text = re.sub(r'\*([^\*]+)\*', r'<em>\1</em>', text)
                 html.append(f'<p>{text}</p>')
@@ -181,7 +184,7 @@ def create_html_page(content_html, title, book_code, chapter_id, prev_link='', n
   <!-- Scroll to top button -->
   <button id="scroll-to-top" class="scroll-to-top" aria-label="Наверх">↑</button>
 
-  <script src="../common.js"></script>
+  <script type="module" src="../common.js"></script>
 </body>
 </html>
 '''
