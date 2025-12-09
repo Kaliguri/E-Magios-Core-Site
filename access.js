@@ -1,5 +1,5 @@
-import { MASTER_PASSWORD, PASSWORD_KEY } from './config.js';
-import { BOOKS } from './books.js';
+import { MASTER_PASSWORD, PASSWORD_KEY } from './config.js?v=66e2681e';
+import { BOOKS } from './books.js?v=579174ea';
 
 export function checkAccess() {
   return localStorage.getItem(PASSWORD_KEY) === 'true';

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Редактор персонажей — E'Magios Core</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=ccee4032">
 </head>
 <body data-page="editor">
   <div class="page-with-sidebar">
@@ -14,7 +14,7 @@
         <p id="page-loader-message" class="page-loader-message">Загружаем редактор...</p>
       </div>
     </div>
-    <!-- Sidebar will be injected here by common.js -->
+    <!-- Sidebar will be injected here by common.js?v=39673edc -->
     
     <main class="main-content main-content-wide">
   <style>
@@ -482,7 +482,7 @@
       width: 95%;
     }
 
-    /* Фильтры используют общие стили из styles.css */
+    /* Фильтры используют общие стили из styles.css?v=ccee4032 */
 
     @media (max-width: 768px) {
       .spell-select-modal .filters-panel-inner {
@@ -1365,23 +1365,23 @@
   <!-- Scroll to top button -->
   <button id="scroll-to-top" class="scroll-to-top" aria-label="Наверх">↑</button>
 
-  <script type="module" src="common.js"></script>
+  <script type="module" src="common.js?v=39673edc"></script>
 
   <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-    <script defer src="firebase-config.js"></script>
+    <script defer src="firebase-config.js?v=311c55f4"></script>
 
-  <script defer src="auth.js"></script>
+  <script defer src="auth.js?v=1c96cbf0"></script>
   <script defer>
     document.addEventListener('DOMContentLoaded', function () {
       initCharacterEditorAuth();
     });
   </script>
 
-  <script defer src="schema.js"></script>
-  <script defer src="character-editor.js"></script>
+  <script defer src="schema.js?v=5a2b271e"></script>
+  <script defer src="character-editor.js?v=c0f3a938"></script>
 </body>
 </html>
 

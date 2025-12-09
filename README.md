@@ -193,12 +193,12 @@ python -m http.server 8000
 ### Версионирование статики (Cache Busting)
 
 Dev:
-- В HTML подключаем прямые файлы без версий/хэшей: `styles.css`, `common.js`, `db.js`, `character-editor.js`, `news.js` и т.д.
-- Обновлять страницу Ctrl+F5 или включить Disable cache в DevTools.
+- Страницы подключают файлы с `?v=<hash>`; хэши проставляет `python assets_version.py --query`. Запускайте после любых правок JS/CSS, чтобы браузер не тянул кеш.
+- Для быстрой отладки достаточно Ctrl+F5 или включить Disable cache в DevTools.
 
 Prod:
-- Для кэш-бастинга ставим query-хэши без копий: `python assets_version.py --query`.
-- Полный режим с переименованием (хэш в имени) для локальной работы не используем; нужен только если понадобится immutable-копия на прод.
+- Перед выкладкой обязательно прогоняйте `python assets_version.py --query`, чтобы обновились хэши во всех ссылках и import'ах модулей.
+- Полный режим с переименованием (хэш в имени) локально не используем; включайте только если нужна immutable-копия на прод.
 
 Подсказки:
 ```bash
@@ -209,7 +209,7 @@ python assets_version.py --query
 python assets_version.py --dry-run
 ```
 
-Скрипт обновляет ссылки в HTML/README и (в режиме с переименованием) переписывает import'ы внутри хэшированных копий. В dev хэш-файлы не коммитим.
+Скрипт обновляет ссылки в HTML/README и в режиме `--query` также добавляет `?v=<hash>` в import-выражения JS. В dev хэш-файлы не коммитим.
 
 ## Развёртывание на GitHub Pages
 
@@ -308,7 +308,7 @@ python convert_md_to_html.py "<input_md>" <output_html> <book_code> <chapter_id>
 
 Пароль сохраняется в `localStorage`. Для сброса используйте кнопку 🔓 в правом верхнем углу.
 
-Если нужно изменить пароль, отредактируйте `MASTER_PASSWORD` в `config.js`.
+Если нужно изменить пароль, отредактируйте `MASTER_PASSWORD` в `config.js?v=66e2681e`.
 
 ## Возможности
 
