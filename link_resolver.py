@@ -214,6 +214,7 @@ def resolve_wikilink(
     full_link: str,
     display_text: Optional[str] = None,
     base_prefix: str = "",
+    allow_special_pages: bool = True,
 ) -> str:
     """
     Resolve a single wikilink target to an HTML <a> tag or plain text.
@@ -227,9 +228,10 @@ def resolve_wikilink(
         display_text = full_link.split("/")[-1]
 
     # First try special rulebook pages (Компоненты, Абстрактные Категории и т.п.)
-    special = _resolve_special_page_link(full_link, display_text, base_prefix)
-    if special is not None:
-        return special
+    if allow_special_pages:
+        special = _resolve_special_page_link(full_link, display_text, base_prefix)
+        if special is not None:
+            return special
 
     # Split path and anchor
     path_part = full_link
@@ -299,18 +301,13 @@ def resolve_wikilink(
         a_id = slugify(a_name)
         return _make_db_link("archetype", a_id, display_text, base_prefix)
 
-    # Auxiliary magic: Вспомогательная Магия - X → характеристики PHB
-    if last_part.startswith("Вспомогательная Магия - "):
-        aux_name = last_part.replace("Вспомогательная Магия - ", "").strip()
-        aux_id = slugify(aux_name)
-        href = f"{base_prefix}phb/stats.html#вспомогательная-магия-{aux_id}"
-        return f'<a href="{href}">{display_text}</a>'
-
     # For anything else we keep just display text (no link).
     return display_text
 
 
-def convert_wikilinks_in_text(text: str, base_prefix: str = "") -> str:
+def convert_wikilinks_in_text(
+    text: str, base_prefix: str = "", allow_special_pages: bool = True
+) -> str:
     """
     Replace all [[wikilinks]] and [[link|text]] occurrences in text
     with proper <a href=\"...\">text</a> when possible.
@@ -319,7 +316,9 @@ def convert_wikilinks_in_text(text: str, base_prefix: str = "") -> str:
     def _repl(match: re.Match) -> str:
         full_link = match.group(1)
         display = match.group(2) if match.group(2) else None
-        return resolve_wikilink(full_link, display, base_prefix=base_prefix)
+        return resolve_wikilink(
+            full_link, display, base_prefix=base_prefix, allow_special_pages=allow_special_pages
+        )
 
     return re.sub(r"\[\[([^\]|]+)(?:\|([^\]]+))?\]\]", _repl, text)
 

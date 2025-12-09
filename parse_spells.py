@@ -322,8 +322,6 @@ def parse_spell_file(filepath):
                 value_match = re.search(r'\d+', value_text)
                 if value_match:
                     spell['value'] = int(value_match.group(0))
-            elif '**Вспомогательная магия**:' in line:
-                spell['supportMagic'] = strip_wikilinks_to_text(line.split(':', 1)[1])
             elif '**Тип Действия**:' in line or '**Тип Заклинания**:' in line:
                 spell['type'] = strip_wikilinks_to_text(line.split(':', 1)[1])
             elif '**Триггер**:' in line:

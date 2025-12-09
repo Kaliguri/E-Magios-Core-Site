@@ -11,6 +11,7 @@ let autosaveTimeoutId = null;
 let currentEditingStatKey = '';
 let currentSignedStatId = '';
 let lastSavedCharacterData = null;
+let charactersInitialLoaded = false;
 const AUTOSAVE_DELAY_MS = 3000;
 let spellsData = [];
 let spellsDataLoaded = false;
@@ -25,14 +26,18 @@ let spellSelectFilters = {
   source: [],
   school: [],
   damage: [],
-  concentration: []
+  concentration: [],
+  requiredLevel: [],
+  signature: []
 };
 let tempSpellSelectFilters = {
   type: [],
   source: [],
   school: [],
   damage: [],
-  concentration: []
+  concentration: [],
+  requiredLevel: [],
+  signature: []
 };
 let spellSelectFiltersInitialized = false;
 let currentSchoolSelectId = '';
@@ -47,6 +52,24 @@ let tempSchoolSelectFilters = {
   difficulty: []
 };
 let schoolSelectFiltersInitialized = false;
+
+function showEditorLoader(message) {
+  if (typeof showPageLoader === 'function') {
+    showPageLoader(message || 'Загружаем редактор...');
+  }
+}
+
+function hideEditorLoader() {
+  if (typeof hidePageLoader === 'function') {
+    hidePageLoader();
+  }
+}
+
+function updateEditorLoaderMessage(message) {
+  if (typeof setPageLoaderMessage === 'function' && message) {
+    setPageLoaderMessage(message);
+  }
+}
 
 // --- Вспомогательные функции для заклинаний ---
 // Определяем, считается ли заклинание фирменным по блоку «Бонус Фирменного Заклинания» в описании
@@ -174,9 +197,6 @@ function linkifySchoolProperty(property) {
   }
   if (property === 'Запретная') {
     return '<a href="spellbook/schools.html#property-forbidden" ' + style + '>' + property + '</a>';
-  }
-  if (property === 'Вспомогательная') {
-    return '<a href="spellbook/schools.html#property-support" ' + style + '>' + property + '</a>';
   }
   return property;
 }
@@ -1192,9 +1212,6 @@ function buildSpellDetailsHtml(spell) {
     parametersHTML += '<li><strong>Источник Заклинания:</strong> ' + sourceLabel + '</li>';
   }
 
-  if (spell.supportMagic) {
-    parametersHTML += '<li><strong>Вспомогательная Магия:</strong> ' + spell.supportMagic + '</li>';
-  }
 
   if (spell.type) {
     parametersHTML += '<li><strong>Тип Действия:</strong> ' + spell.type + '</li>';
@@ -2122,39 +2139,27 @@ function spellSelectCollectOptions(field, split) {
   return values;
 }
 
-function spellSelectCreateFilterTags(containerId, options, filterKey, filterObject) {
-  const container = document.getElementById(containerId);
-  if (!container) {
-    return;
+function spellSelectCollectLevels() {
+  const values = [];
+  if (!Array.isArray(spellsData)) {
+    return values;
   }
-
-  container.innerHTML = '';
-
-  options.forEach(function (value) {
-    const tag = document.createElement('div');
-    tag.className = 'filter-tag';
-    tag.textContent = value;
-    tag.setAttribute('data-value', value);
-
-    const isActive = filterObject[filterKey].indexOf(value) !== -1;
-    if (isActive) {
-      tag.classList.add('active');
-    }
-
-    tag.addEventListener('click', function () {
-      const index = filterObject[filterKey].indexOf(value);
-      if (index === -1) {
-        filterObject[filterKey].push(value);
-        tag.classList.add('active');
-      } else {
-        filterObject[filterKey].splice(index, 1);
-        tag.classList.remove('active');
+  spellsData.forEach(function (spell) {
+    if (typeof spell.requiredLevel === 'number') {
+      const level = String(spell.requiredLevel);
+      if (values.indexOf(level) === -1) {
+        values.push(level);
       }
-      renderSpellSelectList();
-    });
-
-    container.appendChild(tag);
+    }
   });
+  values.sort(function (a, b) {
+    return Number(a) - Number(b);
+  });
+  return values;
+}
+
+function spellSelectCreateFilterTags(containerId, options, filterKey, filterObject) {
+  createFilterTags(containerId, options, filterKey, filterObject);
 }
 
 function initSpellSelectFilters() {
@@ -2162,63 +2167,60 @@ function initSpellSelectFilters() {
     return;
   }
 
-  const typeOptions = spellSelectCollectOptions('type', true);
-  const schoolOptions = spellSelectCollectOptions('school', false);
-  const damageOptions = spellSelectCollectOptions('damageType', true);
-  const sourceOptions = ['Учебное', 'Фирменное'];
-  const concentrationOptions = ['Да', 'Нет'];
+  const schema = window.DB_SCHEMAS && window.DB_SCHEMAS.spells ? window.DB_SCHEMAS.spells : null;
+  if (!schema || !schema.filters) {
+    return;
+  }
 
-  spellSelectCreateFilterTags('spell-select-type-tags', typeOptions, 'type', tempSpellSelectFilters);
-  spellSelectCreateFilterTags('spell-select-source-tags', sourceOptions, 'source', tempSpellSelectFilters);
-  spellSelectCreateFilterTags('spell-select-school-tags', schoolOptions, 'school', tempSpellSelectFilters);
-  spellSelectCreateFilterTags('spell-select-damage-tags', damageOptions, 'damage', tempSpellSelectFilters);
-  spellSelectCreateFilterTags(
-    'spell-select-concentration-tags',
-    concentrationOptions,
-    'concentration',
-    tempSpellSelectFilters
-  );
+  schema.filters.forEach(function (filter) {
+    let options = [];
+    if (Array.isArray(filter.options)) {
+      options = filter.options;
+    } else if (filter.sourceField === 'requiredLevel') {
+      options = spellSelectCollectLevels();
+    } else if (filter.sourceField) {
+      options = spellSelectCollectOptions(filter.sourceField, !!filter.split);
+    }
+
+    const containerIdMap = {
+      type: 'spell-select-type-tags',
+      source: 'spell-select-source-tags',
+      school: 'spell-select-school-tags',
+      damage: 'spell-select-damage-tags',
+      concentration: 'spell-select-concentration-tags',
+      requiredLevel: 'spell-select-level-tags',
+      signature: 'spell-select-signature-tags'
+    };
+
+    const containerId = containerIdMap[filter.key];
+    if (containerId) {
+      spellSelectCreateFilterTags(containerId, options, filter.key, tempSpellSelectFilters);
+    }
+  });
 
   spellSelectFiltersInitialized = true;
 }
 
 function spellSelectToggleFilterCategory(element) {
-  const category = element.closest('.filter-category');
-  if (category) {
-    category.classList.toggle('collapsed');
-  }
+  toggleFilterCategory(element);
 }
 
 function spellSelectSelectAllInCategory(containerId, filterKey) {
-  const container = document.getElementById(containerId);
-  if (!container) {
-    return;
-  }
-
-  const tags = container.querySelectorAll('.filter-tag');
-  const list = tempSpellSelectFilters[filterKey];
-
-  tags.forEach(function (tag) {
-    const value = tag.getAttribute('data-value');
-    if (value && list.indexOf(value) === -1) {
-      list.push(value);
-    }
-    tag.classList.add('active');
-  });
+  selectAllInCategory(containerId, filterKey, tempSpellSelectFilters);
 }
 
 function spellSelectClearAllInCategory(containerId, filterKey) {
-  const container = document.getElementById(containerId);
-  if (!container) {
-    return;
-  }
+  clearAllInCategory(containerId, filterKey, tempSpellSelectFilters);
+}
 
-  tempSpellSelectFilters[filterKey] = [];
-
-  const tags = container.querySelectorAll('.filter-tag');
-  tags.forEach(function (tag) {
-    tag.classList.remove('active');
-  });
+function syncSpellSelectFilterTags() {
+  syncFilterTagsState('spell-select-type-tags', 'type', tempSpellSelectFilters);
+  syncFilterTagsState('spell-select-source-tags', 'source', tempSpellSelectFilters);
+  syncFilterTagsState('spell-select-school-tags', 'school', tempSpellSelectFilters);
+  syncFilterTagsState('spell-select-damage-tags', 'damage', tempSpellSelectFilters);
+  syncFilterTagsState('spell-select-concentration-tags', 'concentration', tempSpellSelectFilters);
+  syncFilterTagsState('spell-select-level-tags', 'requiredLevel', tempSpellSelectFilters);
+  syncFilterTagsState('spell-select-signature-tags', 'signature', tempSpellSelectFilters);
 }
 
 function openSpellSelectFiltersPanel() {
@@ -2232,36 +2234,10 @@ function openSpellSelectFiltersPanel() {
   tempSpellSelectFilters.school = spellSelectFilters.school.slice();
   tempSpellSelectFilters.damage = spellSelectFilters.damage.slice();
   tempSpellSelectFilters.concentration = spellSelectFilters.concentration.slice();
+  tempSpellSelectFilters.requiredLevel = spellSelectFilters.requiredLevel.slice();
+  tempSpellSelectFilters.signature = spellSelectFilters.signature.slice();
 
-  ['spell-select-type-tags', 'spell-select-source-tags', 'spell-select-school-tags', 'spell-select-damage-tags', 'spell-select-concentration-tags'].forEach(function (containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) {
-      return;
-    }
-    const tags = container.querySelectorAll('.filter-tag');
-    tags.forEach(function (tag) {
-      const value = tag.getAttribute('data-value');
-      const categoryElement = tag.closest('.filter-category');
-      const categoryName = categoryElement ? categoryElement.getAttribute('data-category') : '';
-      let list = [];
-      if (categoryName === 'type') {
-        list = tempSpellSelectFilters.type;
-      } else if (categoryName === 'source') {
-        list = tempSpellSelectFilters.source;
-      } else if (categoryName === 'school') {
-        list = tempSpellSelectFilters.school;
-      } else if (categoryName === 'damage') {
-        list = tempSpellSelectFilters.damage;
-      } else if (categoryName === 'concentration') {
-        list = tempSpellSelectFilters.concentration;
-      }
-      if (list.indexOf(value) !== -1) {
-        tag.classList.add('active');
-      } else {
-        tag.classList.remove('active');
-      }
-    });
-  });
+  syncSpellSelectFilterTags();
 
   panel.classList.add('open');
 }
@@ -2279,6 +2255,8 @@ function applySpellSelectFilters() {
   spellSelectFilters.school = tempSpellSelectFilters.school.slice();
   spellSelectFilters.damage = tempSpellSelectFilters.damage.slice();
   spellSelectFilters.concentration = tempSpellSelectFilters.concentration.slice();
+  spellSelectFilters.requiredLevel = tempSpellSelectFilters.requiredLevel.slice();
+  spellSelectFilters.signature = tempSpellSelectFilters.signature.slice();
 
   renderSpellSelectList();
   closeSpellSelectFiltersPanel();
@@ -2290,36 +2268,10 @@ function cancelSpellSelectFilters() {
   tempSpellSelectFilters.school = spellSelectFilters.school.slice();
   tempSpellSelectFilters.damage = spellSelectFilters.damage.slice();
   tempSpellSelectFilters.concentration = spellSelectFilters.concentration.slice();
+  tempSpellSelectFilters.requiredLevel = spellSelectFilters.requiredLevel.slice();
+  tempSpellSelectFilters.signature = spellSelectFilters.signature.slice();
 
-  const panel = document.getElementById('spell-select-filters-panel');
-  if (!panel) {
-    return;
-  }
-
-  const tags = panel.querySelectorAll('.filter-tag');
-  tags.forEach(function (tag) {
-    const value = tag.getAttribute('data-value');
-    const categoryElement = tag.closest('.filter-category');
-    const categoryName = categoryElement ? categoryElement.getAttribute('data-category') : '';
-    let list = [];
-    if (categoryName === 'type') {
-      list = tempSpellSelectFilters.type;
-    } else if (categoryName === 'source') {
-      list = tempSpellSelectFilters.source;
-    } else if (categoryName === 'school') {
-      list = tempSpellSelectFilters.school;
-    } else if (categoryName === 'damage') {
-      list = tempSpellSelectFilters.damage;
-    } else if (categoryName === 'concentration') {
-      list = tempSpellSelectFilters.concentration;
-    }
-    if (list.indexOf(value) !== -1) {
-      tag.classList.add('active');
-    } else {
-      tag.classList.remove('active');
-    }
-  });
-
+  syncSpellSelectFilterTags();
   closeSpellSelectFiltersPanel();
 }
 
@@ -2329,57 +2281,23 @@ function clearSpellSelectFilters() {
   spellSelectFilters.school = [];
   spellSelectFilters.damage = [];
   spellSelectFilters.concentration = [];
+  spellSelectFilters.requiredLevel = [];
+  spellSelectFilters.signature = [];
 
   tempSpellSelectFilters.type = [];
   tempSpellSelectFilters.source = [];
   tempSpellSelectFilters.school = [];
   tempSpellSelectFilters.damage = [];
   tempSpellSelectFilters.concentration = [];
+  tempSpellSelectFilters.requiredLevel = [];
+  tempSpellSelectFilters.signature = [];
 
-  const panel = document.getElementById('spell-select-filters-panel');
-  if (panel) {
-    const tags = panel.querySelectorAll('.filter-tag');
-    tags.forEach(function (tag) {
-      tag.classList.remove('active');
-    });
-  }
-
+  syncSpellSelectFilterTags();
   renderSpellSelectList();
 }
 
 function schoolSelectCreateFilterTags(containerId, options, filterKey, filterObject) {
-  const container = document.getElementById(containerId);
-  if (!container) {
-    return;
-  }
-
-  container.innerHTML = '';
-
-  options.forEach(function (value) {
-    const tag = document.createElement('div');
-    tag.className = 'filter-tag';
-    tag.textContent = value;
-    tag.setAttribute('data-value', value);
-
-    const isActive = filterObject[filterKey].indexOf(value) !== -1;
-    if (isActive) {
-      tag.classList.add('active');
-    }
-
-    tag.addEventListener('click', function () {
-      const index = filterObject[filterKey].indexOf(value);
-      if (index === -1) {
-        filterObject[filterKey].push(value);
-        tag.classList.add('active');
-      } else {
-        filterObject[filterKey].splice(index, 1);
-        tag.classList.remove('active');
-      }
-      renderSchoolSelectList();
-    });
-
-    container.appendChild(tag);
-  });
+  createFilterTags(containerId, options, filterKey, filterObject);
 }
 
 function initSchoolSelectFilters() {
@@ -2409,10 +2327,13 @@ function initSchoolSelectFilters() {
 }
 
 function schoolSelectToggleFilterCategory(element) {
-  const category = element.closest('.filter-category');
-  if (category) {
-    category.classList.toggle('collapsed');
-  }
+  toggleFilterCategory(element);
+}
+
+function syncSchoolSelectFilterTags() {
+  syncFilterTagsState('school-select-rarity-tags', 'rarity', tempSchoolSelectFilters);
+  syncFilterTagsState('school-select-properties-tags', 'properties', tempSchoolSelectFilters);
+  syncFilterTagsState('school-select-difficulty-tags', 'difficulty', tempSchoolSelectFilters);
 }
 
 function openSchoolSelectFiltersPanel() {
@@ -2425,33 +2346,7 @@ function openSchoolSelectFiltersPanel() {
   tempSchoolSelectFilters.properties = schoolSelectFilters.properties.slice();
   tempSchoolSelectFilters.difficulty = schoolSelectFilters.difficulty.slice();
 
-  ['school-select-rarity-tags', 'school-select-properties-tags', 'school-select-difficulty-tags'].forEach(function (
-    containerId
-  ) {
-    const container = document.getElementById(containerId);
-    if (!container) {
-      return;
-    }
-    const tags = container.querySelectorAll('.filter-tag');
-    tags.forEach(function (tag) {
-      const value = tag.getAttribute('data-value');
-      const categoryElement = tag.closest('.filter-category');
-      const categoryName = categoryElement ? categoryElement.getAttribute('data-category') : '';
-      let list = [];
-      if (categoryName === 'rarity') {
-        list = tempSchoolSelectFilters.rarity;
-      } else if (categoryName === 'properties') {
-        list = tempSchoolSelectFilters.properties;
-      } else if (categoryName === 'difficulty') {
-        list = tempSchoolSelectFilters.difficulty;
-      }
-      if (list.indexOf(value) !== -1) {
-        tag.classList.add('active');
-      } else {
-        tag.classList.remove('active');
-      }
-    });
-  });
+  syncSchoolSelectFilterTags();
 
   panel.classList.add('open');
 }
@@ -2464,35 +2359,11 @@ function closeSchoolSelectFiltersPanel() {
 }
 
 function schoolSelectSelectAllInCategory(containerId, filterKey) {
-  const container = document.getElementById(containerId);
-  if (!container) {
-    return;
-  }
-
-  const tags = container.querySelectorAll('.filter-tag');
-  const list = tempSchoolSelectFilters[filterKey];
-
-  tags.forEach(function (tag) {
-    const value = tag.getAttribute('data-value');
-    if (value && list.indexOf(value) === -1) {
-      list.push(value);
-    }
-    tag.classList.add('active');
-  });
+  selectAllInCategory(containerId, filterKey, tempSchoolSelectFilters);
 }
 
 function schoolSelectClearAllInCategory(containerId, filterKey) {
-  const container = document.getElementById(containerId);
-  if (!container) {
-    return;
-  }
-
-  tempSchoolSelectFilters[filterKey] = [];
-
-  const tags = container.querySelectorAll('.filter-tag');
-  tags.forEach(function (tag) {
-    tag.classList.remove('active');
-  });
+  clearAllInCategory(containerId, filterKey, tempSchoolSelectFilters);
 }
 
 function applySchoolSelectFilters() {
@@ -2509,31 +2380,7 @@ function cancelSchoolSelectFilters() {
   tempSchoolSelectFilters.properties = schoolSelectFilters.properties.slice();
   tempSchoolSelectFilters.difficulty = schoolSelectFilters.difficulty.slice();
 
-  const panel = document.getElementById('school-select-filters-panel');
-  if (!panel) {
-    return;
-  }
-
-  const tags = panel.querySelectorAll('.filter-tag');
-  tags.forEach(function (tag) {
-    const value = tag.getAttribute('data-value');
-    const categoryElement = tag.closest('.filter-category');
-    const categoryName = categoryElement ? categoryElement.getAttribute('data-category') : '';
-    let list = [];
-    if (categoryName === 'rarity') {
-      list = tempSchoolSelectFilters.rarity;
-    } else if (categoryName === 'properties') {
-      list = tempSchoolSelectFilters.properties;
-    } else if (categoryName === 'difficulty') {
-      list = tempSchoolSelectFilters.difficulty;
-    }
-    if (list.indexOf(value) !== -1) {
-      tag.classList.add('active');
-    } else {
-      tag.classList.remove('active');
-    }
-  });
-
+  syncSchoolSelectFilterTags();
   closeSchoolSelectFiltersPanel();
 }
 
@@ -2546,14 +2393,7 @@ function clearSchoolSelectFilters() {
   tempSchoolSelectFilters.properties = [];
   tempSchoolSelectFilters.difficulty = [];
 
-  const panel = document.getElementById('school-select-filters-panel');
-  if (panel) {
-    const tags = panel.querySelectorAll('.filter-tag');
-    tags.forEach(function (tag) {
-      tag.classList.remove('active');
-    });
-  }
-
+  syncSchoolSelectFilterTags();
   renderSchoolSelectList();
 }
 
@@ -2572,12 +2412,25 @@ function renderSpellSelectList() {
 
   const table = document.createElement('table');
   const thead = document.createElement('thead');
+  const spellSchema = window.DB_SCHEMAS && window.DB_SCHEMAS.spells ? window.DB_SCHEMAS.spells : null;
+  const popupColumns = spellSchema
+    ? spellSchema.columns.filter(function (col) {
+        return !col.contexts || col.contexts.indexOf('popup') !== -1;
+      })
+    : [
+        { key: 'name', label: 'Название' },
+        { key: 'school', label: 'Школа' },
+        { key: 'type', label: 'Тип' },
+        { key: 'requiredLevel', label: 'Требуемый уровень' }
+      ];
+
   thead.innerHTML =
     '<tr>' +
-    '<th>Название</th>' +
-    '<th>Школа</th>' +
-    '<th>Тип</th>' +
-    '<th>Источник</th>' +
+    popupColumns
+      .map(function (col) {
+        return '<th>' + col.label + '</th>';
+      })
+      .join('') +
     '</tr>';
   const tbody = document.createElement('tbody');
   tbody.id = 'spell-select-results';
@@ -2587,6 +2440,7 @@ function renderSpellSelectList() {
     const school = typeof spell.school === 'string' ? spell.school : '';
     const type = typeof spell.type === 'string' ? spell.type : '';
     const source = getSpellSourceLabel(spell);
+    const requiredLevel = typeof spell.requiredLevel === 'number' ? spell.requiredLevel : '';
 
     if (search && name.toLowerCase().indexOf(search) === -1) {
       return;
@@ -2601,6 +2455,21 @@ function renderSpellSelectList() {
 
     if (spellSelectFilters.source.length) {
       if (!source || spellSelectFilters.source.indexOf(source) === -1) {
+        return;
+      }
+    }
+
+    if (spellSelectFilters.requiredLevel.length) {
+      const levelStr = requiredLevel !== '' ? String(requiredLevel) : '';
+      if (!levelStr || spellSelectFilters.requiredLevel.indexOf(levelStr) === -1) {
+        return;
+      }
+    }
+
+    if (spellSelectFilters.signature.length) {
+      const hasSignature = editorSpellHasSignatureBonus(spell);
+      const label = hasSignature ? 'Да' : 'Нет';
+      if (spellSelectFilters.signature.indexOf(label) === -1) {
         return;
       }
     }
@@ -2660,23 +2529,13 @@ function renderSpellSelectList() {
     const typeCell = document.createElement('td');
     typeCell.textContent = type || '—';
 
-    const sourceCell = document.createElement('td');
-    if (source) {
-      const anchorId = source === 'Учебное' ? 'educational' : 'signature';
-      sourceCell.innerHTML =
-        '<a href="phb.html#source-' +
-        anchorId +
-        '" style="color: var(--text-secondary); text-decoration: none;">' +
-        source +
-        '</a>';
-    } else {
-      sourceCell.textContent = '—';
-    }
+    const levelCell = document.createElement('td');
+    levelCell.textContent = requiredLevel !== '' ? requiredLevel : '—';
 
     tr.appendChild(nameCell);
     tr.appendChild(schoolCell);
     tr.appendChild(typeCell);
-    tr.appendChild(sourceCell);
+    tr.appendChild(levelCell);
 
     tr.addEventListener('click', function () {
       const rows = tbody.querySelectorAll('tr');
@@ -3727,6 +3586,7 @@ function subscribeCharacters() {
   if (!currentUser) {
     return;
   }
+  charactersInitialLoaded = false;
   const db = getDb();
   const ref = db
     .collection('users')
@@ -3744,9 +3604,17 @@ function subscribeCharacters() {
       });
       cloudCharacters = list;
       renderCharactersList(list);
+      if (!charactersInitialLoaded) {
+        charactersInitialLoaded = true;
+        hideEditorLoader();
+      }
     },
     function (error) {
       console.error('Failed to subscribe to characters:', error);
+      if (!charactersInitialLoaded) {
+        charactersInitialLoaded = true;
+        hideEditorLoader();
+      }
     }
   );
 }
@@ -3764,8 +3632,12 @@ function clearCharactersSubscription() {
 function onAuthUserChanged(user) {
   currentUser = user;
   clearCharactersSubscription();
-  if (currentUser) {
-    subscribeCharacters();
+  if (!currentUser) {
+    hideEditorLoader();
+    return;
   }
+  updateEditorLoaderMessage('Загружаем персонажей...');
+  showEditorLoader('Загружаем персонажей...');
+  subscribeCharacters();
 }
 

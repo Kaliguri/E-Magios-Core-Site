@@ -36,10 +36,20 @@
 
     .tabs {
       display: flex;
+      flex-direction: column;
       gap: var(--spacing-sm);
       margin-bottom: var(--spacing-lg);
       border-bottom: 2px solid var(--border-color);
+    }
+
+    .tabs-row {
+      display: flex;
       flex-wrap: wrap;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--radius-lg);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
     }
 
     .tab {
@@ -586,23 +596,34 @@
     <!-- Database View (shown by default) -->
     <div id="databaseView" class="db-container">
       <h1>База данных E'Magios Core</h1>
-      <p class="text-muted">Поиск Заклинаний, Школ Магии, Архетипов и не только...</p>
 
       <!-- Tabs -->
       <div class="tabs">
-        <button class="tab active" data-tab="spells" onclick="switchTab('spells')">Заклинания</button>
-        <button class="tab" data-tab="schools" onclick="switchTab('schools')">Школы Магии</button>
-        <button class="tab" data-tab="archetypes" onclick="switchTab('archetypes')">Архетипы</button>
-        <button class="tab" data-tab="actions" onclick="switchTab('actions')">Базовые Действия</button>
-        <button class="tab" data-tab="effects" onclick="switchTab('effects')">Эффекты</button>
-        <button class="tab" data-tab="skills" onclick="switchTab('skills')">Навыки</button>
-        <button class="tab" data-tab="action-types" onclick="switchTab('action-types')">Типы Действий</button>
-        <button class="tab" data-tab="combat" onclick="switchTab('combat')">Боевая система</button>
-        <button class="tab" data-tab="craft-components" onclick="switchTab('craft-components')">Ремесленная система</button>
-        <button class="tab" data-tab="craft-professions" onclick="switchTab('craft-professions')">Профессии ремесла</button>
-        <button class="tab" data-tab="craft-specializations" onclick="switchTab('craft-specializations')">Специализации ремесла</button>
-        <button class="tab" data-tab="recipe-types" onclick="switchTab('recipe-types')">Типы Рецептов</button>
-        <button class="tab" data-tab="recipes" onclick="switchTab('recipes')">Рецепты</button>
+        <!-- Верхний ряд: основы системы -->
+        <div class="tabs-row">
+          <button class="tab" data-tab="basics" onclick="switchTab('basics')">Основы системы</button>
+          <button class="tab" data-tab="actions" onclick="switchTab('actions')">Базовые Действия</button>
+          <button class="tab" data-tab="skills" onclick="switchTab('skills')">Навыки</button>
+          <button class="tab" data-tab="combat" onclick="switchTab('combat')">Боевая система</button>
+        </div>
+
+        <!-- Средний ряд: магия и связанные сущности -->
+        <div class="tabs-row">
+          <button class="tab active" data-tab="spells" onclick="switchTab('spells')">Заклинания</button>
+          <button class="tab" data-tab="schools" onclick="switchTab('schools')">Школы Магии</button>
+          <button class="tab" data-tab="effects" onclick="switchTab('effects')">Эффекты</button>
+          <button class="tab" data-tab="action-types" onclick="switchTab('action-types')">Типы Действий</button>
+          <button class="tab" data-tab="archetypes" onclick="switchTab('archetypes')">Архетипы</button>
+        </div>
+
+        <!-- Нижний ряд: всё, что связано с ремеслом -->
+        <div class="tabs-row">
+          <button class="tab" data-tab="craft-components" onclick="switchTab('craft-components')">Ремесленная система</button>
+          <button class="tab" data-tab="craft-professions" onclick="switchTab('craft-professions')">Профессии ремесла</button>
+          <button class="tab" data-tab="craft-specializations" onclick="switchTab('craft-specializations')">Специализации ремесла</button>
+          <button class="tab" data-tab="recipe-types" onclick="switchTab('recipe-types')">Типы Рецептов</button>
+          <button class="tab" data-tab="recipes" onclick="switchTab('recipes')">Рецепты</button>
+        </div>
       </div>
 
       <!-- Spells Tab -->
@@ -1037,6 +1058,35 @@
         </div>
       </div>
 
+      <!-- Basics Tab -->
+      <div id="basics-tab" class="tab-content">
+        <div class="results-header">
+          <h3>Основы системы</h3>
+          <span class="results-count" id="basics-count">0 материалов</span>
+        </div>
+
+        <div class="filters">
+          <div class="filters-row">
+            <div class="form-group">
+              <input type="text" id="basic-name" placeholder="Поиск по названию">
+            </div>
+          </div>
+        </div>
+        <div class="results-table">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" onclick="sortBasics('name')">Название</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody id="basics-results">
+              <tr><td colspan="2" class="no-results">Загрузка...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Action Types Tab -->
       <div id="action-types-tab" class="tab-content">
         <div class="results-header">
@@ -1347,26 +1397,17 @@
   <!-- Scroll to top button -->
   <button id="scroll-to-top" class="scroll-to-top" aria-label="Наверх">↑</button>
 
-  <script src="common.js?v=1.4"></script>
+  <script type="module" src="common.js"></script>
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-  <script>
-    window.FIREBASE_CONFIG = {
-      apiKey: "AIzaSyClJ4mEng2FT46hhUILWFmHhAOep5GXUrI",
-      authDomain: "e-magios-core-site.firebaseapp.com",
-      projectId: "e-magios-core-site",
-      storageBucket: "e-magios-core-site.firebasestorage.app",
-      messagingSenderId: "682279052886",
-      appId: "1:682279052886:web:7525c0261bdf4fd5917df7",
-      measurementId: "G-ZM296D8VQG"
-    };
-  </script>
+    <script defer src="firebase-config.js"></script>
 
-  <script src="auth.js?v=1.2"></script>
-  <script src="db.js?v=3.0"></script>
+  <script defer src="auth.js"></script>
+  <script defer src="schema.js"></script>
+  <script defer src="db.js"></script>
 </body>
 </html>
 

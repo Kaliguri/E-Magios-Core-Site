@@ -154,55 +154,7 @@
           </tbody>
         </table>
 
-        <h2 id="support-magic">Таблица 4. Вспомогательная магия</h2>
-        <p>
-          Характеристики в Таблице 4 могут быть повышены при <a href="leveling.html">получении уровня</a> (не более +2). В этой таблице описаны различные сферы применения магии, которые направлены на помощь группе.
-        </p>
-        
-        <table>
-          <thead>
-            <tr>
-              <th>Название</th>
-              <th>Описание</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>Защита</strong></td>
-              <td>Отвечает за эффективность щитов и сопротивлений.</td>
-            </tr>
-            <tr>
-              <td><strong>Благословение</strong></td>
-              <td>Отвечает за эффективность исцеления и положительных эффектов.</td>
-            </tr>
-            <tr>
-              <td><strong>Иллюзия</strong></td>
-              <td>Отвечает за эффективность иллюзий, а также различных уловок и магии очарования.</td>
-            </tr>
-            <tr>
-              <td><strong>Прорицание</strong></td>
-              <td>Отвечает за предвидение, предчувствия угроз и получения информации.</td>
-            </tr>
-            <tr>
-              <td><strong>Телепатия</strong></td>
-              <td>Отвечает за поддержание связи между участниками, передачу эмоций или информации. Также влияет на эффективность командных заклинаний и совместных ритуалов.</td>
-            </tr>
-            <tr>
-              <td><strong>Сокрытие</strong></td>
-              <td>Отвечает за эффективность сокрытия от глаз, ушей и от магии Обнаружения и Прорицания.</td>
-            </tr>
-            <tr>
-              <td><strong>Обнаружение</strong></td>
-              <td>Отвечает за поиск ловушек и тайных проходов, сканирование локаций и противодействие магии Сокрытия.</td>
-            </tr>
-            <tr>
-              <td><strong>Призыв</strong></td>
-              <td>Отвечает за призыв небоевых существ, способных к уникальным эффектам, но требующих платы.</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <h2 id="personality-skills">Таблица 5. Навыки личности</h2>
+        <h2 id="personality-skills">Таблица 4. Навыки личности</h2>
         <p>
           Характеристики в Таблице 5 могут быть повышены при <a href="leveling.html">получении уровня</a> (не более +3). Отвечают за немагическую деятельность персонажа.
         </p>
@@ -251,28 +203,15 @@
     </div> <!-- main-content -->
   </div> <!-- page-with-sidebar -->
 
-  <!-- Scroll to top button -->
-  <button id="scroll-to-top" class="scroll-to-top" aria-label="Наверх">↑</button>
+<script type="module" src="../common.js"></script>
 
-  <script src="../common.js?v=1.4"></script>
+<script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script defer src="../firebase-config.js"></script>
 
-  <script>
-    window.FIREBASE_CONFIG = {
-      apiKey: "AIzaSyClJ4mEng2FT46hhUILWFmHhAOep5GXUrI",
-      authDomain: "e-magios-core-site.firebaseapp.com",
-      projectId: "e-magios-core-site",
-      storageBucket: "e-magios-core-site.firebasestorage.app",
-      messagingSenderId: "682279052886",
-      appId: "1:682279052886:web:7525c0261bdf4fd5917df7",
-      measurementId: "G-ZM296D8VQG"
-    };
-  </script>
-
-  <script src="../auth.js?v=1.2"></script>
+<script defer src="../auth.js"></script>
 </body>
 </html>
 

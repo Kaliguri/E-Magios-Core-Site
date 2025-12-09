@@ -3,12 +3,45 @@
 let profileUser = null;
 let profileDocData = null;
 
+function showProfileLoader(message) {
+  if (typeof showPageLoader === 'function') {
+    showPageLoader(message || 'Загружаем профиль...');
+  }
+}
+
+function hideProfileLoader() {
+  if (typeof hidePageLoader === 'function') {
+    hidePageLoader();
+  }
+}
+
+function updateProfileLoaderMessage(message) {
+  if (typeof setPageLoaderMessage === 'function' && message) {
+    setPageLoaderMessage(message);
+  }
+}
+
 function getProfileDb() {
+  if (typeof firebase === 'undefined' || !firebase.firestore) {
+    return null;
+  }
   return firebase.firestore();
 }
 
 function setProfileStatus(message, isError) {
   const el = document.getElementById('profile-status');
+  if (!el) {
+    return;
+  }
+  el.textContent = message || '';
+  if (!message) {
+    return;
+  }
+  el.style.color = isError ? '#f87171' : 'var(--text-muted)';
+}
+
+function setDiscordStatus(message, isError) {
+  const el = document.getElementById('discord-status');
   if (!el) {
     return;
   }
@@ -57,6 +90,11 @@ function fillProfileFormFromUser(user, docData) {
   const emailInput = document.getElementById('profile-email');
   const headerName = document.getElementById('profile-display-name');
   const headerEmail = document.getElementById('profile-display-email');
+  const discordWebhookInput = document.getElementById('discord-webhook-url');
+  const discordNameInput = document.getElementById('discord-display-name');
+  const discordColorInput = document.getElementById('discord-color');
+  const discordColorPreview = document.getElementById('discord-color-preview');
+  const defaultDiscordColor = '#10B981';
 
   if (!nameInput || !emailInput || !headerName || !headerEmail) {
     return;
@@ -73,11 +111,37 @@ function fillProfileFormFromUser(user, docData) {
   const source = avatarUrl ? 'Аватар из Google аккаунта' : '';
 
   updateAvatarPreview(avatarUrl, source);
+
+  const discordWebhookUrl = (docData && docData.discordWebhookUrl) || '';
+  const discordDisplayName = (docData && docData.discordDisplayName) || '';
+  const discordColor = (docData && docData.discordColor) || defaultDiscordColor;
+
+  if (discordWebhookInput) {
+    discordWebhookInput.value = discordWebhookUrl;
+  }
+  if (discordNameInput) {
+    discordNameInput.value = discordDisplayName;
+  }
+  if (discordColorInput) {
+    discordColorInput.value = discordColor;
+  }
+
+  if (discordColorPreview) {
+    updateDiscordColorPreviewFromValue(discordColor || '');
+  }
 }
 
 function loadUserProfile(user) {
   const db = getProfileDb();
-  db.collection('users')
+  if (!db) {
+    setProfileStatus('Онлайн-профиль недоступен. Проверьте подключение.', true);
+    profileDocData = null;
+    fillProfileFormFromUser(user, null);
+    return Promise.resolve();
+  }
+
+  return db
+    .collection('users')
     .doc(user.uid)
     .get()
     .then(function (snapshot) {
@@ -101,18 +165,37 @@ function saveUserProfile() {
   }
 
   const nameInput = document.getElementById('profile-name');
+  const discordWebhookInput = document.getElementById('discord-webhook-url');
+  const discordNameInput = document.getElementById('discord-display-name');
+  const discordColorInput = document.getElementById('discord-color');
 
   if (!nameInput) {
     return;
   }
 
   const displayName = nameInput.value.trim();
+  const discordWebhookUrl = discordWebhookInput ? discordWebhookInput.value.trim() : '';
+  const discordDisplayName = discordNameInput ? discordNameInput.value.trim() : '';
+  const discordColor = discordColorInput ? discordColorInput.value.trim() : '';
+
+  if (discordWebhookUrl && !/^https:\/\/discord\.com\/api\/webhooks\//.test(discordWebhookUrl)) {
+    setDiscordStatus('Похоже, это не ссылка вебхука Discord. Проверьте URL.', true);
+    return;
+  }
+
+  if (discordColor && !/^#?[0-9a-fA-F]{6}$/.test(discordColor)) {
+    setDiscordStatus('Цвет должен быть в формате HEX, например #10b981.', true);
+    return;
+  }
 
   const db = getProfileDb();
   const docRef = db.collection('users').doc(profileUser.uid);
 
   const data = {
-    displayName: displayName || null
+    displayName: displayName || null,
+    discordWebhookUrl: discordWebhookUrl || null,
+    discordDisplayName: discordDisplayName || null,
+    discordColor: discordColor || null
   };
 
   setProfileStatus('Сохранение профиля...', false);
@@ -134,6 +217,7 @@ function saveUserProfile() {
       }
       updateAvatarPreview(avatarUrl, source);
       setProfileStatus('Профиль сохранён', false);
+      setDiscordStatus('', false);
     })
     .catch(function (error) {
       console.error('Failed to save profile:', error);
@@ -148,30 +232,196 @@ function resetUserProfile() {
   fillProfileFormFromUser(profileUser, profileDocData);
 }
 
-function onAuthUserChanged(user) {
-  profileUser = user;
-
-  const content = document.getElementById('profile-content');
-  if (!content) {
+function sendDiscordTestMessage() {
+  if (!profileUser) {
+    setDiscordStatus('Сначала войдите через Google, чтобы настроить Discord.', true);
     return;
   }
 
+  const webhookInput = document.getElementById('discord-webhook-url');
+  const nameInput = document.getElementById('discord-display-name');
+  const colorInput = document.getElementById('discord-color');
+
+  if (!webhookInput) {
+    return;
+  }
+
+  const webhookUrl = webhookInput.value.trim();
+  const displayName = (nameInput && nameInput.value.trim()) || '';
+  const colorHex = (colorInput && colorInput.value.trim()) || '';
+
+  if (!webhookUrl) {
+    setDiscordStatus('Укажите URL вебхука Discord, чтобы отправить тестовое сообщение.', true);
+    return;
+  }
+
+  if (!/^https:\/\/discord\.com\/api\/webhooks\//.test(webhookUrl)) {
+    setDiscordStatus('Похоже, это не ссылка вебхука Discord. Проверьте URL.', true);
+    return;
+  }
+
+  let colorInt = null;
+  if (colorHex) {
+    const normalized = colorHex.startsWith('#') ? colorHex.slice(1) : colorHex;
+    if (!/^[0-9a-fA-F]{6}$/.test(normalized)) {
+      setDiscordStatus('Цвет должен быть в формате HEX, например #10b981.', true);
+      return;
+    }
+    colorInt = parseInt(normalized, 16);
+  }
+
+  const username =
+    displayName ||
+    (profileDocData && profileDocData.displayName) ||
+    profileUser.displayName ||
+    'E\'Magios Dice';
+
+  const payload = {
+    username: username,
+    embeds: [
+      {
+        title: 'Тестовое сообщение E\'Magios Core',
+        description: 'Если вы видите это сообщение, интеграция Discord настроена корректно.',
+        color: colorInt !== null ? colorInt : 0x10b981,
+        footer: {
+          text: 'Настройки Discord можно изменить на странице профиля.'
+        }
+      }
+    ]
+  };
+
+  setDiscordStatus('Отправка тестового сообщения...', false);
+
+  fetch(webhookUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  })
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error('HTTP ' + response.status);
+      }
+      setDiscordStatus('Тестовое сообщение отправлено. Проверьте канал в Discord.', false);
+    })
+    .catch(function (error) {
+      console.error('Failed to send Discord test message:', error);
+      setDiscordStatus('Не удалось отправить сообщение в Discord.', true);
+    });
+}
+
+function updateDiscordColorPreviewFromValue(raw) {
+  const preview = document.getElementById('discord-color-preview');
+  if (!preview) {
+    return;
+  }
+
+  const trimmed = (raw || '').trim();
+  if (!trimmed) {
+    preview.style.backgroundColor = 'transparent';
+    preview.classList.add('discord-color-preview-empty');
+    return;
+  }
+
+  const hasHash = trimmed.startsWith('#');
+  const hexBody = hasHash ? trimmed.slice(1) : trimmed;
+
+  if (!/^[0-9a-fA-F]{6}$/.test(hexBody)) {
+    preview.style.backgroundColor = 'transparent';
+    preview.classList.add('discord-color-preview-empty');
+    return;
+  }
+
+  preview.style.backgroundColor = '#' + hexBody.toUpperCase();
+  preview.classList.remove('discord-color-preview-empty');
+}
+
+function updateDiscordColorPreviewFromInput() {
+  const input = document.getElementById('discord-color');
+  if (!input) {
+    return;
+  }
+  updateDiscordColorPreviewFromValue(input.value);
+}
+
+function onAuthUserChanged(user) {
+  profileUser = user;
+  updateProfileLoaderMessage('Проверяем авторизацию...');
+  showProfileLoader('Проверяем авторизацию...');
+
+  const content = document.getElementById('profile-content');
+  const guestSection = document.getElementById('profile-guest');
+  const discordSection = document.getElementById('profile-discord-section');
+  const actionsBar = document.querySelector('.profile-actions-bar');
+
   if (!profileUser) {
+    if (guestSection) {
+      guestSection.style.display = 'block';
+    }
+    if (content) {
+      content.style.display = 'none';
+    }
+    if (discordSection) {
+      discordSection.style.display = 'none';
+    }
+    if (actionsBar) {
+      actionsBar.style.display = 'none';
+    }
+
     const nameInput = document.getElementById('profile-name');
     const emailInput = document.getElementById('profile-email');
     if (nameInput) nameInput.value = '';
     if (emailInput) emailInput.value = '';
     updateAvatarPreview('', '');
+    hideProfileLoader();
     return;
   }
 
-  loadUserProfile(profileUser);
+  updateProfileLoaderMessage('Загружаем профиль...');
+  showProfileLoader('Загружаем профиль...');
+  if (guestSection) {
+    guestSection.style.display = 'none';
+  }
+  if (content) {
+    content.style.display = 'block';
+  }
+  if (discordSection) {
+    discordSection.style.display = 'block';
+  }
+  if (actionsBar) {
+    actionsBar.style.display = 'block';
+  }
+
+  try {
+    const loadPromise = loadUserProfile(profileUser);
+    if (loadPromise && typeof loadPromise.finally === 'function') {
+      loadPromise
+        .catch(function (error) {
+          console.error('Profile load failed:', error);
+        })
+        .finally(function () {
+          hideProfileLoader();
+        });
+    } else {
+      hideProfileLoader();
+    }
+  } catch (error) {
+    console.error('Profile load failed (sync):', error);
+    hideProfileLoader();
+  }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
   const saveBtn = document.getElementById('profile-save-btn');
   const resetBtn = document.getElementById('profile-reset-btn');
   const logoutBtn = document.getElementById('profile-logout-btn');
+  const loginBtn = document.getElementById('profile-google-login-btn');
+  const discordColorInput = document.getElementById('discord-color');
+  const discordColorPalette = document.getElementById('discord-color-palette');
+  const discordColorPopover = document.getElementById('discord-color-popover');
+  const discordColorPreviewBtn = document.getElementById('discord-color-preview');
+  const discordTestBtn = document.getElementById('discord-test-btn');
 
   if (saveBtn) {
     saveBtn.addEventListener('click', function () {
@@ -188,6 +438,10 @@ document.addEventListener('DOMContentLoaded', function () {
   if (logoutBtn) {
     logoutBtn.addEventListener('click', function () {
       if (firebase && firebase.auth) {
+        const confirmed = window.confirm('Вы действительно хотите выйти из аккаунта Google?');
+        if (!confirmed) {
+          return;
+        }
         firebase
           .auth()
           .signOut()
@@ -195,6 +449,73 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Failed to sign out from profile page:', error);
           });
       }
+    });
+  }
+
+  if (loginBtn) {
+    loginBtn.addEventListener('click', function () {
+      if (firebase && firebase.auth && firebase.auth.GoogleAuthProvider) {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        firebase
+          .auth()
+          .signInWithPopup(provider)
+          .catch(function (error) {
+            console.error('Google sign-in failed (profile page):', error);
+          });
+      }
+    });
+  }
+
+  if (discordColorInput) {
+    discordColorInput.addEventListener('input', function () {
+      updateDiscordColorPreviewFromInput();
+    });
+  }
+
+  if (discordColorPalette) {
+    const swatches = discordColorPalette.querySelectorAll('.discord-color-swatch[data-color]');
+    swatches.forEach(function (btn) {
+      const swatchColor = btn.getAttribute('data-color');
+      if (swatchColor) {
+        btn.style.backgroundColor = swatchColor;
+      }
+      btn.addEventListener('click', function () {
+        const color = btn.getAttribute('data-color') || '';
+        if (discordColorInput) {
+          discordColorInput.value = color;
+        }
+        updateDiscordColorPreviewFromValue(color);
+        setDiscordStatus('', false);
+        if (discordColorPopover) {
+          discordColorPopover.classList.add('hidden');
+        }
+      });
+    });
+  }
+
+  function toggleColorPopover() {
+    if (!discordColorPopover) return;
+    discordColorPopover.classList.toggle('hidden');
+  }
+
+  if (discordColorPreviewBtn) {
+    discordColorPreviewBtn.addEventListener('click', function () {
+      toggleColorPopover();
+    });
+  }
+
+  document.addEventListener('click', function (event) {
+    if (!discordColorPopover || !discordColorPreviewBtn) return;
+    const isInsidePopover = discordColorPopover.contains(event.target);
+    const isPreview = discordColorPreviewBtn.contains(event.target);
+    if (!isInsidePopover && !isPreview) {
+      discordColorPopover.classList.add('hidden');
+    }
+  });
+
+  if (discordTestBtn) {
+    discordTestBtn.addEventListener('click', function () {
+      sendDiscordTestMessage();
     });
   }
 

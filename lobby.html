@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Лобби — E'Magios Core</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="lobby">
+  <div class="page-with-sidebar">
+    <div id="page-loader" class="page-loader content-only">
+      <div class="page-loader-content">
+        <div class="page-loader-spinner"></div>
+        <p id="page-loader-message" class="page-loader-message">Загружаем лобби...</p>
+      </div>
+    </div>
+    <!-- Sidebar будет вставлен common.js -->
+    <main class="main-content">
+      <div class="wide-container lobby-container">
+        <header class="lobby-header">
+          <div>
+            <h1>Лобби</h1>
+          </div>
+        </header>
+
+        <section id="lobby-auth-guard" class="lobby-guard hidden">
+          <div>
+            <h2>Требуется вход через Google</h2>
+            <p class="text-muted">Авторизуйтесь, чтобы увидеть свои лобби, создавать комнаты и присоединяться по ссылке.</p>
+            <div class="lobby-guard-actions">
+              <button id="lobby-google-login-btn" class="btn btn-primary" type="button">Войти через Google</button>
+              <a href="profile.html" class="btn btn-secondary">Открыть профиль</a>
+            </div>
+          </div>
+        </section>
+
+        <div id="lobby-main" class="hidden">
+          <!-- Список лобби -->
+          <section id="lobby-list-view">
+            <div class="lobby-panels">
+              <div class="lobby-panel">
+                <div class="panel-header">
+                <div><h3>Создать Лобби</h3></div>
+                </div>
+                <div class="panel-body">
+                  <div class="form-group">
+                    <label for="lobby-name-input">Название лобби</label>
+                  <input type="text" id="lobby-name-input" placeholder="">
+                  </div>
+                  <div class="panel-actions">
+                    <button id="lobby-create-btn" type="button" class="btn btn-primary">Создать лобби</button>
+                    <p id="lobby-create-status" class="text-muted small-text"></p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="lobby-panel">
+                <div class="panel-header">
+                <div><h3>Войти в Лобби</h3></div>
+                </div>
+                <div class="panel-body">
+                  <div class="form-group">
+                  <label for="lobby-join-input">Приглашение (Ссылка)</label>
+                  <input type="text" id="lobby-join-input" placeholder="">
+                  </div>
+                  <div class="panel-actions">
+                    <button id="lobby-join-btn" type="button" class="btn btn-secondary">Присоединиться</button>
+                    <p id="lobby-join-status" class="text-muted small-text"></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="lobby-panel">
+              <div class="panel-header">
+                <div><h3>Список Лобби</h3></div>
+              </div>
+              <div class="panel-body">
+                <div id="lobby-list" class="lobby-list"></div>
+                <div id="lobby-list-empty" class="text-muted" style="margin-top: 0.5rem;">Нет лобби. Создайте новое или присоединитесь по ссылке.</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Комната -->
+          <section id="lobby-room-view" class="hidden">
+            <div class="lobby-immersive-shell">
+              <div class="lobby-room-top glass-panel">
+                <div class="room-top-left">
+                  <p class="eyebrow">Комната</p>
+                  <h2 id="lobby-room-title">Лобби</h2>
+                  <p id="lobby-room-subtitle" class="text-muted small-text"></p>
+                </div>
+                <div class="room-top-right">
+                  <div class="room-quick-actions">
+                    <button id="lobby-copy-link" class="room-icon-btn" type="button" title="Скопировать ссылку приглашения">
+                      <span class="icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                      </span>
+                      <span class="label">Скопировать ссылку</span>
+                    </button>
+                    <button id="lobby-leave-btn" class="room-icon-btn danger" type="button" title="Покинуть комнату">
+                      <span class="icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                      </span>
+                      <span class="label">Выйти</span>
+                    </button>
+                    <button id="lobby-delete-btn" class="room-icon-btn subtle hidden" type="button" title="Удалить лобби">
+                      <span class="icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                      </span>
+                      <span class="label">Удалить</span>
+                    </button>
+                  </div>
+                  <div class="room-pill-row">
+                    <div id="lobby-owner-pill" class="pill glass-pill"></div>
+                    <div id="lobby-members-pill" class="pill glass-pill"></div>
+                  </div>
+                  <div class="invite-row compact">
+                    <input id="lobby-invite-link" type="text" readonly>
+                  </div>
+                </div>
+              </div>
+
+              <div class="lobby-room-layout">
+                <div class="lobby-stage glass-panel">
+                  <div class="panel-header stage-header">
+                    <div class="stage-header-left canvas-header-row">
+                      <h3 id="canvas-area-label" class="canvas-heading">Основная область</h3>
+                      <span class="title-separator">—</span>
+                      <h3 id="canvas-title" class="canvas-heading">Холст - №1</h3>
+                      <div id="canvas-board-tabs" class="canvas-board-tabs"></div>
+                    </div>
+                    <div class="canvas-toolbar">
+                      <label class="color-swatch" title="Белый"><input type="radio" name="brush-color" value="#ffffff" checked><span style="background:#ffffff;"></span></label>
+                      <label class="color-swatch" title="Изумруд"><input type="radio" name="brush-color" value="#10b981"><span style="background:#10b981;"></span></label>
+                      <label class="color-swatch" title="Красный"><input type="radio" name="brush-color" value="#ef4444"><span style="background:#ef4444;"></span></label>
+                      <label class="color-swatch" title="Синий"><input type="radio" name="brush-color" value="#3b82f6"><span style="background:#3b82f6;"></span></label>
+                      <label class="color-swatch" title="Жёлтый"><input type="radio" name="brush-color" value="#facc15"><span style="background:#facc15;"></span></label>
+                      <label class="color-swatch" title="Фиолетовый"><input type="radio" name="brush-color" value="#a855f7"><span style="background:#a855f7;"></span></label>
+                      <div class="size-control">
+                        <span class="small-text text-muted">Толщина</span>
+                        <input id="brush-size" type="range" min="2" max="12" value="4">
+                      </div>
+                      <div class="vr"></div>
+                      <button id="canvas-undo-btn" class="btn btn-icon" type="button" title="Отменить (Ctrl+Z)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>
+                      </button>
+                      <button id="canvas-redo-btn" class="btn btn-icon" type="button" title="Повторить (Ctrl+Y)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 14 20 9 15 4"></polyline><path d="M4 20v-7a4 4 0 0 1 4-4h12"></path></svg>
+                      </button>
+                      <div class="vr"></div>
+                      <button id="canvas-clear-btn" class="btn btn-icon" type="button" title="Очистить холст">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="panel-body canvas-wrapper stage-body">
+                    <div id="canvas-loader" class="canvas-loader hidden">
+                      <div class="canvas-loader-content">
+                        <div class="page-loader-spinner"></div>
+                        <p class="canvas-loader-message">Загружаем холсты...</p>
+                      </div>
+                    </div>
+                    <canvas id="battle-canvas"></canvas>
+                    <div id="canvas-empty-hint" class="text-muted small-text">Рисуйте мышкой, чтобы добавить линии.</div>
+                  </div>
+                </div>
+
+                <aside class="lobby-chat-stack glass-panel">
+                  <div class="panel-header chat-header">
+                    <div>
+                      <p class="eyebrow">Чат и броски</p>
+                      <h3>Общий поток сообщений</h3>
+                    </div>
+                    <div class="panel-header-actions">
+                      <span id="chat-status" class="text-muted small-text">Загрузка...</span>
+                    </div>
+                  </div>
+                  <div class="panel-body chat-body" id="lobby-chat-body">
+                    <div id="chat-loading" class="text-muted small-text">Загружаем последние сообщения...</div>
+                    <div id="chat-list" class="chat-list"></div>
+                    <div id="chat-empty" class="text-muted small-text hidden">Пока нет сообщений.</div>
+                    <div id="chat-older-loader" class="text-muted small-text hidden">Загружаем ранние сообщения...</div>
+                  </div>
+                  <div class="panel-footer chat-footer">
+                    <form id="chat-form">
+                      <div class="chat-input-row">
+                        <input id="chat-input" type="text" placeholder="Сообщение или /roll 2d6+3" autocomplete="off">
+                        <button id="chat-send-btn" class="btn btn-primary" type="submit">Отправить</button>
+                      </div>
+                    </form>
+                    <div class="chat-hint text-muted small-text">
+                      Используйте /roll для бросков. Новые сообщения грузятся порциями по 100; тяните вверх для истории.
+                    </div>
+                  </div>
+                </aside>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="common.js"></script>
+
+  <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script defer src="firebase-config.js"></script>
+
+  <script defer src="auth.js"></script>
+  <script type="module" src="lobby.js"></script>
+</body>
+</html>
+
