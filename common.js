@@ -7,9 +7,9 @@ import {
   logout,
   addResetPasswordButton,
   isBookLocked
-} from './access.js';
-import { initSidebar, toggleBook } from './sidebar.js';
-import { smoothScrollTo, initScrollToTop } from './scroll.js';
+} from './access.js?v=6fbab4d2';
+import { initSidebar, toggleBook } from './sidebar.js?v=0039330c';
+import { smoothScrollTo, initScrollToTop } from './scroll.js?v=7df88915';
 
 // E'Magios Core - Common JavaScript Functions
 

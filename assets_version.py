@@ -92,6 +92,26 @@ def update_html_and_md(root: Path, mapping: Dict[str, str], *, use_query: bool, 
     return changed_files
 
 
+def update_js_imports(root: Path, mapping: Dict[str, str], *, use_query: bool, dry_run: bool) -> int:
+    """Append version queries inside JS import specifiers (cache-busting for modules)."""
+    changed_files = 0
+    for path in root.rglob("*.js"):
+        if not path.is_file():
+            continue
+        if HASHED_NAME_RE.search(path.name):
+            # Skip already versioned copies
+            continue
+
+        text = path.read_text(encoding="utf-8")
+        new_text, count = replace_paths(text, mapping, use_query=use_query)
+        if count and new_text != text:
+            changed_files += 1
+            if not dry_run:
+                path.write_text(new_text, encoding="utf-8")
+
+    return changed_files
+
+
 def write_hashed_assets(assets: Iterable[Asset], name_map: Dict[str, str], *, dry_run: bool) -> int:
     written = 0
     for asset in assets:
@@ -124,7 +144,17 @@ def main() -> int:
     hash_map = {asset.base_name: asset.digest for asset in assets.values()}
 
     if args.query:
+        changed_js = update_js_imports(root, hash_map, use_query=True, dry_run=args.dry_run)
+
+        # JS imports are rewritten in-place, so recompute digests to keep HTML version
+        # strings aligned with the final file contents.
+        if changed_js and not args.dry_run:
+            assets = collect_assets(root)
+            hash_map = {asset.base_name: asset.digest for asset in assets.values()}
+
         changed_html = update_html_and_md(root, hash_map, use_query=True, dry_run=args.dry_run)
+
+        print(f"Updated JS imports with query strings in {changed_js} file(s).")
         print(f"Updated references with query strings in {changed_html} file(s).")
         return 0
 

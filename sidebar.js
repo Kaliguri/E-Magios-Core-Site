@@ -1,4 +1,4 @@
-import { BOOKS } from './books.js';
+import { BOOKS } from './books.js?v=579174ea';
 
 export function initSidebar() {
   const body = document.body;
