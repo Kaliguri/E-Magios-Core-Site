@@ -2635,12 +2635,12 @@ function ensureDbDetailModal() {
 
 function resolveDbScriptUrl() {
   const scripts = Array.from(document.getElementsByTagName('script'));
-  const commonScript = scripts.find((s) => (s.getAttribute('src') || '').indexOf('common.js?v=ce53953f') !== -1);
+  const commonScript = scripts.find((s) => (s.getAttribute('src') || '').indexOf('common.js?v=6bfc8187') !== -1);
   if (commonScript) {
     const abs = new URL(commonScript.getAttribute('src'), window.location.href).href;
-    return abs.replace(/common\.js.*$/i, 'db.js?v=055beedd');
+    return abs.replace(/common\.js.*$/i, 'db.js?v=7d88c8d0');
   }
-  return new URL('db.js?v=055beedd', window.location.href).href;
+  return new URL('db.js?v=7d88c8d0', window.location.href).href;
 }
 
 function ensureDbModuleLoaded() {
@@ -2656,7 +2656,7 @@ function ensureDbModuleLoaded() {
     script.src = scriptUrl;
     script.defer = true;
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load db.js?v=055beedd'));
+    script.onerror = () => reject(new Error('Failed to load db.js?v=7d88c8d0'));
     document.body.appendChild(script);
   });
   return dbScriptPromise;
@@ -2745,7 +2745,7 @@ function handleDbLinkClick(event) {
 }
 
 function restoreDbDetailOnLoad() {
-  // На самой странице базы восстановления займётся db.js?v=055beedd
+  // На самой странице базы восстановления займётся db.js?v=7d88c8d0
   if (document.body.getAttribute('data-page') === 'db') {
     return;
   }
