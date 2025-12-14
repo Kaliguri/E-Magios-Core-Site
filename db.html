@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>База данных — E'Magios Core</title>
-  <link rel="stylesheet" href="styles.css?v=ccee4032">
+  <link rel="stylesheet" href="styles.css?v=10df9662">
 </head>
 <body data-page="db">
   <div class="page-with-sidebar">
-    <!-- Sidebar will be injected here by common.js?v=39673edc -->
+    <!-- Sidebar will be injected here by common.js?v=6bfc8187 -->
     
     <main class="main-content main-content-wide">
   <style>
@@ -701,6 +701,18 @@
                   <div class="filter-category-content" id="spell-concentration-tags"></div>
                 </div>
 
+                <div class="filter-category" data-category="subspell">
+                  <div class="filter-category-header">
+                    <span class="filter-category-title" onclick="toggleFilterCategory(this)">Является Подзаклинанием</span>
+                    <div class="filter-category-actions">
+                      <button type="button" class="filter-category-action-btn" onclick="selectAllInCategory('spell-subspell-tags', 'subspell', tempSpellFilters)">Выбрать все</button>
+                      <button type="button" class="filter-category-action-btn" onclick="clearAllInCategory('spell-subspell-tags', 'subspell', tempSpellFilters)">Снять все</button>
+                    </div>
+                    <span class="filter-category-arrow" onclick="toggleFilterCategory(this)">▼</span>
+                  </div>
+                  <div class="filter-category-content" id="spell-subspell-tags"></div>
+                </div>
+
                 <div class="filter-category" data-category="signature">
                   <div class="filter-category-header">
                     <span class="filter-category-title" onclick="toggleFilterCategory(this)">Фирменное Заклинание</span>
@@ -1383,13 +1395,17 @@
     <div class="modal">
       <div class="modal-header">
         <h3 class="modal-title" id="spell-detail-title">Заклинание</h3>
-        <button type="button" class="modal-close-btn" id="spell-detail-close" aria-label="Закрыть">×</button>
+        <div class="modal-header-actions">
+          <button type="button" class="modal-nav-btn" id="db-modal-back" aria-label="Назад" disabled>←</button>
+          <button type="button" class="modal-nav-btn" id="db-modal-forward" aria-label="Вперёд" disabled>→</button>
+          <button type="button" class="modal-close-btn" id="spell-detail-close" aria-label="Закрыть">×</button>
+        </div>
       </div>
       <div class="modal-body">
         <div id="spell-detail-content"></div>
       </div>
       <div class="spell-detail-footer" id="spell-detail-footer">
-        <!-- Кнопки бросков заклинаний будут добавлены через db.js?v=13458f44 -->
+        <!-- Кнопки бросков заклинаний будут добавлены через db.js?v=7d88c8d0 -->
       </div>
     </div>
   </div>
@@ -1397,7 +1413,7 @@
   <!-- Scroll to top button -->
   <button id="scroll-to-top" class="scroll-to-top" aria-label="Наверх">↑</button>
 
-  <script type="module" src="common.js?v=39673edc"></script>
+  <script type="module" src="common.js?v=6bfc8187"></script>
 
   <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -1405,9 +1421,9 @@
 
     <script defer src="firebase-config.js?v=311c55f4"></script>
 
-  <script defer src="auth.js?v=1c96cbf0"></script>
-  <script defer src="schema.js?v=5a2b271e"></script>
-  <script defer src="db.js?v=13458f44"></script>
+  <script defer src="auth.js?v=2100a550"></script>
+  <script defer src="schema.js?v=12ecd423"></script>
+  <script defer src="db.js?v=7d88c8d0"></script>
 </body>
 </html>
 

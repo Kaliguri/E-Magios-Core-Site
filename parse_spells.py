@@ -12,12 +12,47 @@ OUTPUT_PATH = r"data\spells.json"
 
 from link_resolver import slugify, strip_wikilinks_to_text, convert_wikilinks_in_text
 
+
+def normalize_combat_terms(text):
+    """Ensure key combat terms keep the intended capitalization."""
+    if not text:
+        return text
+
+    replacements = {
+        # Попадание
+        "Бонус на попадание": "Бонус на Попадание",
+        "бонус на попадание": "Бонус на Попадание",
+        "Бонус к попаданию": "Бонус к Попаданию",
+        "бонус к попаданию": "Бонус к Попаданию",
+        "Бросок на попадание": "Бросок на Попадание",
+        "бросок на попадание": "Бросок на Попадание",
+        # Наложение
+        "Бонус на наложение": "Бонус на Наложение",
+        "бонус на наложение": "Бонус на Наложение",
+        "Бонус к наложению": "Бонус к Наложению",
+        "бонус к наложению": "Бонус к Наложению",
+        "Бонусов для наложения": "Бонусов для Наложения",
+        "бонусов для наложения": "Бонусов для Наложения",
+        "Бросок на наложение эффекта": "Бросок на Наложение эффекта",
+        "бросок на наложение эффекта": "Бросок на Наложение эффекта",
+        "Бросок на наложение": "Бросок на Наложение",
+        "бросок на наложение": "Бросок на Наложение",
+    }
+
+    for src, dst in replacements.items():
+        text = re.sub(re.escape(src), dst, text)
+
+    return text
+
+
 def clean_markdown_formatting(text):
     """Remove markdown formatting like ** for bold."""
     # Remove bold
     text = re.sub(r'\*\*([^\*]+)\*\*', r'\1', text)
     # Remove italic
     text = re.sub(r'\*([^\*]+)\*', r'\1', text)
+    # Normalize key combat terminology casing
+    text = normalize_combat_terms(text)
     return text.strip()
 
 def extract_action_number(text):
@@ -165,8 +200,24 @@ def parse_subspell(lines, start_idx):
     
     return subspell_clean, i
 
+def clean_entity(entity):
+    """Remove empty/None fields and empty lists."""
+    cleaned = {}
+    for k, v in entity.items():
+        if v is None or v == "":
+            continue
+        if isinstance(v, list) and len(v) == 0:
+            continue
+        cleaned[k] = v
+    return cleaned
+
+
 def parse_spell_file(filepath):
-    """Parse a spell file and extract all data."""
+    """Parse a spell file and extract all data.
+
+    Returns:
+        (main_spell, flat_subspells)
+    """
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
     
@@ -192,7 +243,7 @@ def parse_spell_file(filepath):
         "damageTypeNote": None,
         "concentration": None,
         "maintenance": None,
-        "school": "",
+        "school": [],
         "requiredLevel": None,
         "value": None,
         "supportMagic": "",
@@ -311,7 +362,10 @@ def parse_spell_file(filepath):
                         if match:
                             spell['maintenance'] = clean_markdown_formatting(match.group(1)).strip()
             elif '**Школа Магии**:' in line:
-                spell['school'] = strip_wikilinks_to_text(line.split(':', 1)[1])
+                school_text = strip_wikilinks_to_text(line.split(':', 1)[1])
+                schools = [s.strip() for s in school_text.split(',') if s.strip()]
+                if schools:
+                    spell['school'] = schools
             elif '**Требование к Уровню**:' in line:
                 level_text = strip_wikilinks_to_text(line.split(':', 1)[1]).strip()
                 level_match = re.search(r'\d+', level_text)
@@ -388,17 +442,61 @@ def parse_spell_file(filepath):
         ritual['componentsValue'] = ritual_components_value
     if ritual:
         spell['ritual'] = ritual
-    
+
+    # Подзаклинания: делаем их отдельными сущностями, а в родителе оставляем ссылки
+    flat_subspells = []
+    subspell_refs = []
+    for idx, sub in enumerate(spell['subSpells']):
+        sub_slug = slugify(sub.get('name', f"subspell-{idx}"))
+        sub_id = f"{slug}-{sub_slug}"
+
+        # Ссылка для родителя
+        ref = {"id": sub_id, "name": sub.get('name', '')}
+        if sub.get('type'):
+            ref['type'] = sub['type']
+        ref['order'] = idx
+        subspell_refs.append(clean_entity(ref))
+
+        # Полноценная запись подзаклинания
+        sub_type = sub.get('type', '')
+        type_value = 'Подзаклинание'
+        if sub_type:
+            # не дублируем, если уже начинается с Подзаклинание
+            if 'подзаклинание' in sub_type.lower():
+                type_value = sub_type
+            else:
+                type_value = 'Подзаклинание, ' + sub_type
+
+        sub_entry = {
+            "id": sub_id,
+            "name": f"{name} — {sub.get('name', '').strip()}",
+            "isSubSpell": True,
+            "parentId": slug,
+            "parentName": name,
+            "order": idx,
+            "type": type_value
+        }
+
+        # Копируем параметры подзаклинания
+        for field in ["actions", "actionType", "resources", "range", "target", "duration",
+                      "damageType", "damageTypeNote", "trigger", "description"]:
+            if sub.get(field) or (isinstance(sub.get(field), list) and sub.get(field)):
+                sub_entry[field] = sub[field]
+
+        # Наследуем базовые поля родителя, если нужны для фильтров/контекста
+        for field in ["school", "requiredLevel", "value", "supportMagic"]:
+            if spell.get(field) is not None and spell.get(field) != "":
+                sub_entry[field] = spell[field]
+
+        flat_subspells.append(clean_entity(sub_entry))
+
+    # Заменяем полные подзаклинания на лёгкие ссылки в родителе
+    spell['subSpells'] = subspell_refs
+
     # Remove None/empty fields (but keep non-empty arrays)
-    spell_clean = {}
-    for k, v in spell.items():
-        if v is None or v == "":
-            continue
-        if isinstance(v, list) and len(v) == 0:
-            continue
-        spell_clean[k] = v
+    spell_clean = clean_entity(spell)
     
-    return spell_clean
+    return spell_clean, flat_subspells
 
 def main():
     spells = []
@@ -408,10 +506,11 @@ def main():
         if filename.startswith('Заклинание') and filename.endswith('.md'):
             filepath = os.path.join(OBSIDIAN_PATH, filename)
             print(f"Parsing: {filename}")
-            spell = parse_spell_file(filepath)
-            if 'subSpells' in spell and spell['subSpells']:
-                print(f"  -> Found {len(spell['subSpells'])} subspells")
+            spell, flat_subspells = parse_spell_file(filepath)
+            if flat_subspells:
+                print(f"  -> Found {len(flat_subspells)} subspells")
             spells.append(spell)
+            spells.extend(flat_subspells)
     
     # Sort by name
     spells.sort(key=lambda x: x['name'])

@@ -134,8 +134,7 @@ function initCharacterEditorAuth() {
     const name = user.displayName || user.email || 'Без имени';
 
     if (isProfilePage) {
-      container.innerHTML =
-        '<p class="text-muted">Вы вошли как <strong>' + name + '</strong>.</p>';
+      container.innerHTML = '';
       return;
     }
 

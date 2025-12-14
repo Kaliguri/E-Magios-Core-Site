@@ -80,63 +80,45 @@ def _resolve_special_page_link(
     page_part = page_part.strip()
     normalized = page_part.lower()
 
-    # 10. Компоненты Боевой Системы → phb/combat.html
+    # 10. Компоненты Боевой Системы → база / basics:combat
     if "компоненты боевой системы" in normalized:
-        anchor_id = slugify(anchor_raw) if anchor_raw else ""
-        href = f"{base_prefix}phb/combat.html"
-        if anchor_id:
-            href += f"#{anchor_id}"
-        return f'<a href="{href}">{display_text}</a>'
+        return _make_basic_link("combat", display_text, base_prefix)
 
-    # 08. Абстрактные Категории → phb/abstract-categories.html
+    # 08. Абстрактные Категории → база / basics:abstract-categories
     if "абстрактные категории" in normalized:
-        anchor_id = slugify(anchor_raw) if anchor_raw else ""
-        href = f"{base_prefix}phb/abstract-categories.html"
-        if anchor_id:
-            href += f"#{anchor_id}"
-        return f'<a href="{href}">{display_text}</a>'
+        return _make_basic_link("abstract-categories", display_text, base_prefix)
 
-    # 12. Критический Успех → phb/critical-success.html
+    # 12. Критический Успех → база / basics:critical-success
     if "критический успех" in normalized:
-        href = f"{base_prefix}phb/critical-success.html"
-        return f'<a href="{href}">{display_text}</a>'
+        return _make_basic_link("critical-success", display_text, base_prefix)
 
-    # 15. Повышение уровня → phb/leveling.html
+    # 15. Повышение уровня → база / basics:leveling
     if "повышение уровня" in normalized:
-        href = f"{base_prefix}phb/leveling.html"
-        return f'<a href="{href}">{display_text}</a>'
+        return _make_basic_link("leveling", display_text, base_prefix)
 
-    # 03. Характеристики → phb/stats.html
+    # 03. Характеристики → база / basics:stats
     if "характеристики" in normalized:
-        href = f"{base_prefix}phb/stats.html"
-        return f'<a href="{href}">{display_text}</a>'
+        return _make_basic_link("stats", display_text, base_prefix)
 
-    # 07/11. Базовые действия → phb/actions.html
+    # 07/11. Базовые действия → база / basics:actions
     if "базовые действия" in normalized:
-        href = f"{base_prefix}phb/actions.html"
-        return f'<a href="{href}">{display_text}</a>'
+        return _make_basic_link("actions", display_text, base_prefix)
 
-    # 09/22. Заклинания → phb/spells.html
+    # 09/22. Заклинания → вкладка spells в базе
     if normalized.rstrip(". ").endswith("заклинания"):
-        href = f"{base_prefix}phb/spells.html"
-        return f'<a href="{href}">{display_text}</a>'
+        return _make_tab_link("spells", display_text, base_prefix)
 
-    # 10/17. Экипировка → phb/equipment.html
+    # 10/17. Экипировка → база / basics:equipment
     if "экипировка" in normalized:
-        href = f"{base_prefix}phb/equipment.html"
-        return f'<a href="{href}">{display_text}</a>'
+        return _make_basic_link("equipment", display_text, base_prefix)
 
-    # 11/20. Эффекты → phb/effects.html
+    # 11/20. Эффекты → база / basics:effects
     if "эффекты" in normalized:
-        href = f"{base_prefix}phb/effects.html"
-        return f'<a href="{href}">{display_text}</a>'
+        return _make_basic_link("effects", display_text, base_prefix)
 
-    # 04. Учебные Заклинания → ссылка на секцию с учебными заклинаниями
+    # 04. Учебные Заклинания → база / basics:study-spells
     if "учебные заклинания" in normalized:
-        # На сайте уже есть секция источников в PHB (через phb.html#source-*)
-        # Здесь ведём просто на учебные заклинания в PHB.
-        href = f"{base_prefix}phb.html#source-educational"
-        return f'<a href="{href}">{display_text}</a>'
+        return _make_basic_link("study-spells", display_text, base_prefix)
 
     # Неизвестная специальная страница
     return None
@@ -150,13 +132,41 @@ def _resolve_effect_link(
     """
     effect_name = last_part.replace("Эффект - ", "").strip()
     # В Spellbook есть локальный эффект Всплеск, которого нет в effects.json.
-    # Для него ведём на страницу Эффектов PHB.
+    # Для него ведём на общую страницу эффектов в базе.
     if effect_name == "Всплеск":
-        href = f"{base_prefix}phb/effects.html"
-        return f'<a href="{href}">{display_text}</a>'
+        return _make_basic_link("effects", display_text, base_prefix)
 
     effect_id = slugify(effect_name)
     return _make_db_link("effect", effect_id, display_text, base_prefix)
+
+
+def _make_basic_link(basic_id: str, display_text: str, base_prefix: str) -> str:
+    """
+    Build link to Basics (общие статьи) в базе.
+    """
+    if base_prefix == "":
+        return (
+            f'<a href="javascript:void(0)" onclick="switchTab(\'basics\'); '
+            f"showBasicPage('{basic_id}')\""
+            f' style="color: var(--accent-emerald); text-decoration: none;">{display_text}</a>'
+        )
+
+    href = f"{base_prefix}db.html?openTab=basics&basic={basic_id}"
+    return f'<a href="{href}">{display_text}</a>'
+
+
+def _make_tab_link(tab_name: str, display_text: str, base_prefix: str) -> str:
+    """
+    Build link that открывает нужную вкладку базы.
+    """
+    if base_prefix == "":
+        return (
+            f'<a href="javascript:void(0)" onclick="switchTab(\'{tab_name}\')"'
+            f' style="color: var(--accent-emerald); text-decoration: none;">{display_text}</a>'
+        )
+
+    href = f"{base_prefix}db.html?openTab={tab_name}"
+    return f'<a href="{href}">{display_text}</a>'
 
 
 def _make_db_link(kind: str, obj_id: str, display_text: str, base_prefix: str) -> str:
@@ -167,6 +177,9 @@ def _make_db_link(kind: str, obj_id: str, display_text: str, base_prefix: str) -
       чтобы НЕ менять URL при открытии попапов.
     - Если base_prefix != '' → обычная ссылка db.html?... для глав PHB и других страниц.
     """
+    if kind == "basic":
+        return _make_basic_link(obj_id, display_text, base_prefix)
+
     # Используем JS‑обработчики только когда ссылка будет отображаться внутри db.html
     if base_prefix == "":
         if kind == "spell":

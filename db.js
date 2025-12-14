@@ -1,5 +1,16 @@
 // Database JavaScript
 
+const DB_MODAL_STATE_KEY = 'db_open_detail';
+const DB_MODAL_HISTORY_KEY = 'db_open_detail_history';
+let dbModalHistory = [];
+let dbModalHistoryIndex = -1;
+let dbModalHistoryLoaded = false;
+let isNavigatingDbHistory = false;
+let pendingDbHistoryEntry = null;
+let dbInitialized = false;
+
+const DEFAULT_SUBSPELL_FILTER = ['Нет'];
+
 let spellsData = [];
 let schoolsData = [];
 let effectsData = [];
@@ -30,13 +41,17 @@ let currentCraftSpecializationSort = { field: 'name', ascending: true };
 let currentRecipeTypeSort = { field: 'name', ascending: true };
 let currentRecipeSort = { field: 'name', ascending: true };
 
+let dbDataPromise = null;
+const IS_DB_PAGE = !!(document.body && document.body.getAttribute('data-page') === 'db');
+
 let spellFilters = {
   type: [],
   school: [],
   damage: [],
   concentration: [],
   requiredLevel: [],
-  signature: [] // фильтр по наличию бонуса фирменного заклинания ("Да" / "Нет")
+  signature: [], // фильтр по наличию бонуса фирменного заклинания ("Да" / "Нет")
+  subspell: DEFAULT_SUBSPELL_FILTER.slice() // фильтр подзаклинаний ("Да" / "Нет"), по умолчанию скрываем
 };
 
 let tempSpellFilters = {
@@ -45,7 +60,8 @@ let tempSpellFilters = {
   damage: [],
   concentration: [],
   requiredLevel: [],
-  signature: []
+  signature: [],
+  subspell: DEFAULT_SUBSPELL_FILTER.slice()
 };
 
 let schoolFilters = {
@@ -112,6 +128,7 @@ function getFilterContainerId(entity, key) {
     'spells:school': 'spell-school-tags',
     'spells:damage': 'spell-damage-tags',
     'spells:concentration': 'spell-concentration-tags',
+    'spells:subspell': 'spell-subspell-tags',
     'spells:requiredLevel': 'spell-level-tags',
     'spells:signature': 'spell-signature-tags',
     'spells:source': 'spell-source-tags',
@@ -192,6 +209,8 @@ function getFilterOptions(entity, filter) {
         case 'damage':
           return collectSpellOptions('damageType', true);
         case 'concentration':
+          return ['Да', 'Нет'];
+        case 'subspell':
           return ['Да', 'Нет'];
         case 'requiredLevel':
           return collectSpellRequiredLevels();
@@ -531,134 +550,164 @@ function collectRecipeTypes() {
   return values;
 }
 
-document.addEventListener('DOMContentLoaded', async function () {
-  await loadAllData();
-  
-  // Применяем заголовки таблиц из единой схемы
-  applyTableHeadFromSchema('spells', '#spells-tab table thead', 'db');
-  applyTableHeadFromSchema('schools', '#schools-tab table thead', 'db');
-  applyTableHeadFromSchema('effects', '#effects-tab table thead', 'db');
-  applyTableHeadFromSchema('skills', '#skills-tab table thead', 'db');
-  applyTableHeadFromSchema('actions', '#actions-tab table thead', 'db');
-  applyTableHeadFromSchema('recipes', '#recipes-tab table thead', 'db');
-  applyTableHeadFromSchema('archetypes', '#archetypes-tab table thead', 'db');
-  applyTableHeadFromSchema('basics', '#basics-tab table thead', 'db');
-  applyTableHeadFromSchema('action-types', '#action-types-tab table thead', 'db');
-  applyTableHeadFromSchema('combat', '#combat-tab table thead', 'db');
-  applyTableHeadFromSchema('craft-components', '#craft-components-tab table thead', 'db');
-  applyTableHeadFromSchema('craft-professions', '#craft-professions-tab table thead', 'db');
-  applyTableHeadFromSchema('craft-specializations', '#craft-specializations-tab table thead', 'db');
-  applyTableHeadFromSchema('recipe-types', '#recipe-types-tab table thead', 'db');
-  
-  const urlParams = new URLSearchParams(window.location.search);
-  const spellId = urlParams.get('spell');
-  const schoolId = urlParams.get('school');
-  const effectId = urlParams.get('effect');
-  const archetypeId = urlParams.get('archetype');
-  const actionId = urlParams.get('action');
-  const skillId = urlParams.get('skill');
-  const basicId = urlParams.get('basic');
-  const actionTypeId = urlParams.get('actionType');
-  const combatId = urlParams.get('combat');
-   const craftComponentId = urlParams.get('craftComponent');
-   const craftProfessionId = urlParams.get('craftProfession');
-   const craftSpecializationId = urlParams.get('craftSpecialization');
-   const recipeTypeId = urlParams.get('recipeType');
-   const recipeId = urlParams.get('recipe');
-  const openSpellFilters = urlParams.get('openSpellFilters');
+async function initDbScript() {
+  if (dbInitialized) {
+    return;
+  }
 
-  const detailModal = document.getElementById('spell-detail-modal');
-  const detailModalClose = document.getElementById('spell-detail-close');
-  if (detailModal && detailModalClose) {
-    detailModalClose.addEventListener('click', function () {
-      closeSpellDetailModal();
-    });
-    detailModal.addEventListener('click', function (event) {
-      if (event.target === detailModal) {
+  // Ждём, пока common.js?v=ce53953f успеет повесить createFilterTags в window (иначе падаем до инициализации)
+  if (typeof window.createFilterTags !== 'function') {
+    return;
+  }
+
+  dbInitialized = true;
+
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const spellId = urlParams.get('spell');
+    const schoolId = urlParams.get('school');
+    const effectId = urlParams.get('effect');
+    const archetypeId = urlParams.get('archetype');
+    const actionId = urlParams.get('action');
+    const skillId = urlParams.get('skill');
+    const basicId = urlParams.get('basic');
+    const actionTypeId = urlParams.get('actionType');
+    const combatId = urlParams.get('combat');
+    const craftComponentId = urlParams.get('craftComponent');
+    const craftProfessionId = urlParams.get('craftProfession');
+    const craftSpecializationId = urlParams.get('craftSpecialization');
+    const recipeTypeId = urlParams.get('recipeType');
+    const recipeId = urlParams.get('recipe');
+    const openSpellFilters = urlParams.get('openSpellFilters');
+
+    const detailModal = document.getElementById('spell-detail-modal');
+    const detailModalClose = document.getElementById('spell-detail-close');
+    if (detailModal && detailModalClose) {
+      detailModalClose.addEventListener('click', function () {
         closeSpellDetailModal();
-      }
-    });
-  }
-
-  // Инициализируем фильтры и таблицы всегда,
-  // чтобы база данных была готова даже при открытии по прямым ссылкам (?spell=...)
-  initializeDynamicFilters();
-  loadFiltersFromSession();
-  restoreActiveFilterTags();
-  setupFilterListeners();
-
-  if (openSpellFilters) {
-    switchTab('spells');
-    toggleFiltersPanel('spells');
-    try {
-      urlParams.delete('openSpellFilters');
-      const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
-      window.history.replaceState({}, '', newUrl);
-    } catch (e) {
-      console.error('Failed to clean URL params:', e);
+      });
+      detailModal.addEventListener('click', function (event) {
+        if (event.target === detailModal) {
+          closeSpellDetailModal();
+        }
+      });
     }
-  } else {
-    const openTab = urlParams.get('openTab');
-    if (openTab && ['spells', 'schools', 'archetypes', 'actions', 'effects', 'skills', 'basics', 'action-types', 'combat', 'craft-components', 'craft-professions', 'craft-specializations', 'recipe-types', 'recipes'].indexOf(openTab) !== -1) {
-      switchTab(openTab);
+    // Навигация по истории для встроенного модала на странице базы
+    initDbModalNavButtons();
+
+    // Если мы не на странице базы данных, не инициализируем таблицы/фильтры
+    if (!IS_DB_PAGE) {
+      restoreDbDetailFromSession();
+      return;
+    }
+
+    await ensureDbDataLoaded();
+    
+    // Применяем заголовки таблиц из единой схемы
+    applyTableHeadFromSchema('spells', '#spells-tab table thead', 'db');
+    applyTableHeadFromSchema('schools', '#schools-tab table thead', 'db');
+    applyTableHeadFromSchema('effects', '#effects-tab table thead', 'db');
+    applyTableHeadFromSchema('skills', '#skills-tab table thead', 'db');
+    applyTableHeadFromSchema('actions', '#actions-tab table thead', 'db');
+    applyTableHeadFromSchema('recipes', '#recipes-tab table thead', 'db');
+    applyTableHeadFromSchema('archetypes', '#archetypes-tab table thead', 'db');
+    applyTableHeadFromSchema('basics', '#basics-tab table thead', 'db');
+    applyTableHeadFromSchema('action-types', '#action-types-tab table thead', 'db');
+    applyTableHeadFromSchema('combat', '#combat-tab table thead', 'db');
+    applyTableHeadFromSchema('craft-components', '#craft-components-tab table thead', 'db');
+    applyTableHeadFromSchema('craft-professions', '#craft-professions-tab table thead', 'db');
+    applyTableHeadFromSchema('craft-specializations', '#craft-specializations-tab table thead', 'db');
+    applyTableHeadFromSchema('recipe-types', '#recipe-types-tab table thead', 'db');
+    
+    // Инициализируем фильтры и таблицы только на странице базы
+    initializeDynamicFilters();
+    loadFiltersFromSession();
+    restoreActiveFilterTags();
+    setupFilterListeners();
+
+    if (openSpellFilters) {
+      switchTab('spells');
+      toggleFiltersPanel('spells');
+      try {
+        urlParams.delete('openSpellFilters');
+        const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+        window.history.replaceState({}, '', newUrl);
+      } catch (e) {
+        console.error('Failed to clean URL params:', e);
+      }
     } else {
-      // Restore active tab
-      const savedTab = sessionStorage.getItem('db_activeTab');
-      if (savedTab && ['spells', 'schools', 'archetypes', 'actions', 'effects', 'skills', 'basics', 'action-types', 'combat', 'craft-components', 'craft-professions', 'craft-specializations', 'recipe-types', 'recipes'].indexOf(savedTab) !== -1) {
-        switchTab(savedTab);
+      const openTab = urlParams.get('openTab');
+      if (openTab && ['spells', 'schools', 'archetypes', 'actions', 'effects', 'skills', 'basics', 'action-types', 'combat', 'craft-components', 'craft-professions', 'craft-specializations', 'recipe-types', 'recipes'].indexOf(openTab) !== -1) {
+        switchTab(openTab);
+      } else {
+        // Restore active tab
+        const savedTab = sessionStorage.getItem('db_activeTab');
+        if (savedTab && ['spells', 'schools', 'archetypes', 'actions', 'effects', 'skills', 'basics', 'action-types', 'combat', 'craft-components', 'craft-professions', 'craft-specializations', 'recipe-types', 'recipes'].indexOf(savedTab) !== -1) {
+          switchTab(savedTab);
+        }
       }
     }
+
+    filterAndDisplaySpells();
+    filterAndDisplaySchools();
+    filterAndDisplayEffects();
+    filterAndDisplayArchetypes();
+    filterAndDisplayActions();
+    filterAndDisplaySkills();
+    filterAndDisplayBasics();
+    filterAndDisplayActionTypes();
+    filterAndDisplayCombat();
+    filterAndDisplayCraftComponents();
+    filterAndDisplayCraftProfessions();
+    filterAndDisplayCraftSpecializations();
+    filterAndDisplayRecipeTypes();
+    filterAndDisplayRecipes();
+
+    updateClearButtonsVisibility();
+
+    // После инициализации — открываем детальную карточку, если есть параметры в URL
+    if (spellId) {
+      showSpellPage(spellId);
+    } else if (schoolId) {
+      switchTab('schools');
+      showSchoolPage(schoolId);
+    } else if (effectId) {
+      showEffectPage(effectId);
+    } else if (archetypeId) {
+      showArchetypePage(archetypeId);
+    } else if (actionId) {
+      showActionPage(actionId);
+    } else if (skillId) {
+      showSkillPage(skillId);
+    } else if (basicId) {
+      showBasicPage(basicId);
+    } else if (actionTypeId) {
+      showActionTypePage(actionTypeId);
+    } else if (combatId) {
+      showCombatPage(combatId);
+    } else if (craftComponentId) {
+      showCraftComponentPage(craftComponentId);
+    } else if (craftProfessionId) {
+      showCraftProfessionPage(craftProfessionId);
+    } else if (craftSpecializationId) {
+      showCraftSpecializationPage(craftSpecializationId);
+    } else if (recipeTypeId) {
+      showRecipeTypePage(recipeTypeId);
+    } else if (recipeId) {
+      showRecipePage(recipeId);
+    } else {
+      restoreDbDetailFromSession();
+    }
+  } catch (e) {
+    dbInitialized = false;
+    console.error('Failed to initialize DB page:', e);
   }
+}
 
-  filterAndDisplaySpells();
-  filterAndDisplaySchools();
-  filterAndDisplayEffects();
-  filterAndDisplayArchetypes();
-  filterAndDisplayActions();
-  filterAndDisplaySkills();
-  filterAndDisplayBasics();
-  filterAndDisplayActionTypes();
-  filterAndDisplayCombat();
-  filterAndDisplayCraftComponents();
-  filterAndDisplayCraftProfessions();
-  filterAndDisplayCraftSpecializations();
-  filterAndDisplayRecipeTypes();
-  filterAndDisplayRecipes();
-
-  updateClearButtonsVisibility();
-
-  // После инициализации — открываем детальную карточку, если есть параметры в URL
-  if (spellId) {
-    showSpellPage(spellId);
-  } else if (schoolId) {
-    switchTab('schools');
-    showSchoolPage(schoolId);
-  } else if (effectId) {
-    showEffectPage(effectId);
-  } else if (archetypeId) {
-    showArchetypePage(archetypeId);
-  } else if (actionId) {
-    showActionPage(actionId);
-  } else if (skillId) {
-    showSkillPage(skillId);
-  } else if (basicId) {
-    showBasicPage(basicId);
-  } else if (actionTypeId) {
-    showActionTypePage(actionTypeId);
-  } else if (combatId) {
-    showCombatPage(combatId);
-  } else if (craftComponentId) {
-    showCraftComponentPage(craftComponentId);
-  } else if (craftProfessionId) {
-    showCraftProfessionPage(craftProfessionId);
-  } else if (craftSpecializationId) {
-    showCraftSpecializationPage(craftSpecializationId);
-  } else if (recipeTypeId) {
-    showRecipeTypePage(recipeTypeId);
-  } else if (recipeId) {
-    showRecipePage(recipeId);
-  }
-});
+document.addEventListener('DOMContentLoaded', initDbScript);
+if (document.readyState === 'interactive' || document.readyState === 'complete') {
+  initDbScript();
+}
 
 async function loadAllData() {
   await Promise.all([
@@ -679,9 +728,120 @@ async function loadAllData() {
   ]);
 }
 
+function ensureDbDataLoaded() {
+  if (!dbDataPromise) {
+    dbDataPromise = loadAllData();
+  }
+  return dbDataPromise;
+}
+
+function safeSwitchTab(tabId) {
+  if (IS_DB_PAGE && typeof switchTab === 'function') {
+    switchTab(tabId);
+  }
+}
+
+var dbBasePath = '';
+function getDbBasePath() {
+  if (dbBasePath) {
+    return dbBasePath;
+  }
+
+  const scripts = Array.from(document.getElementsByTagName('script'));
+  const dbScript = scripts.find(function (s) {
+    const src = s.getAttribute('src') || '';
+    // Поддерживаем как обычный db.js?v=055beedd, так и хэшированные файлы вида db.<hash>.js
+    return src.indexOf('db.js?v=055beedd') !== -1 || /db\.[a-f0-9]{6,}\.js/i.test(src);
+  });
+
+  if (dbScript) {
+    const abs = new URL(dbScript.getAttribute('src'), window.location.href).href;
+    const lastSlash = abs.lastIndexOf('/');
+    // Отрезаем имя файла, чтобы получать стабильный базовый путь для data/
+    dbBasePath = lastSlash !== -1 ? abs.slice(0, lastSlash + 1) : '';
+    if (dbBasePath) {
+      return dbBasePath;
+    }
+  }
+
+  dbBasePath = new URL('.', window.location.href).href;
+  return dbBasePath;
+}
+
+function getDataUrl(fileName) {
+  return getDbBasePath() + 'data/' + fileName;
+}
+
+function restoreDbDetailFromSession() {
+  initDbModalHistory();
+  try {
+    const raw = sessionStorage.getItem(DB_MODAL_STATE_KEY);
+    if (!raw) {
+      return;
+    }
+    const saved = JSON.parse(raw);
+    if (!saved || saved.path !== window.location.pathname) {
+      return;
+    }
+    const kind = saved.kind;
+    const id = saved.id;
+    if (!kind || !id) {
+      return;
+    }
+    switch (kind) {
+      case 'spell':
+        showSpellPage(id);
+        break;
+      case 'school':
+        showSchoolPage(id);
+        break;
+      case 'effect':
+        showEffectPage(id);
+        break;
+      case 'archetype':
+        showArchetypePage(id);
+        break;
+      case 'action':
+        showActionPage(id);
+        break;
+      case 'skill':
+        showSkillPage(id);
+        break;
+      case 'basic':
+        showBasicPage(id);
+        break;
+      case 'actionType':
+        showActionTypePage(id);
+        break;
+      case 'combat':
+        showCombatPage(id);
+        break;
+      case 'craftComponent':
+        showCraftComponentPage(id);
+        break;
+      case 'craftProfession':
+        showCraftProfessionPage(id);
+        break;
+      case 'craftSpecialization':
+        showCraftSpecializationPage(id);
+        break;
+      case 'recipeType':
+        showRecipeTypePage(id);
+        break;
+      case 'recipe':
+        showRecipePage(id);
+        break;
+      default:
+        break;
+    }
+  } catch (e) {
+    console.error('Failed to restore DB detail from session:', e);
+  }
+}
+
 async function loadSpells() {
   try {
-    const response = await fetch('./data/spells.json', { cache: 'no-store' });
+    const response = await fetch(getDataUrl('spells.json'), { cache: 'no-store' });
     spellsData = await response.json();
   } catch (error) {
     console.error('Error loading spells:', error);
@@ -691,7 +851,7 @@ async function loadSpells() {
 
 async function loadSchools() {
   try {
-    const response = await fetch('./data/schools.json', { cache: 'no-store' });
+    const response = await fetch(getDataUrl('schools.json'), { cache: 'no-store' });
     schoolsData = await response.json();
   } catch (error) {
     console.error('Error loading schools:', error);
@@ -701,7 +861,7 @@ async function loadSchools() {
 
 async function loadEffects() {
   try {
-    const response = await fetch('./data/effects.json', { cache: 'no-store' });
+    const response = await fetch(getDataUrl('effects.json'), { cache: 'no-store' });
     effectsData = await response.json();
   } catch (error) {
     console.error('Error loading effects:', error);
@@ -711,7 +871,7 @@ async function loadEffects() {
 
 async function loadArchetypes() {
   try {
-    const response = await fetch('./data/archetypes.json', { cache: 'no-store' });
+    const response = await fetch(getDataUrl('archetypes.json'), { cache: 'no-store' });
     archetypesData = await response.json();
   } catch (error) {
     console.error('Error loading archetypes:', error);
@@ -721,7 +881,7 @@ async function loadArchetypes() {
 
 async function loadActions() {
   try {
-    const response = await fetch('./data/actions.json', { cache: 'no-store' });
+    const response = await fetch(getDataUrl('actions.json'), { cache: 'no-store' });
     actionsData = await response.json();
   } catch (error) {
     console.error('Error loading actions:', error);
@@ -731,7 +891,7 @@ async function loadActions() {
 
 async function loadSkills() {
   try {
-    const response = await fetch('./data/skills.json', { cache: 'no-store' });
+    const response = await fetch(getDataUrl('skills.json'), { cache: 'no-store' });
     skillsData = await response.json();
   } catch (error) {
     console.error('Error loading skills:', error);
@@ -741,7 +901,7 @@ async function loadSkills() {
 
 async function loadBasics() {
   try {
-    const response = await fetch('./data/basics.json', { cache: 'no-store' });
+    const response = await fetch(getDataUrl('basics.json'), { cache: 'no-store' });
     basicsData = await response.json();
   } catch (error) {
     console.error('Error loading basics:', error);
@@ -751,7 +911,7 @@ async function loadBasics() {
 
 async function loadActionTypes() {
   try {
-    const response = await fetch('./data/action_types.json', { cache: 'no-store' });
+    const response = await fetch(getDataUrl('action_types.json'), { cache: 'no-store' });
     actionTypesData = await response.json();
   } catch (error) {
     console.error('Error loading action types:', error);
@@ -761,7 +921,7 @@ async function loadActionTypes() {
 
 async function loadCombatComponents() {
   try {
-    const response = await fetch('./data/combat_components.json', { cache: 'no-store' });
+    const response = await fetch(getDataUrl('combat_components.json'), { cache: 'no-store' });
     combatComponentsData = await response.json();
   } catch (error) {
     console.error('Error loading combat components:', error);
@@ -771,7 +931,7 @@ async function loadCombatComponents() {
 
 async function loadCraftComponents() {
   try {
-    const response = await fetch('./data/craft_components.json', { cache: 'no-store' });
+    const response = await fetch(getDataUrl('craft_components.json'), { cache: 'no-store' });
     craftComponentsData = await response.json();
   } catch (error) {
     console.error('Error loading craft components:', error);
@@ -781,7 +941,7 @@ async function loadCraftComponents() {
 
 async function loadCraftProfessions() {
   try {
-    const response = await fetch('./data/craft_professions.json', { cache: 'no-store' });
+    const response = await fetch(getDataUrl('craft_professions.json'), { cache: 'no-store' });
     craftProfessionsData = await response.json();
   } catch (error) {
     console.error('Error loading craft professions:', error);
@@ -791,7 +951,7 @@ async function loadCraftProfessions() {
 
 async function loadCraftSpecializations() {
   try {
-    const response = await fetch('./data/craft_specializations.json', { cache: 'no-store' });
+    const response = await fetch(getDataUrl('craft_specializations.json'), { cache: 'no-store' });
     craftSpecializationsData = await response.json();
   } catch (error) {
     console.error('Error loading craft specializations:', error);
@@ -801,7 +961,7 @@ async function loadCraftSpecializations() {
 
 async function loadRecipeTypes() {
   try {
-    const response = await fetch('./data/recipe_types.json', { cache: 'no-store' });
+    const response = await fetch(getDataUrl('recipe_types.json'), { cache: 'no-store' });
     recipeTypesData = await response.json();
   } catch (error) {
     console.error('Error loading recipe types:', error);
@@ -811,7 +971,7 @@ async function loadRecipeTypes() {
 
 async function loadRecipes() {
   try {
-    const response = await fetch('./data/recipes.json', { cache: 'no-store' });
+    const response = await fetch(getDataUrl('recipes.json'), { cache: 'no-store' });
     recipesData = await response.json();
   } catch (error) {
     console.error('Error loading recipes:', error);
@@ -911,8 +1071,15 @@ function setupFilterListeners() {
 }
 
 function switchTab(tabName) {
-  document.getElementById('databaseView').style.display = 'block';
-  document.getElementById('detailView').style.display = 'none';
+  const databaseView = document.getElementById('databaseView');
+  const detailView = document.getElementById('detailView');
+  // На страницах без основного лэйаута базы просто выходим, чтобы не ломать попапы
+  if (!databaseView || !detailView) {
+    return;
+  }
+
+  databaseView.style.display = 'block';
+  detailView.style.display = 'none';
   
   const tabs = document.querySelectorAll('.tab');
   for (let i = 0; i < tabs.length; i += 1) {
@@ -959,6 +1126,8 @@ function toggleFiltersPanel(tabName) {
       tempSpellFilters.damage = spellFilters.damage.slice();
       tempSpellFilters.concentration = spellFilters.concentration.slice();
       tempSpellFilters.requiredLevel = spellFilters.requiredLevel.slice();
+      tempSpellFilters.signature = spellFilters.signature.slice();
+      tempSpellFilters.subspell = spellFilters.subspell.slice();
       
       document.querySelectorAll('#spells-filters-panel .filter-tag').forEach(function (tag) {
         const value = tag.getAttribute('data-value');
@@ -976,6 +1145,10 @@ function toggleFiltersPanel(tabName) {
           isActive = tempSpellFilters.concentration.indexOf(value) !== -1;
         } else if (categoryName === 'requiredLevel') {
           isActive = tempSpellFilters.requiredLevel.indexOf(value) !== -1;
+        } else if (categoryName === 'signature') {
+          isActive = tempSpellFilters.signature.indexOf(value) !== -1;
+        } else if (categoryName === 'subspell') {
+          isActive = tempSpellFilters.subspell.indexOf(value) !== -1;
         }
         
         if (isActive) {
@@ -1120,6 +1293,19 @@ function filterAndDisplaySpells() {
       return false;
     }
 
+    if (spellFilters.subspell.length) {
+      const isSub = !!spell.isSubSpell;
+      const needsYes = spellFilters.subspell.indexOf('Да') !== -1;
+      const needsNo = spellFilters.subspell.indexOf('Нет') !== -1;
+      if (needsYes && needsNo) {
+        // оба выбраны — не фильтруем по этому признаку
+      } else if (needsYes && !isSub) {
+        return false;
+      } else if (needsNo && isSub) {
+        return false;
+      }
+    }
+
     if (spellFilters.type.length) {
       const spellTypes = splitToArray(spell.type);
       if (!hasAny(spellTypes, spellFilters.type)) {
@@ -1243,10 +1429,14 @@ function clearSpellFilters() {
   tempSpellFilters.concentration = [];
   tempSpellFilters.requiredLevel = [];
   tempSpellFilters.signature = [];
+  tempSpellFilters.subspell = DEFAULT_SUBSPELL_FILTER.slice();
   
   document.querySelectorAll('#spells-filters-panel .filter-tag.active').forEach(function (tag) {
     tag.classList.remove('active');
   });
+
+  // Вернём активность дефолтного фильтра подзаклинаний
+  syncFilterTagsState('spell-subspell-tags', 'subspell', tempSpellFilters);
 }
 
 function applySpellFilters() {
@@ -1256,6 +1446,7 @@ function applySpellFilters() {
   spellFilters.concentration = tempSpellFilters.concentration.slice();
   spellFilters.requiredLevel = tempSpellFilters.requiredLevel.slice();
   spellFilters.signature = tempSpellFilters.signature.slice();
+  spellFilters.subspell = tempSpellFilters.subspell.slice();
   
   saveFiltersToSession();
   filterAndDisplaySpells();
@@ -1270,6 +1461,7 @@ function cancelSpellFilters() {
   tempSpellFilters.concentration = spellFilters.concentration.slice();
   tempSpellFilters.requiredLevel = spellFilters.requiredLevel.slice();
   tempSpellFilters.signature = spellFilters.signature.slice();
+  tempSpellFilters.subspell = spellFilters.subspell.slice();
   
   document.querySelectorAll('#spells-filters-panel .filter-tag').forEach(function (tag) {
     const value = tag.getAttribute('data-value');
@@ -1287,6 +1479,8 @@ function cancelSpellFilters() {
       isActive = tempSpellFilters.concentration.indexOf(value) !== -1;
     } else if (categoryName === 'signature') {
       isActive = tempSpellFilters.signature.indexOf(value) !== -1;
+    } else if (categoryName === 'subspell') {
+      isActive = tempSpellFilters.subspell.indexOf(value) !== -1;
     } else if (categoryName === 'requiredLevel') {
       isActive = tempSpellFilters.requiredLevel.indexOf(value) !== -1;
     }
@@ -1534,10 +1728,28 @@ function linkifyDiceExpressions(html, spellName, source) {
 
 function formatActionLabel(actionType) {
   const style = 'style="color: var(--accent-emerald); text-decoration: none;"';
-  if (actionType === 'Реакция') {
-    return '<a href="phb/combat.html#реакции" ' + style + '>Реакция</a>';
+  if (actionType === 'Действие') {
+    return (
+      '<a href="javascript:void(0)" onclick="switchTab(\'combat\'); showCombatPage(\'действие\')" ' +
+      style +
+      '>Действие</a>'
+    );
   }
-  return '<a href="phb/combat.html#действия-в-ходу" ' + style + '>Действие</a>';
+  if (actionType === 'Концентрация') {
+    return (
+      '<a href="javascript:void(0)" onclick="switchTab(\'action-types\'); showActionTypePage(\'концентрация\')" ' +
+      style +
+      '>Концентрация</a>'
+    );
+  }
+  if (actionType === 'Реакция') {
+    return (
+      '<a href="javascript:void(0)" onclick="switchTab(\'combat\'); showCombatPage(\'реакции\')" ' +
+      style +
+      '>Реакция</a>'
+    );
+  }
+  return actionType || '—';
 }
 
 function linkifyDistance(value) {
@@ -1546,16 +1758,32 @@ function linkifyDistance(value) {
   }
   const text = String(value).trim();
   const style = 'style="color: var(--accent-emerald); text-decoration: none;"';
-  const base = 'phb/abstract-categories.html';
+  const base = "javascript:void(0)";
 
   // Стандартные дистанции
   if (text === 'Близкая' || text === 'Малая' || text === 'Средняя' || text === 'Дальняя') {
-    return '<a href="' + base + '#категории-дальности" ' + style + '>' + text + '</a>';
+    return (
+      '<a href="' +
+      base +
+      '" onclick="switchTab(\'basics\'); showBasicPage(\'abstract-categories\')" ' +
+      style +
+      '>' +
+      text +
+      '</a>'
+    );
   }
 
   // Области
   if (text.indexOf('область') !== -1 || text.indexOf('Область') !== -1) {
-    return '<a href="' + base + '#категории-областей" ' + style + '>' + text + '</a>';
+    return (
+      '<a href="' +
+      base +
+      '" onclick="switchTab(\'basics\'); showBasicPage(\'abstract-categories\')" ' +
+      style +
+      '>' +
+      text +
+      '</a>'
+    );
   }
 
   return text;
@@ -1566,7 +1794,12 @@ function linkifyResources(value) {
     return '';
   }
   const style = 'style="color: var(--accent-emerald); text-decoration: none;"';
-  return String(value).replace(/Воля/g, '<a href="phb/combat.html#воля" ' + style + '>Воля</a>');
+  return String(value).replace(
+    /Воля/g,
+    '<a href="javascript:void(0)" onclick="switchTab(\'combat\'); showCombatPage(\'воля\')" ' +
+      style +
+      '>Воля</a>'
+  );
 }
 
 function linkifySchoolProperty(property) {
@@ -1627,13 +1860,31 @@ function linkifySchoolText(text) {
   let result = text;
 
   result = result.replace(/Концентраци(я|и|ю|ей)/g, function (match, ending) {
-    return '<a href="phb/combat.html#концентрация" ' + style + '>' + 'Концентраци' + ending + '</a>';
+    return (
+      '<a href="javascript:void(0)" onclick="switchTab(\'actions\'); showActionPage(\'концентрация\')" ' +
+      style +
+      '>' +
+      'Концентраци' +
+      ending +
+      '</a>'
+    );
   });
 
-  result = result.replace(/Воля/g, '<a href="phb/combat.html#воля" ' + style + '>Воля</a>');
+  result = result.replace(
+    /Воля/g,
+    '<a href="javascript:void(0)" onclick="switchTab(\'combat\'); showCombatPage(\'воля\')" ' +
+      style +
+      '>Воля</a>'
+  );
 
   result = result.replace(/Всплеск(а|ом|у|е)?/g, function (match) {
-    return '<a href="phb/effects.html" ' + style + '>' + match + '</a>';
+    return (
+      '<a href="javascript:void(0)" onclick="switchTab(\'basics\'); showBasicPage(\'effects\')" ' +
+      style +
+      '>' +
+      match +
+      '</a>'
+    );
   });
 
   return result;
@@ -1783,6 +2034,11 @@ function restoreActiveFilterTags() {
   });
   document.querySelectorAll('#spell-concentration-tags .filter-tag').forEach(function (tag) {
     if (spellFilters.concentration.indexOf(tag.textContent) !== -1) {
+      tag.classList.add('active');
+    }
+  });
+  document.querySelectorAll('#spell-subspell-tags .filter-tag').forEach(function (tag) {
+    if (spellFilters.subspell.indexOf(tag.textContent) !== -1) {
       tag.classList.add('active');
     }
   });
@@ -1955,6 +2211,7 @@ function loadFiltersFromSession() {
       spellFilters.concentration = parsed.concentration || [];
       spellFilters.requiredLevel = parsed.requiredLevel || [];
       spellFilters.signature = parsed.signature || [];
+      spellFilters.subspell = parsed.subspell || DEFAULT_SUBSPELL_FILTER.slice();
       
       // Copy to temp filters
       tempSpellFilters.type = spellFilters.type.slice();
@@ -1963,6 +2220,10 @@ function loadFiltersFromSession() {
       tempSpellFilters.concentration = spellFilters.concentration.slice();
       tempSpellFilters.requiredLevel = spellFilters.requiredLevel.slice();
       tempSpellFilters.signature = spellFilters.signature.slice();
+      tempSpellFilters.subspell = spellFilters.subspell.slice();
+    } else {
+      spellFilters.subspell = DEFAULT_SUBSPELL_FILTER.slice();
+      tempSpellFilters.subspell = DEFAULT_SUBSPELL_FILTER.slice();
     }
     
     if (savedSchoolFilters) {
@@ -2263,6 +2524,26 @@ function getRarityId(rarity) {
 function buildSpellDetailHtml(spell) {
   const params = [];
 
+  let metaHTML = '';
+  if (spell.isSubSpell) {
+    const parentId = spell.parentId || spell.parentName;
+    const parentName = spell.parentName || 'родительское заклинание';
+    const parentLink = parentId
+      ? '<a href="javascript:void(0)" onclick="showSpellPage(\'' +
+        parentId +
+        '\')" style="color: var(--accent-emerald); text-decoration: none;">' +
+        parentName +
+        '</a>'
+      : parentName;
+    metaHTML =
+      '<div style="display:flex; align-items:center; gap:8px; margin-bottom: var(--spacing-sm);">' +
+      '<span style="display:inline-block; padding:2px 8px; border-radius:999px; background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); font-size: 0.85em;">Подзаклинание</span>' +
+      (parentLink
+        ? '<span style="color: var(--text-muted); font-size: 0.9em;">Часть: ' + parentLink + '</span>'
+        : '') +
+      '</div>';
+  }
+
   if (spell.actions || spell.actionType) {
     const actionLabel = formatActionLabel(spell.actionType || 'Действие');
     params.push('<li><strong>Действие:</strong> ' + actionLabel + ' (' + (spell.actions || '—') + ')</li>');
@@ -2294,7 +2575,12 @@ function buildSpellDetailHtml(spell) {
 
   if (spell.concentration) {
     const style = 'style="color: var(--accent-emerald); text-decoration: none;"';
-    const concLink = '<a href="phb/combat.html#концентрация" ' + style + '>' + spell.concentration + '</a>';
+    const concLink =
+      '<a href="javascript:void(0)" onclick="switchTab(\'actions\'); showActionPage(\'концентрация\')" ' +
+      style +
+      '>' +
+      spell.concentration +
+      '</a>';
     let line = '<li><strong>Концентрация:</strong> ' + concLink;
     if (spell.maintenance) {
       line += '; <strong>Поддержание:</strong> ' + spell.maintenance;
@@ -2340,73 +2626,20 @@ function buildSpellDetailHtml(spell) {
   
   let subSpellsHTML = '';
   if (spell.subSpells && spell.subSpells.length > 0) {
-    subSpellsHTML = '<h3>Варианты использования</h3>';
-    spell.subSpells.forEach(function(subSpell, index) {
-      const subId = 'subspell-' + (spell.id || 'spell') + '-' + index;
-      const typeInfo = subSpell.type ? ' — ' + subSpell.type : '';
-      subSpellsHTML += '<div class="subspell-block" style="margin-bottom: var(--spacing-lg); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); background: rgba(42, 42, 42, 0.4);">';
+    subSpellsHTML = '<h3>Подзаклинания</h3><ul style="padding-left: 16px; margin-top: var(--spacing-sm); margin-bottom: var(--spacing-lg); display: flex; flex-direction: column; gap: 6px;">';
+    spell.subSpells.forEach(function (subRef) {
+      const subType = subRef.type ? '<span style="color: var(--text-muted); font-size: 0.9em; margin-left: 8px;">' + subRef.type + '</span>' : '';
       subSpellsHTML +=
-        '<div class="subspell-header" style="display:flex; align-items:center; justify-content:space-between; padding: var(--spacing-md); cursor:pointer;" onclick="toggleSubSpell(\'' +
-        subId +
-        '\')">' +
-        '<div style="display:flex; flex-direction:column; gap:2px;">' +
-        '<h3 style="margin: 0; color: var(--accent-emerald); font-size: 1.05em;">' +
-        subSpell.name +
-        '</h3>' +
-        (typeInfo
-          ? '<span style="font-size: 0.8em; color: var(--text-muted);">Тип действия: ' + typeInfo.replace(' — ', '') + '</span>'
-          : '') +
-        '</div>' +
-        '<span style="font-size: 0.85em; color: var(--text-muted); margin-left: var(--spacing-md);">Показать детали</span>' +
-        '</div>';
-
-      subSpellsHTML +=
-        '<div id="' +
-        subId +
-        '" class="subspell-body" style="display: none; padding: 0 var(--spacing-md) var(--spacing-md);">';
-
-      if (subSpell.actions || subSpell.range || subSpell.target || subSpell.duration || subSpell.damageType || subSpell.type) {
-        subSpellsHTML += '<h4 style="margin-top: var(--spacing-md); margin-bottom: var(--spacing-sm); font-size: 1.0em;">Параметры</h4>';
-        subSpellsHTML += '<ul style="margin: 0; font-size: 0.95em;">';
-        
-        if (subSpell.actions) {
-          const subActionLabel = formatActionLabel(subSpell.actionType || 'Действие');
-          subSpellsHTML += '<li><strong>Действие:</strong> ' + subActionLabel + ' (' + subSpell.actions + ')</li>';
-        }
-        if (subSpell.range) {
-          subSpellsHTML += '<li><strong>Дистанция:</strong> ' + linkifyDistance(subSpell.range) + '</li>';
-        }
-        if (subSpell.target) {
-          subSpellsHTML += '<li><strong>Цель/Область:</strong> ' + linkifyDistance(subSpell.target) + '</li>';
-        }
-        if (subSpell.duration) {
-          subSpellsHTML += '<li><strong>Длительность:</strong> ' + subSpell.duration + '</li>';
-        }
-        if (subSpell.damageType && (Array.isArray(subSpell.damageType) ? subSpell.damageType.length : true)) {
-          let damageText = Array.isArray(subSpell.damageType) ? subSpell.damageType.join(', ') : subSpell.damageType;
-          if (subSpell.damageTypeNote) {
-            damageText += ' (' + subSpell.damageTypeNote + ')';
-          }
-          subSpellsHTML += '<li><strong>Тип урона:</strong> ' + damageText + '</li>';
-        }
-        if (subSpell.type) {
-          subSpellsHTML += '<li><strong>Тип Действия:</strong> ' + subSpell.type + '</li>';
-        }
-        
-        subSpellsHTML += '</ul>';
-      }
-      
-      if (subSpell.description) {
-        subSpellsHTML += '<h4 style="margin-top: var(--spacing-md); margin-bottom: var(--spacing-sm); font-size: 1.0em;">Описание</h4>';
-        subSpellsHTML += linkifyDiceExpressions(
-          renderSpellDescription(subSpell.description),
-          spell.name,
-          'db-subspell-description'
-        );
-      }
-      
-      subSpellsHTML += '</div></div>';
+        '<li style="list-style: disc;">' +
+        '<a href="javascript:void(0)" onclick="showSpellPage(\'' +
+        subRef.id +
+        '\')" style="color: var(--accent-emerald); text-decoration: none;">' +
+        subRef.name +
+        '</a>' +
+        subType +
+        '</li>';
     });
+    subSpellsHTML += '</ul>';
   }
 
   // Блок с требованиями к ритуалу (если это ритуальное заклинание)
@@ -2475,6 +2708,7 @@ function buildSpellDetailHtml(spell) {
   }
 
   return (
+    metaHTML +
     parametersHTML +
     descriptionHTML +
     ritualHTML +
@@ -2493,6 +2727,139 @@ function buildSpellDetailHtml(spell) {
   );
 }
 
+function initDbModalHistory() {
+  if (dbModalHistoryLoaded) {
+    return;
+  }
+  dbModalHistoryLoaded = true;
+  try {
+    const raw = sessionStorage.getItem(DB_MODAL_HISTORY_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const stack = Array.isArray(parsed && parsed.stack) ? parsed.stack : [];
+      const index = parsed && typeof parsed.index === 'number' ? parsed.index : -1;
+      const path = window.location.pathname;
+      dbModalHistory = stack.filter(function (item) {
+        return item && item.kind && item.id && item.path === path;
+      });
+      dbModalHistoryIndex = Math.min(Math.max(index, -1), dbModalHistory.length - 1);
+    }
+  } catch (e) {
+    dbModalHistory = [];
+    dbModalHistoryIndex = -1;
+  }
+}
+
+function saveDbModalHistory() {
+  try {
+    sessionStorage.setItem(
+      DB_MODAL_HISTORY_KEY,
+      JSON.stringify({
+        stack: dbModalHistory,
+        index: dbModalHistoryIndex
+      })
+    );
+  } catch (e) {
+    // no-op
+  }
+}
+
+function updateDbModalHistoryControls() {
+  const backBtn = document.getElementById('db-modal-back');
+  const forwardBtn = document.getElementById('db-modal-forward');
+  const hasHistory = dbModalHistory.length > 0;
+
+  if (backBtn) {
+    const disabled = !hasHistory || dbModalHistoryIndex <= 0;
+    backBtn.disabled = disabled;
+    backBtn.classList.toggle('disabled', disabled);
+  }
+  if (forwardBtn) {
+    const disabled = !hasHistory || dbModalHistoryIndex >= dbModalHistory.length - 1;
+    forwardBtn.disabled = disabled;
+    forwardBtn.classList.toggle('disabled', disabled);
+  }
+}
+
+function pushDbModalHistory(meta) {
+  if (!meta || !meta.kind || !meta.id) {
+    return;
+  }
+  initDbModalHistory();
+
+  if (isNavigatingDbHistory) {
+    updateDbModalHistoryControls();
+    return;
+  }
+
+  if (dbModalHistoryIndex < dbModalHistory.length - 1) {
+    dbModalHistory = dbModalHistory.slice(0, dbModalHistoryIndex + 1);
+  }
+
+  dbModalHistory.push({
+    kind: meta.kind,
+    id: meta.id,
+    path: window.location.pathname
+  });
+  dbModalHistoryIndex = dbModalHistory.length - 1;
+  saveDbModalHistory();
+  updateDbModalHistoryControls();
+}
+
+function openDbEntryFromHistory(entry) {
+  if (!entry || !entry.kind || !entry.id) {
+    return;
+  }
+  if (entry.path && entry.path !== window.location.pathname) {
+    return;
+  }
+
+  isNavigatingDbHistory = true;
+  pendingDbHistoryEntry = entry;
+  openDbEntity(entry.kind, entry.id);
+}
+
+function goBackInDbModalHistory() {
+  initDbModalHistory();
+  if (dbModalHistoryIndex <= 0) {
+    updateDbModalHistoryControls();
+    return;
+  }
+  dbModalHistoryIndex -= 1;
+  saveDbModalHistory();
+  updateDbModalHistoryControls();
+  openDbEntryFromHistory(dbModalHistory[dbModalHistoryIndex]);
+}
+
+function goForwardInDbModalHistory() {
+  initDbModalHistory();
+  if (dbModalHistoryIndex >= dbModalHistory.length - 1) {
+    updateDbModalHistoryControls();
+    return;
+  }
+  dbModalHistoryIndex += 1;
+  saveDbModalHistory();
+  updateDbModalHistoryControls();
+  openDbEntryFromHistory(dbModalHistory[dbModalHistoryIndex]);
+}
+
+// Делаем функции доступными для кнопок в общем модальном окне
+window.goBackInDbModalHistory = goBackInDbModalHistory;
+window.goForwardInDbModalHistory = goForwardInDbModalHistory;
+
+function initDbModalNavButtons() {
+  const backBtn = document.getElementById('db-modal-back');
+  const forwardBtn = document.getElementById('db-modal-forward');
+  if (backBtn) {
+    backBtn.addEventListener('click', goBackInDbModalHistory);
+  }
+  if (forwardBtn) {
+    forwardBtn.addEventListener('click', goForwardInDbModalHistory);
+  }
+  initDbModalHistory();
+  updateDbModalHistoryControls();
+}
+
 function extractSpellRollInfo(spell) {
   const result = {
     hitBonus: null,
@@ -2506,7 +2873,7 @@ function extractSpellRollInfo(spell) {
   const text = String(spell.description);
 
   try {
-    const hitMatch = text.match(/Бросок на попадание[\s\S]*?\(([+-]?\d+)\)/);
+    const hitMatch = text.match(/Бросок на [Пп]опадание[\s\S]*?\(([+-]?\d+)\)/);
     if (hitMatch && hitMatch[1] !== undefined) {
       const hitValue = parseInt(hitMatch[1], 10);
       if (!Number.isNaN(hitValue)) {
@@ -2518,7 +2885,7 @@ function extractSpellRollInfo(spell) {
   }
 
   try {
-    const applyMatch = text.match(/Бросок на наложение эффекта[\s\S]*?\(([+-]?\d+)\)/);
+    const applyMatch = text.match(/Бросок на [Нн]аложение эффекта[\s\S]*?\(([+-]?\d+)\)/);
     if (applyMatch && applyMatch[1] !== undefined) {
       const applyValue = parseInt(applyMatch[1], 10);
       if (!Number.isNaN(applyValue)) {
@@ -2532,7 +2899,9 @@ function extractSpellRollInfo(spell) {
   return result;
 }
 
-function openDbDetailModal(title, html) {
+function openDbDetailModal(title, html, meta) {
+  initDbModalHistory();
+
   const overlay = document.getElementById('spell-detail-modal');
   const titleElement = document.getElementById('spell-detail-title');
   const contentElement = document.getElementById('spell-detail-content');
@@ -2552,12 +2921,44 @@ function openDbDetailModal(title, html) {
 
   overlay.classList.remove('hidden');
 
+  // Сохраняем состояние открытого поп-апа, чтобы восстановить после перезагрузки
+  try {
+    if (meta && meta.kind && meta.id) {
+      sessionStorage.setItem(
+        DB_MODAL_STATE_KEY,
+        JSON.stringify({
+          kind: meta.kind,
+          id: meta.id,
+          path: window.location.pathname
+        })
+      );
+    }
+  } catch (e) {
+    // no-op
+  }
+
   // Привязываем кнопки бросков кубов, если они есть в контенте
   try {
     setupSpellRollButtons(title);
   } catch (e) {
     // no-op
   }
+
+  const isHistoryOpen =
+    pendingDbHistoryEntry &&
+    meta &&
+    meta.kind === pendingDbHistoryEntry.kind &&
+    meta.id === pendingDbHistoryEntry.id;
+
+  const shouldTrack = meta && meta.kind && meta.id && !isHistoryOpen;
+  if (shouldTrack) {
+    pushDbModalHistory(meta);
+  } else {
+    updateDbModalHistoryControls();
+  }
+
+  isNavigatingDbHistory = false;
+  pendingDbHistoryEntry = null;
 
   // Блокируем прокрутку основной страницы, пока открыт поп-ап
   try {
@@ -2625,6 +3026,11 @@ function renderSpellRollFooter(spell, rollInfo) {
     return;
   }
 
+  // Если это контейнер с подзаклинаниями, броски делаем только в самих подзаклинаниях
+  if (!spell.isSubSpell && spell.subSpells && spell.subSpells.length > 0) {
+    return;
+  }
+
   const hasHit = rollInfo.hitBonus !== null && rollInfo.hitBonus !== undefined;
   const hasApply = rollInfo.applyBonus !== null && rollInfo.applyBonus !== undefined;
   const hitLabelBonus =
@@ -2655,7 +3061,7 @@ function renderSpellRollFooter(spell, rollInfo) {
     '"' +
     (hasHit ? '' : ' disabled') +
     '>' +
-    'Бросок на попадание (' +
+    'Бросок на Попадание (' +
     hitLabelBonus +
     ')' +
     '</button>';
@@ -2668,7 +3074,7 @@ function renderSpellRollFooter(spell, rollInfo) {
     '"' +
     (hasApply ? '' : ' disabled') +
     '>' +
-    'Бросок на наложение эффекта (' +
+    'Бросок на Наложение эффекта (' +
     applyLabelBonus +
     ')' +
     '</button>';
@@ -2694,6 +3100,11 @@ function closeSpellDetailModal() {
   if (overlay) {
     overlay.classList.add('hidden');
   }
+  try {
+    sessionStorage.removeItem(DB_MODAL_STATE_KEY);
+  } catch (e) {
+    // no-op
+  }
   // Возвращаем прокрутку основной странице
   try {
     document.body.classList.remove('modal-open');
@@ -2706,8 +3117,9 @@ function closeSpellDetailModal() {
 /**
  * Show spell detail (used for deep links and table links)
  */
-function showSpellPage(spellIdOrName) {
-  switchTab('spells');
+async function showSpellPage(spellIdOrName) {
+  await ensureDbDataLoaded();
+  safeSwitchTab('spells');
   const findSpell = function (value) {
     if (!value) return null;
     const direct = spellsData.find(function (s) {
@@ -2724,8 +3136,13 @@ function showSpellPage(spellIdOrName) {
   if (!spell) {
     return;
   }
-  document.title = spell.name + ' — E\'Magios Core';
-  openDbDetailModal(spell.name, buildSpellDetailHtml(spell));
+  if (IS_DB_PAGE) {
+    document.title = spell.name + ' — E\'Magios Core';
+  }
+  openDbDetailModal(spell.name, buildSpellDetailHtml(spell), {
+    kind: 'spell',
+    id: spell.id || spell.name
+  });
 
   // После открытия модального окна рендерим нижнюю панель бросков
   const rollInfo = extractSpellRollInfo(spell);
@@ -2735,7 +3152,8 @@ function showSpellPage(spellIdOrName) {
 /**
  * Show school detail page
  */
-function showSchoolPage(schoolId) {
+async function showSchoolPage(schoolId) {
+  await ensureDbDataLoaded();
   let school = schoolsData.find(function (s) {
     return s.id === schoolId;
   });
@@ -2754,7 +3172,9 @@ function showSchoolPage(schoolId) {
     return;
   }
 
-  document.title = school.name + ' — E\'Magios Core';
+  if (IS_DB_PAGE) {
+    document.title = school.name + ' — E\'Magios Core';
+  }
 
   let descriptionHTML = '';
   if (school.description) {
@@ -2844,13 +3264,17 @@ function showSchoolPage(schoolId) {
     '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
     '<p class="text-muted"><strong>Связи:</strong> ' + linksHTML + '</p>';
 
-  openDbDetailModal(school.name, html);
+  openDbDetailModal(school.name, html, {
+    kind: 'school',
+    id: school.id || school.name
+  });
 }
 
 /**
  * Show effect detail page
  */
-function showEffectPage(effectId) {
+async function showEffectPage(effectId) {
+  await ensureDbDataLoaded();
   const effect = effectsData.find(function (e) {
     return e.id === effectId;
   });
@@ -2858,7 +3282,9 @@ function showEffectPage(effectId) {
     return;
   }
 
-  document.title = effect.name + ' — E\'Magios Core';
+  if (IS_DB_PAGE) {
+    document.title = effect.name + ' — E\'Magios Core';
+  }
 
   const description = effect.description || '';
   const hasStacks = effect.stacks && effect.stacks.length > 0;
@@ -2914,12 +3340,16 @@ function showEffectPage(effectId) {
 
   html +=
     '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
-    '<p class="text-muted"><strong>Связи:</strong> <a href="phb/effects.html" style="color: var(--accent-emerald); text-decoration: none;">Эффекты</a></p>';
+    '<p class="text-muted"><strong>Связи:</strong> <a href="javascript:void(0)" onclick="switchTab(\'effects\')" style="color: var(--accent-emerald); text-decoration: none;">Эффекты</a></p>';
 
-  openDbDetailModal(effect.name, html);
+  openDbDetailModal(effect.name, html, {
+    kind: 'effect',
+    id: effect.id || effect.name
+  });
 }
 
-function showArchetypePage(archetypeId) {
+async function showArchetypePage(archetypeId) {
+  await ensureDbDataLoaded();
   const archetype = archetypesData.find(function (a) {
     return a.id === archetypeId;
   });
@@ -2927,7 +3357,9 @@ function showArchetypePage(archetypeId) {
     return;
   }
 
-  document.title = archetype.name + ' — E\'Magios Core';
+  if (IS_DB_PAGE) {
+    document.title = archetype.name + ' — E\'Magios Core';
+  }
 
   const description = archetype.description || '—';
   
@@ -2947,12 +3379,16 @@ function showArchetypePage(archetypeId) {
     renderSpellDescription(description) +
     improvementsHTML +
     '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
-    '<p class="text-muted"><strong>Связи:</strong> <a href="phb/archetypes.html" style="color: var(--accent-emerald); text-decoration: none;">Архетипы</a></p>';
+    '<p class="text-muted"><strong>Связи:</strong> <a href="javascript:void(0)" onclick="switchTab(\'archetypes\')" style="color: var(--accent-emerald); text-decoration: none;">Архетипы</a></p>';
 
-  openDbDetailModal(archetype.name, html);
+  openDbDetailModal(archetype.name, html, {
+    kind: 'archetype',
+    id: archetype.id || archetype.name
+  });
 }
 
-function showActionPage(actionId) {
+async function showActionPage(actionId) {
+  await ensureDbDataLoaded();
   const action = actionsData.find(function (a) {
     return a.id === actionId;
   });
@@ -2960,7 +3396,9 @@ function showActionPage(actionId) {
     return;
   }
 
-  document.title = action.name + ' — E\'Magios Core';
+  if (IS_DB_PAGE) {
+    document.title = action.name + ' — E\'Magios Core';
+  }
 
   const params = [];
   if (action.actions) {
@@ -2994,12 +3432,16 @@ function showActionPage(actionId) {
   html +=
     renderSpellDescription(description) +
     '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
-    '<p class="text-muted"><strong>Связи:</strong> <a href="phb/actions.html" style="color: var(--accent-emerald); text-decoration: none;">Базовые Действия</a></p>';
+    '<p class="text-muted"><strong>Связи:</strong> <a href="javascript:void(0)" onclick="switchTab(\'actions\')" style="color: var(--accent-emerald); text-decoration: none;">Базовые Действия</a></p>';
 
-  openDbDetailModal(action.name, html);
+  openDbDetailModal(action.name, html, {
+    kind: 'action',
+    id: action.id || action.name
+  });
 }
 
-function showSkillPage(skillId) {
+async function showSkillPage(skillId) {
+  await ensureDbDataLoaded();
   const skill = skillsData.find(function (s) {
     return s.id === skillId;
   });
@@ -3007,7 +3449,9 @@ function showSkillPage(skillId) {
     return;
   }
 
-  document.title = skill.name + ' — E\'Magios Core';
+  if (IS_DB_PAGE) {
+    document.title = skill.name + ' — E\'Magios Core';
+  }
 
   const params = [];
   if (skill.type) {
@@ -3027,9 +3471,12 @@ function showSkillPage(skillId) {
   const description = skill.description || '—';
   html += buildSkillDescriptionHtml(skill, description) +
     '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
-    '<p class="text-muted"><strong>Связи:</strong> <a href="phb/stats.html" style="color: var(--accent-emerald); text-decoration: none;">Характеристики и навыки</a></p>';
+    '<p class="text-muted"><strong>Связи:</strong> <a href="javascript:void(0)" onclick="switchTab(\'basics\'); showBasicPage(\'stats\')" style="color: var(--accent-emerald); text-decoration: none;">Характеристики и навыки</a></p>';
 
-  openDbDetailModal(skill.name, html);
+  openDbDetailModal(skill.name, html, {
+    kind: 'skill',
+    id: skill.id || skill.name
+  });
 }
 
 function buildSkillDescriptionHtml(skill, description) {
@@ -3147,7 +3594,8 @@ function spellHasSignatureBonus(spell) {
   return text.indexOf('Бонус Фирменного Заклинания') !== -1;
 }
 
-function showActionTypePage(actionTypeId) {
+async function showActionTypePage(actionTypeId) {
+  await ensureDbDataLoaded();
   let actionType = actionTypesData.find(function (t) {
     return t.id === actionTypeId;
   });
@@ -3162,7 +3610,9 @@ function showActionTypePage(actionTypeId) {
     return;
   }
 
-  document.title = actionType.name + ' — E\'Magios Core';
+  if (IS_DB_PAGE) {
+    document.title = actionType.name + ' — E\'Magios Core';
+  }
 
   const params = [];
   if (actionType.category) {
@@ -3197,13 +3647,17 @@ function showActionTypePage(actionTypeId) {
     renderSpellDescription(description) +
     subActionsHTML +
     '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
-    '<p class="text-muted"><strong>Связи:</strong> <a href="phb/actions.html" style="color: var(--accent-emerald); text-decoration: none;">Действия</a></p>';
+    '<p class="text-muted"><strong>Связи:</strong> <a href="javascript:void(0)" onclick="switchTab(\'actions\')" style="color: var(--accent-emerald); text-decoration: none;">Действия</a></p>';
 
-  openDbDetailModal(actionType.name, html);
+  openDbDetailModal(actionType.name, html, {
+    kind: 'actionType',
+    id: actionType.id || actionType.name
+  });
 }
 
-function showBasicPage(basicId) {
-  switchTab('basics');
+async function showBasicPage(basicId) {
+  await ensureDbDataLoaded();
+  safeSwitchTab('basics');
   const item = basicsData.find(function (b) {
     return b.id === basicId;
   });
@@ -3211,16 +3665,22 @@ function showBasicPage(basicId) {
     return;
   }
 
-  document.title = item.name + ' — E\'Magios Core';
+  if (IS_DB_PAGE) {
+    document.title = item.name + ' — E\'Magios Core';
+  }
 
   const description = item.description || '—';
   let html = '';
   html += renderSpellDescription(description);
 
-  openDbDetailModal(item.name, html);
+  openDbDetailModal(item.name, html, {
+    kind: 'basic',
+    id: item.id || item.name
+  });
 }
 
-function showCombatPage(combatId) {
+async function showCombatPage(combatId) {
+  await ensureDbDataLoaded();
   const component = combatComponentsData.find(function (c) {
     return c.id === combatId;
   });
@@ -3228,7 +3688,9 @@ function showCombatPage(combatId) {
     return;
   }
 
-  document.title = component.name + ' — E\'Magios Core';
+  if (IS_DB_PAGE) {
+    document.title = component.name + ' — E\'Magios Core';
+  }
 
   const params = [];
   if (component.section) {
@@ -3247,12 +3709,16 @@ function showCombatPage(combatId) {
   html +=
     renderSpellDescription(description) +
     '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
-    '<p class="text-muted"><strong>Связи:</strong> <a href="phb/combat.html" style="color: var(--accent-emerald); text-decoration: none;">Боевая система</a></p>';
+    '<p class="text-muted"><strong>Связи:</strong> <a href="javascript:void(0)" onclick="switchTab(\'basics\'); showBasicPage(\'combat\')" style="color: var(--accent-emerald); text-decoration: none;">Боевая система</a></p>';
 
-  openDbDetailModal(component.name, html);
+  openDbDetailModal(component.name, html, {
+    kind: 'combat',
+    id: component.id || component.name
+  });
 }
 
-function showCraftComponentPage(componentId) {
+async function showCraftComponentPage(componentId) {
+  await ensureDbDataLoaded();
   const component = craftComponentsData.find(function (c) {
     return c.id === componentId;
   });
@@ -3260,7 +3726,9 @@ function showCraftComponentPage(componentId) {
     return;
   }
 
-  document.title = component.name + ' — E\'Magios Core';
+  if (IS_DB_PAGE) {
+    document.title = component.name + ' — E\'Magios Core';
+  }
 
   const description = component.description || '—';
   const html =
@@ -3269,10 +3737,14 @@ function showCraftComponentPage(componentId) {
     '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
     '<p class="text-muted"><strong>Связи:</strong> <a href="craftbook/intro.html" style="color: var(--accent-emerald); text-decoration: none;">Ремесленная система</a></p>';
 
-  openDbDetailModal(component.name, html);
+  openDbDetailModal(component.name, html, {
+    kind: 'craftComponent',
+    id: component.id || component.name
+  });
 }
 
-function showCraftProfessionPage(professionId) {
+async function showCraftProfessionPage(professionId) {
+  await ensureDbDataLoaded();
   const profession = craftProfessionsData.find(function (p) {
     return p.id === professionId;
   });
@@ -3280,7 +3752,9 @@ function showCraftProfessionPage(professionId) {
     return;
   }
 
-  document.title = profession.name + ' — E\'Magios Core';
+  if (IS_DB_PAGE) {
+    document.title = profession.name + ' — E\'Magios Core';
+  }
 
   const description = profession.description || '—';
   let specsHtml = '';
@@ -3311,10 +3785,14 @@ function showCraftProfessionPage(professionId) {
     '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
     '<p class="text-muted"><strong>Связи:</strong> <a href="craftbook/magical-crafts.html" style="color: var(--accent-emerald); text-decoration: none;">Ремесленные профессии</a></p>';
 
-  openDbDetailModal(profession.name, html);
+  openDbDetailModal(profession.name, html, {
+    kind: 'craftProfession',
+    id: profession.id || profession.name
+  });
 }
 
-function showCraftSpecializationPage(specializationId) {
+async function showCraftSpecializationPage(specializationId) {
+  await ensureDbDataLoaded();
   const specialization = craftSpecializationsData.find(function (s) {
     return s.id === specializationId;
   });
@@ -3322,7 +3800,9 @@ function showCraftSpecializationPage(specializationId) {
     return;
   }
 
-  document.title = specialization.name + ' — E\'Magios Core';
+  if (IS_DB_PAGE) {
+    document.title = specialization.name + ' — E\'Magios Core';
+  }
 
   const description = specialization.description || '—';
   const professionName = specialization.profession || null;
@@ -3355,10 +3835,14 @@ function showCraftSpecializationPage(specializationId) {
     '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
     '<p class="text-muted"><strong>Связи:</strong> <a href="craftbook/magical-crafts.html" style="color: var(--accent-emerald); text-decoration: none;">Ремесленные специализации</a></p>';
 
-  openDbDetailModal(specialization.name, html);
+  openDbDetailModal(specialization.name, html, {
+    kind: 'craftSpecialization',
+    id: specialization.id || specialization.name
+  });
 }
 
-function showRecipeTypePage(recipeTypeId) {
+async function showRecipeTypePage(recipeTypeId) {
+  await ensureDbDataLoaded();
   let type = recipeTypesData.find(function (t) {
     return t.id === recipeTypeId;
   });
@@ -3373,7 +3857,9 @@ function showRecipeTypePage(recipeTypeId) {
     return;
   }
 
-  document.title = type.name + ' — E\'Magios Core';
+  if (IS_DB_PAGE) {
+    document.title = type.name + ' — E\'Magios Core';
+  }
 
   const description = type.description || '—';
 
@@ -3408,10 +3894,14 @@ function showRecipeTypePage(recipeTypeId) {
     '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
     '<p class="text-muted"><strong>Связи:</strong> <a href="craftbook/magical-crafts.html" style="color: var(--accent-emerald); text-decoration: none;">Типы рецептов</a></p>';
 
-  openDbDetailModal(type.name, html);
+  openDbDetailModal(type.name, html, {
+    kind: 'recipeType',
+    id: type.id || type.name
+  });
 }
 
-function showRecipePage(recipeId) {
+async function showRecipePage(recipeId) {
+  await ensureDbDataLoaded();
   const recipe = recipesData.find(function (r) {
     return r.id === recipeId;
   });
@@ -3419,7 +3909,9 @@ function showRecipePage(recipeId) {
     return;
   }
 
-  document.title = recipe.name + ' — E\'Magios Core';
+  if (IS_DB_PAGE) {
+    document.title = recipe.name + ' — E\'Magios Core';
+  }
 
   const params = [];
   if (recipe.profession) {
@@ -3515,7 +4007,10 @@ function showRecipePage(recipeId) {
     '<hr style="margin: var(--spacing-xl) 0; border: none; border-top: 1px solid var(--border-color);">' +
     '<p class="text-muted"><strong>Связи:</strong> <a href="craftbook/magical-crafts.html" style="color: var(--accent-emerald); text-decoration: none;">Ремесленная система</a></p>';
 
-  openDbDetailModal(recipe.name, html);
+  openDbDetailModal(recipe.name, html, {
+    kind: 'recipe',
+    id: recipe.id || recipe.name
+  });
 }
 
 function displayArchetypes(archetypes) {
@@ -4136,12 +4631,19 @@ function sortRecipes(field) {
 }
 
 function hasActiveSpellFilters() {
+  const subspellDefault =
+    spellFilters.subspell.length === DEFAULT_SUBSPELL_FILTER.length &&
+    DEFAULT_SUBSPELL_FILTER.every(function (v) {
+      return spellFilters.subspell.indexOf(v) !== -1;
+    });
+
   return spellFilters.type.length > 0 ||
          spellFilters.school.length > 0 ||
          spellFilters.damage.length > 0 ||
          spellFilters.concentration.length > 0 ||
          spellFilters.requiredLevel.length > 0 ||
-         spellFilters.signature.length > 0;
+         spellFilters.signature.length > 0 ||
+         !subspellDefault;
 }
 
 function hasActiveSchoolFilters() {
@@ -4236,6 +4738,7 @@ function quickClearSpellFilters() {
   spellFilters.concentration = [];
   spellFilters.requiredLevel = [];
   spellFilters.signature = [];
+  spellFilters.subspell = DEFAULT_SUBSPELL_FILTER.slice();
   
   tempSpellFilters.type = [];
   tempSpellFilters.school = [];
@@ -4243,6 +4746,9 @@ function quickClearSpellFilters() {
   tempSpellFilters.concentration = [];
   tempSpellFilters.requiredLevel = [];
   tempSpellFilters.signature = [];
+  tempSpellFilters.subspell = DEFAULT_SUBSPELL_FILTER.slice();
+
+  syncFilterTagsState('spell-subspell-tags', 'subspell', tempSpellFilters);
   
   saveFiltersToSession();
   filterAndDisplaySpells();

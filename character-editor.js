@@ -13,14 +13,14 @@ let currentSignedStatId = '';
 let lastSavedCharacterData = null;
 let charactersInitialLoaded = false;
 const AUTOSAVE_DELAY_MS = 3000;
-let spellsData = [];
-let spellsDataLoaded = false;
-let spellsDataPromise = null;
+let editorSpellsData = [];
+let editorSpellsDataLoaded = false;
+let editorSpellsDataPromise = null;
 let currentSpellSelectType = '';
 let currentSpellSelectId = '';
-let schoolsData = [];
-let schoolsDataLoaded = false;
-let schoolsDataPromise = null;
+let editorSchoolsData = [];
+let editorSchoolsDataLoaded = false;
+let editorSchoolsDataPromise = null;
 let spellSelectFilters = {
   type: [],
   source: [],
@@ -52,6 +52,47 @@ let tempSchoolSelectFilters = {
   difficulty: []
 };
 let schoolSelectFiltersInitialized = false;
+
+const MAGIC_SKILLS = [
+  { id: 'construction', name: 'Конструирование' },
+  { id: 'spontaneity', name: 'Спонтанность' },
+  { id: 'metamagic', name: 'Метамагия' },
+  { id: 'creation', name: 'Созидание' },
+  { id: 'ritualism', name: 'Ритуалогия' },
+  { id: 'versatility', name: 'Многогранность' }
+];
+
+const PERSONALITY_SKILLS = [
+  { id: 'communication', name: 'Общение' },
+  { id: 'contacts', name: 'Контакты' },
+  { id: 'knowledge', name: 'Знания' },
+  { id: 'perception', name: 'Внимательность' },
+  { id: 'stealth', name: 'Скрытность' },
+  { id: 'physique', name: 'Телосложение' }
+];
+
+function renderSkillRows() {
+  const magicContainer = document.getElementById('magic-skills-list');
+  const personalityContainer = document.getElementById('personality-skills-list');
+
+  if (magicContainer) {
+    magicContainer.innerHTML = MAGIC_SKILLS.map(function(skill) {
+      return '<div class="stat-row signed-stat-row" data-stat-id="' + skill.id + '">' +
+        '<span class="stat-label">' + skill.name + '</span>' +
+        '<input type="text" id="' + skill.id + '" class="readonly-field stat-value-input" readonly value="+0">' +
+      '</div>';
+    }).join('');
+  }
+
+  if (personalityContainer) {
+    personalityContainer.innerHTML = PERSONALITY_SKILLS.map(function(skill) {
+      return '<div class="stat-row signed-stat-row" data-stat-id="' + skill.id + '">' +
+        '<span class="stat-label">' + skill.name + '</span>' +
+        '<input type="text" id="' + skill.id + '" class="readonly-field stat-value-input" readonly value="+0">' +
+      '</div>';
+    }).join('');
+  }
+}
 
 function showEditorLoader(message) {
   if (typeof showPageLoader === 'function') {
@@ -316,7 +357,9 @@ document.addEventListener('DOMContentLoaded', function () {
   initEditorTabs();
   initBonusAddButton();
   initEditorNavigation();
+  renderSkillRows();
   initSignedStatInputs();
+  initDescriptionFeatures();
   initHealthWillStatBlocks();
   initDefenseShields();
   initSignedStatModal();
@@ -335,57 +378,57 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function fetchSpellsData() {
-  if (spellsDataPromise) {
-    return spellsDataPromise;
+  if (editorSpellsDataPromise) {
+    return editorSpellsDataPromise;
   }
 
-  spellsDataPromise = fetch('data/spells.json')
+  editorSpellsDataPromise = fetch('data/spells.json')
     .then(function (response) {
       return response.json();
     })
     .then(function (data) {
       if (Array.isArray(data)) {
-        spellsData = data;
+        editorSpellsData = data;
       } else {
-        spellsData = [];
+        editorSpellsData = [];
       }
-      spellsDataLoaded = true;
-      return spellsData;
+      editorSpellsDataLoaded = true;
+      return editorSpellsData;
     })
     .catch(function () {
-      spellsData = [];
-      spellsDataLoaded = true;
-      return spellsData;
+      editorSpellsData = [];
+      editorSpellsDataLoaded = true;
+      return editorSpellsData;
     });
 
-  return spellsDataPromise;
+  return editorSpellsDataPromise;
 }
 
 function fetchSchoolsData() {
-  if (schoolsDataPromise) {
-    return schoolsDataPromise;
+  if (editorSchoolsDataPromise) {
+    return editorSchoolsDataPromise;
   }
 
-  schoolsDataPromise = fetch('data/schools.json')
+  editorSchoolsDataPromise = fetch('data/schools.json')
     .then(function (response) {
       return response.json();
     })
     .then(function (data) {
       if (Array.isArray(data)) {
-        schoolsData = data;
+        editorSchoolsData = data;
       } else {
-        schoolsData = [];
+        editorSchoolsData = [];
       }
-      schoolsDataLoaded = true;
-      return schoolsData;
+      editorSchoolsDataLoaded = true;
+      return editorSchoolsData;
     })
     .catch(function () {
-      schoolsData = [];
-      schoolsDataLoaded = true;
-      return schoolsData;
+      editorSchoolsData = [];
+      editorSchoolsDataLoaded = true;
+      return editorSchoolsData;
     });
 
-  return schoolsDataPromise;
+  return editorSchoolsDataPromise;
 }
 
 function scheduleAutosave() {
@@ -1060,26 +1103,135 @@ function calculateBonusForStat(bonuses, statKey) {
   return total;
 }
 
+function getCurrentSpellRollBonuses() {
+  const level = parseInt(document.getElementById('level').value, 10) || 1;
+  const stats = calculateStatsByLevel(level);
+  const bonuses = getBonusesFromUI();
+
+  const arcana = stats.arcana + calculateBonusForStat(bonuses, 'arcana');
+  const hit = arcana + calculateBonusForStat(bonuses, 'attack');
+  const apply = arcana + calculateBonusForStat(bonuses, 'cast');
+
+  return {
+    arcana,
+    hit,
+    apply
+  };
+}
+
+function editorExtractSpellRollInfo(spell) {
+  const result = {
+    hitBonus: null,
+    applyBonus: null
+  };
+
+  if (!spell || !spell.description) {
+    return result;
+  }
+
+  const text = String(spell.description);
+
+  try {
+    const hitMatch = text.match(/Бросок на [Пп]опадание[\s\S]*?\(([+-]?\d+)\)/);
+    if (hitMatch && hitMatch[1] !== undefined) {
+      const hitValue = parseInt(hitMatch[1], 10);
+      if (!Number.isNaN(hitValue)) {
+        result.hitBonus = hitValue;
+      }
+    }
+  } catch (e) {
+    // no-op
+  }
+
+  try {
+    const applyMatch = text.match(/Бросок на [Нн]аложение эффекта[\s\S]*?\(([+-]?\d+)\)/);
+    if (applyMatch && applyMatch[1] !== undefined) {
+      const applyValue = parseInt(applyMatch[1], 10);
+      if (!Number.isNaN(applyValue)) {
+        result.applyBonus = applyValue;
+      }
+    }
+  } catch (e) {
+    // no-op
+  }
+
+  return result;
+}
+
+function rollSpellFromEditor(rollType, spellName) {
+  const bonuses = getCurrentSpellRollBonuses();
+  const bonusValue = rollType === 'arcana' ? bonuses.arcana : rollType === 'hit' ? bonuses.hit : bonuses.apply;
+  let expression = '1d12';
+  if (bonusValue > 0) {
+    expression += '+' + bonusValue;
+  } else if (bonusValue < 0) {
+    expression += bonusValue;
+  }
+
+  const labelMap = {
+    arcana: 'Бросок на Аркану',
+    hit: 'Бросок на Попадание',
+    apply: 'Бросок на Наложение эффекта'
+  };
+
+  const labelBonus = bonusValue >= 0 ? '+' + bonusValue : String(bonusValue);
+  const sheetCharacter = {
+    id: 'editor-current',
+    name: (document.getElementById('name') && document.getElementById('name').value.trim()) || 'Персонаж',
+    arcana: bonuses.arcana,
+    hit: bonuses.hit,
+    apply: bonuses.apply,
+    baseArcana: bonuses.arcana
+  };
+  const context = {
+    label: (labelMap[rollType] || 'Бросок') + ' (' + labelBonus + ')',
+    rollType: rollType,
+    spell: spellName || '',
+    source: 'editor-spell-' + rollType,
+    baseExpression: '1d12',
+    noAutoCharacterBonus: true,
+    sheetCharacter: sheetCharacter,
+    allowCharacter: true,
+    allowCharacterBreakdown: false
+  };
+
+  if (typeof openDiceRollerPanel === 'function') {
+    openDiceRollerPanel();
+  }
+  if (typeof handleDiceRollCommand === 'function') {
+    handleDiceRollCommand(expression, context);
+  } else {
+    console.error('Dice roller is not available.');
+  }
+}
+
 function updateCalculations() {
   const level = parseInt(document.getElementById('level').value, 10) || 1;
   const stats = calculateStatsByLevel(level);
   const bonuses = getBonusesFromUI();
 
-  const arcanaTotal = stats.arcana + calculateBonusForStat(bonuses, 'arcana');
-  const attackTotal = stats.arcana + calculateBonusForStat(bonuses, 'attack');
-  const castTotal = stats.arcana + calculateBonusForStat(bonuses, 'cast');
+  const arcanaBonus = calculateBonusForStat(bonuses, 'arcana');
+  const arcanaTotal = stats.arcana + arcanaBonus;
+  const attackTotal = arcanaTotal + calculateBonusForStat(bonuses, 'attack');
+  const castTotal = arcanaTotal + calculateBonusForStat(bonuses, 'cast');
   const evasionTotal = stats.evasion + calculateBonusForStat(bonuses, 'evasion');
   const saveTotal = stats.savingThrow + calculateBonusForStat(bonuses, 'save');
-  const fortitudeBonus = calculateBonusForStat(bonuses, 'fortitude');
+  const fortitudeBaseTotal = stats.fortitudeBase + calculateBonusForStat(bonuses, 'fortitude');
+  const fortitudeLowTotal = fortitudeBaseTotal * 4 + calculateBonusForStat(bonuses, 'fortitudeLow');
+  const fortitudeMidTotal = fortitudeBaseTotal * 8 + calculateBonusForStat(bonuses, 'fortitudeMid');
+  const fortitudeHighTotal = fortitudeBaseTotal * 12 + calculateBonusForStat(bonuses, 'fortitudeHigh');
+  const passiveAttentionTotal = stats.passiveAttentiveness;
 
   const arcanaElement = document.getElementById('stat-arcana');
   const attackElement = document.getElementById('stat-attack-bonus');
   const castElement = document.getElementById('stat-cast-bonus');
   const evasionElement = document.getElementById('stat-evasion');
   const saveElement = document.getElementById('stat-save');
+  const fortBaseElement = document.getElementById('stat-fort-base');
   const fortLowElement = document.getElementById('stat-fort-low');
   const fortMidElement = document.getElementById('stat-fort-mid');
   const fortHighElement = document.getElementById('stat-fort-high');
+  const attentivenessElement = document.getElementById('stat-attentiveness');
 
   if (arcanaElement) {
     arcanaElement.textContent = '+' + arcanaTotal;
@@ -1096,52 +1248,58 @@ function updateCalculations() {
   if (saveElement) {
     saveElement.textContent = saveTotal;
   }
+  if (fortBaseElement) {
+    fortBaseElement.textContent = fortitudeBaseTotal;
+  }
   if (fortLowElement) {
-    fortLowElement.textContent = stats.fortitudeLow + fortitudeBonus;
+    fortLowElement.textContent = fortitudeLowTotal;
   }
   if (fortMidElement) {
-    fortMidElement.textContent = stats.fortitudeMid + fortitudeBonus;
+    fortMidElement.textContent = fortitudeMidTotal;
   }
   if (fortHighElement) {
-    fortHighElement.textContent = stats.fortitudeHigh + fortitudeBonus;
+    fortHighElement.textContent = fortitudeHighTotal;
+  }
+  if (attentivenessElement) {
+    attentivenessElement.textContent = passiveAttentionTotal;
   }
   updateSpellRecommendations();
 }
 
 function findSpellById(spellId) {
-  if (!spellsDataLoaded || !Array.isArray(spellsData)) {
+  if (!editorSpellsDataLoaded || !Array.isArray(editorSpellsData)) {
     return null;
   }
-  for (let i = 0; i < spellsData.length; i += 1) {
-    if (spellsData[i] && typeof spellsData[i].id === 'string' && spellsData[i].id === spellId) {
-      return spellsData[i];
+  for (let i = 0; i < editorSpellsData.length; i += 1) {
+    if (editorSpellsData[i] && typeof editorSpellsData[i].id === 'string' && editorSpellsData[i].id === spellId) {
+      return editorSpellsData[i];
     }
   }
   return null;
 }
 
 function findSchoolById(schoolId) {
-  if (!schoolsDataLoaded || !Array.isArray(schoolsData)) {
+  if (!editorSchoolsDataLoaded || !Array.isArray(editorSchoolsData)) {
     return null;
   }
-  for (let i = 0; i < schoolsData.length; i += 1) {
-    if (schoolsData[i] && typeof schoolsData[i].id === 'string' && schoolsData[i].id === schoolId) {
-      return schoolsData[i];
+  for (let i = 0; i < editorSchoolsData.length; i += 1) {
+    if (editorSchoolsData[i] && typeof editorSchoolsData[i].id === 'string' && editorSchoolsData[i].id === schoolId) {
+      return editorSchoolsData[i];
     }
   }
   return null;
 }
 
 function findSchoolByName(schoolName) {
-  if (!schoolsDataLoaded || !Array.isArray(schoolsData)) {
+  if (!editorSchoolsDataLoaded || !Array.isArray(editorSchoolsData)) {
     return null;
   }
   const trimmed = typeof schoolName === 'string' ? schoolName.trim() : '';
   if (!trimmed) {
     return null;
   }
-  for (let i = 0; i < schoolsData.length; i += 1) {
-    const school = schoolsData[i];
+  for (let i = 0; i < editorSchoolsData.length; i += 1) {
+    const school = editorSchoolsData[i];
     if (school && typeof school.name === 'string' && school.name === trimmed) {
       return school;
     }
@@ -1313,19 +1471,25 @@ function buildSpellDetailsHtml(spell) {
 }
 
 function openSpellDetailsModal(spellId) {
+  // Используем унифицированный поп-ап базы данных, чтобы были кнопки бросков
+  if (typeof openDbEntity === 'function') {
+    openDbEntity('spell', spellId).catch(function (err) {
+      console.error('Failed to open spell popup from character editor:', err);
+    });
+    return;
+  }
+
+  // Fallback: старое поведение (без кнопок бросков)
   const spell = findSpellById(spellId);
   if (!spell) {
     return;
   }
-
   const overlay = document.getElementById('spell-details-modal');
   const titleElement = document.getElementById('spell-details-title');
   const contentElement = document.getElementById('spell-details-content');
-
   if (!overlay || !titleElement || !contentElement) {
     return;
   }
-
   titleElement.textContent = spell.name;
   contentElement.innerHTML = buildSpellDetailsHtml(spell);
   overlay.classList.remove('hidden');
@@ -1397,7 +1561,7 @@ function buildSchoolDetailsHtml(school) {
   if (school.educationalSpells && school.educationalSpells.length > 0) {
     const spellItems = school.educationalSpells
       .map(function (spellName) {
-        const spell = spellsData.find(function (s) {
+        const spell = editorSpellsData.find(function (s) {
           return s.name === spellName;
         });
         if (spell) {
@@ -1493,15 +1657,15 @@ function openSchoolDetailsModal(schoolId) {
 }
 
 function findSpellByName(spellName) {
-  if (!spellsDataLoaded || !Array.isArray(spellsData)) {
+  if (!editorSpellsDataLoaded || !Array.isArray(editorSpellsData)) {
     return null;
   }
   const trimmed = typeof spellName === 'string' ? spellName.trim() : '';
   if (!trimmed) {
     return null;
   }
-  for (let i = 0; i < spellsData.length; i += 1) {
-    const spell = spellsData[i];
+  for (let i = 0; i < editorSpellsData.length; i += 1) {
+    const spell = editorSpellsData[i];
     if (spell && typeof spell.name === 'string' && spell.name === trimmed) {
       return spell;
     }
@@ -1510,12 +1674,12 @@ function findSpellByName(spellName) {
 }
 
 function getSpellsForType(type) {
-  if (!Array.isArray(spellsData)) {
+  if (!Array.isArray(editorSpellsData)) {
     return [];
   }
   const result = [];
-  for (let i = 0; i < spellsData.length; i += 1) {
-    const spell = spellsData[i];
+  for (let i = 0; i < editorSpellsData.length; i += 1) {
+    const spell = editorSpellsData[i];
     if (!spell || typeof spell.id !== 'string') {
       continue;
     }
@@ -1612,6 +1776,55 @@ function createSpellItem(type, initialData) {
   const controls = document.createElement('div');
   controls.className = 'spell-controls';
 
+  const rollButtons = document.createElement('div');
+  rollButtons.className = 'spell-roll-mini';
+
+  const spellData = selectedId ? findSpellById(selectedId) : null;
+  const rollInfo = spellData ? editorExtractSpellRollInfo(spellData) : null;
+  const hasHit = !!(rollInfo && rollInfo.hitBonus !== null && rollInfo.hitBonus !== undefined);
+  const hasApply = !!(rollInfo && rollInfo.applyBonus !== null && rollInfo.applyBonus !== undefined);
+
+  const arcanaBtn = document.createElement('button');
+  arcanaBtn.type = 'button';
+  arcanaBtn.className = 'spell-roll-mini-btn';
+  arcanaBtn.textContent = 'А';
+  arcanaBtn.title = 'Бросок на Аркану';
+  arcanaBtn.addEventListener('click', function () {
+    rollSpellFromEditor('arcana', selectedName);
+  });
+
+  const hitBtn = document.createElement('button');
+  hitBtn.type = 'button';
+  hitBtn.className = 'spell-roll-mini-btn';
+  hitBtn.textContent = 'П';
+  hitBtn.title = 'Бросок на Попадание';
+  if (!hasHit) {
+    hitBtn.classList.add('disabled');
+    hitBtn.disabled = true;
+  } else {
+    hitBtn.addEventListener('click', function () {
+      rollSpellFromEditor('hit', selectedName);
+    });
+  }
+
+  const applyBtn = document.createElement('button');
+  applyBtn.type = 'button';
+  applyBtn.className = 'spell-roll-mini-btn';
+  applyBtn.textContent = 'Э';
+  applyBtn.title = 'Бросок на Наложение эффекта';
+  if (!hasApply) {
+    applyBtn.classList.add('disabled');
+    applyBtn.disabled = true;
+  } else {
+    applyBtn.addEventListener('click', function () {
+      rollSpellFromEditor('apply', selectedName);
+    });
+  }
+
+  rollButtons.appendChild(arcanaBtn);
+  rollButtons.appendChild(hitBtn);
+  rollButtons.appendChild(applyBtn);
+
   const activeButton = document.createElement('button');
   activeButton.type = 'button';
   activeButton.className = 'spell-active-toggle-btn';
@@ -1636,6 +1849,7 @@ function createSpellItem(type, initialData) {
     removeSpell(removeButton);
   });
 
+  controls.appendChild(rollButtons);
   controls.appendChild(activeButton);
   controls.appendChild(removeButton);
 
@@ -1828,7 +2042,7 @@ function renderSchoolSelectList() {
 
   const search = searchInput.value ? searchInput.value.toLowerCase() : '';
 
-  if (!Array.isArray(schoolsData)) {
+  if (!Array.isArray(editorSchoolsData)) {
     return;
   }
 
@@ -1845,7 +2059,7 @@ function renderSchoolSelectList() {
     '</tr>';
   const tbody = document.createElement('tbody');
 
-  schoolsData.forEach(function (school) {
+  editorSchoolsData.forEach(function (school) {
     const name = typeof school.name === 'string' ? school.name : '';
     const rarity = typeof school.rarity === 'string' ? school.rarity : '';
     const difficulty = school.difficulty || school.difficulty === 0 ? school.difficulty : null;
@@ -2031,10 +2245,10 @@ function getUniqueSpellValues(items, key) {
 
 function schoolSelectCollectRarities() {
   const values = [];
-  if (!Array.isArray(schoolsData)) {
+  if (!Array.isArray(editorSchoolsData)) {
     return values;
   }
-  schoolsData.forEach(function (school) {
+  editorSchoolsData.forEach(function (school) {
     if (school.rarity && values.indexOf(school.rarity) === -1) {
       values.push(school.rarity);
     }
@@ -2045,10 +2259,10 @@ function schoolSelectCollectRarities() {
 
 function schoolSelectCollectProperties() {
   const values = [];
-  if (!Array.isArray(schoolsData)) {
+  if (!Array.isArray(editorSchoolsData)) {
     return values;
   }
-  schoolsData.forEach(function (school) {
+  editorSchoolsData.forEach(function (school) {
     if (!school.properties || !school.properties.length) {
       return;
     }
@@ -2064,10 +2278,10 @@ function schoolSelectCollectProperties() {
 
 function schoolSelectCollectDifficulties() {
   const values = [];
-  if (!Array.isArray(schoolsData)) {
+  if (!Array.isArray(editorSchoolsData)) {
     return values;
   }
-  schoolsData.forEach(function (school) {
+  editorSchoolsData.forEach(function (school) {
     if (school.difficulty || school.difficulty === 0) {
       let stars = '';
       const value = Number(school.difficulty) || 0;
@@ -2113,10 +2327,10 @@ function spellSelectHasAny(values, selected) {
 
 function spellSelectCollectOptions(field, split) {
   const values = [];
-  if (!Array.isArray(spellsData)) {
+  if (!Array.isArray(editorSpellsData)) {
     return values;
   }
-  spellsData.forEach(function (spell) {
+  editorSpellsData.forEach(function (spell) {
     const raw = spell[field];
     if (!raw) {
       return;
@@ -2141,10 +2355,10 @@ function spellSelectCollectOptions(field, split) {
 
 function spellSelectCollectLevels() {
   const values = [];
-  if (!Array.isArray(spellsData)) {
+  if (!Array.isArray(editorSpellsData)) {
     return values;
   }
-  spellsData.forEach(function (spell) {
+  editorSpellsData.forEach(function (spell) {
     if (typeof spell.requiredLevel === 'number') {
       const level = String(spell.requiredLevel);
       if (values.indexOf(level) === -1) {
@@ -2839,7 +3053,9 @@ function collectFormData() {
     name: document.getElementById('name').value,
     level: level,
     calculated: {
+      fortitudeBase: stats.fortitudeBase,
       arcana: stats.arcana,
+      passiveAttentiveness: stats.passiveAttentiveness,
       evasion: stats.evasion,
       savingThrow: stats.savingThrow,
       crafting: stats.crafting,
@@ -2904,8 +3120,86 @@ function collectFormData() {
       })()
     },
     bonuses: bonuses,
-    description: document.getElementById('description').value
+    description: {
+      background: document.getElementById('description-background') ? document.getElementById('description-background').value : '',
+      beliefs: document.getElementById('description-beliefs') ? document.getElementById('description-beliefs').value : '',
+      misc: document.getElementById('description-misc') ? document.getElementById('description-misc').value : '',
+      appearance: {
+        gender: document.getElementById('appearance-gender') ? document.getElementById('appearance-gender').value : '',
+        race: document.getElementById('appearance-race') ? document.getElementById('appearance-race').value : '',
+        height: document.getElementById('appearance-height') ? document.getElementById('appearance-height').value : '',
+        eyes: document.getElementById('appearance-eyes') ? document.getElementById('appearance-eyes').value : '',
+        hair: document.getElementById('appearance-hair') ? document.getElementById('appearance-hair').value : '',
+        skin: document.getElementById('appearance-skin') ? document.getElementById('appearance-skin').value : '',
+        notes: document.getElementById('appearance-notes') ? document.getElementById('appearance-notes').value : ''
+      },
+      relations: getRelationsFromUI()
+    }
   };
+}
+
+function getRelationsFromUI() {
+  const list = document.getElementById('relations-list');
+  if (!list) return [];
+  const items = list.querySelectorAll('.recipe-item');
+  const result = [];
+  items.forEach(function(item) {
+    const name = item.querySelector('.relation-name').value;
+    const role = item.querySelector('.relation-role').value;
+    const desc = item.querySelector('.relation-desc').value;
+    result.push({ name: name, role: role, desc: desc });
+  });
+  return result;
+}
+
+function renderRelations(relations) {
+  const list = document.getElementById('relations-list');
+  if (!list) return;
+  list.innerHTML = '';
+  if (!Array.isArray(relations)) return;
+  
+  relations.forEach(function(rel) {
+    addRelationItem(rel);
+  });
+}
+
+function addRelationItem(data) {
+  const list = document.getElementById('relations-list');
+  if (!list) return;
+  
+  const initial = data || { name: '', role: '', desc: '' };
+  const item = document.createElement('div');
+  item.className = 'recipe-item';
+  item.innerHTML = 
+    '<div class="recipe-row">' +
+      '<input type="text" class="relation-name" placeholder="Имя / Группа" value="' + (initial.name || '').replace(/"/g, '&quot;') + '">' +
+      '<input type="text" class="relation-role" placeholder="Роль / Статус" value="' + (initial.role || '').replace(/"/g, '&quot;') + '">' +
+    '</div>' +
+    '<textarea class="relation-desc" rows="2" placeholder="Описание отношений">' + (initial.desc || '') + '</textarea>' +
+    '<div class="recipe-controls">' +
+      '<button type="button" class="btn btn-secondary btn-sm" onclick="this.closest(\'.recipe-item\').remove()">Удалить</button>' +
+    '</div>';
+    
+  list.appendChild(item);
+}
+
+function initDescriptionFeatures() {
+  // Accordion
+  const accHeaders = document.querySelectorAll('.accordion-header');
+  accHeaders.forEach(function(header) {
+    header.addEventListener('click', function() {
+      const item = header.parentElement;
+      item.classList.toggle('open');
+    });
+  });
+  
+  // Relations
+  const addBtn = document.getElementById('add-relation-btn');
+  if (addBtn) {
+    addBtn.addEventListener('click', function() {
+      addRelationItem();
+    });
+  }
 }
 
 function fillForm(data) {
@@ -2976,7 +3270,39 @@ function fillForm(data) {
     renderSpellsFromData(null);
   }
 
-  document.getElementById('description').value = data.description || '';
+  // Description
+  const descData = data.description || '';
+  if (typeof descData === 'string') {
+    // Legacy support
+    if (document.getElementById('description-background')) {
+        document.getElementById('description-background').value = descData;
+    }
+    renderRelations([]);
+  } else if (typeof descData === 'object' && descData) {
+    if (document.getElementById('description-background')) document.getElementById('description-background').value = descData.background || '';
+    if (document.getElementById('description-beliefs')) document.getElementById('description-beliefs').value = descData.beliefs || '';
+    if (document.getElementById('description-misc')) document.getElementById('description-misc').value = descData.misc || '';
+    
+    if (descData.appearance) {
+      const app = descData.appearance;
+      const ids = ['gender', 'race', 'height', 'eyes', 'hair', 'skin', 'notes'];
+      ids.forEach(function(key) {
+        const el = document.getElementById('appearance-' + key);
+        if (el) el.value = app[key] || '';
+      });
+    }
+    
+    if (descData.relations && Array.isArray(descData.relations)) {
+        renderRelations(descData.relations);
+    } else {
+        renderRelations([]);
+    }
+  } else {
+    // Empty
+    if (document.getElementById('description-background')) document.getElementById('description-background').value = '';
+    renderRelations([]);
+  }
+
   initSignedStatInputs();
   updateCalculations();
 
@@ -3061,10 +3387,10 @@ function buildBonusRowHtml(bonus) {
     '>Аркана</option>' +
     '<option value="attack"' +
     (stat === 'attack' ? ' selected' : '') +
-    '>Бонус к попаданию</option>' +
+    '>Бонус к Попаданию</option>' +
     '<option value="cast"' +
     (stat === 'cast' ? ' selected' : '') +
-    '>Бонус к наложению</option>' +
+    '>Бонус к Наложению</option>' +
     '<option value="evasion"' +
     (stat === 'evasion' ? ' selected' : '') +
     '>Уклонение</option>' +
@@ -3073,7 +3399,16 @@ function buildBonusRowHtml(bonus) {
     '>Спасбросок</option>' +
     '<option value="fortitude"' +
     (stat === 'fortitude' ? ' selected' : '') +
-    '>Стойкость</option>' +
+    '>Базовая Стойкость</option>' +
+    '<option value="fortitudeLow"' +
+    (stat === 'fortitudeLow' ? ' selected' : '') +
+    '>Нижняя Стойкость</option>' +
+    '<option value="fortitudeMid"' +
+    (stat === 'fortitudeMid' ? ' selected' : '') +
+    '>Средняя Стойкость</option>' +
+    '<option value="fortitudeHigh"' +
+    (stat === 'fortitudeHigh' ? ' selected' : '') +
+    '>Верхняя Стойкость</option>' +
     '<option value="defense"' +
     (stat === 'defense' ? ' selected' : '') +
     '>Защита</option>';
@@ -3640,4 +3975,17 @@ function onAuthUserChanged(user) {
   showEditorLoader('Загружаем персонажей...');
   subscribeCharacters();
 }
+
+// Expose for dice roller
+window.getCurrentSheetCharacter = function() {
+  if (typeof collectFormData === 'function') {
+    const data = collectFormData();
+    if (data) {
+      // Add ID if available
+      data._id = currentCharacterId || 'temp-sheet';
+      return data;
+    }
+  }
+  return null;
+};
 
