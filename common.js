@@ -7,8 +7,8 @@ import {
   logout,
   addResetPasswordButton,
   isBookLocked
-} from './access.js?v=6fbab4d2';
-import { initSidebar, toggleBook } from './sidebar.js?v=0039330c';
+} from './access.js?v=435f5ee0';
+import { initSidebar, toggleBook } from './sidebar.js?v=fe717ada';
 import { smoothScrollTo, initScrollToTop } from './scroll.js?v=7df88915';
 
 // E'Magios Core - Common JavaScript Functions
@@ -91,15 +91,23 @@ function hidePageLoader() {
  */
 function calculateStatsByLevel(level) {
   const safeLevel = level >= 1 ? level : 1;
+  const fortitudeBase = safeLevel + 1; // базовая Стойкость: старт 2, +1 за уровень
+  const fortitudeLow = fortitudeBase * 4;
+  const fortitudeMid = fortitudeBase * 8;
+  const fortitudeHigh = fortitudeBase * 12;
 
   return {
+    health: 8, // фиксированное значение
+    will: 6, // фиксированное значение
     arcana: safeLevel * 2,
+    passiveAttentiveness: safeLevel * 2 + 4, // Пассивная внимательность: Аркана + Восприятие + 4
     evasion: 4 + (safeLevel * 2),
     savingThrow: 2 + (safeLevel * 2),
     crafting: 4 * safeLevel,
-    fortitudeLow: 4 + (safeLevel * 4),
-    fortitudeMid: 8 + (safeLevel * 8),
-    fortitudeHigh: 12 + (safeLevel * 12),
+    fortitudeBase: fortitudeBase,
+    fortitudeLow: fortitudeLow,
+    fortitudeMid: fortitudeMid,
+    fortitudeHigh: fortitudeHigh,
     spellSlots: 4 + ((safeLevel - 1) * 2)
   };
 }
@@ -242,12 +250,61 @@ const DICE_ROLLER_STATE = {
   history: [],
   historyLoaded: false,
   maxHistory: 50,
+  openDetails: new Set(),
   discordWebhookUrl: null,
   discordDisplayName: null,
-  discordColor: null
+  discordColor: null,
+  characters: {
+    items: [],
+    loading: false,
+    fetched: false,
+    selected: null
+  },
+  settings: {
+    sendToDiscord: true,
+    detailedMode: false,
+    rollFromCharacter: false,
+    rollFromSheetCharacter: true,
+    characterId: null
+  }
 };
 
+const DICE_SETTINGS_STORAGE_KEY = 'diceSettings';
+
+function loadDiceLocalSettings() {
+  try {
+    const raw = localStorage.getItem(DICE_SETTINGS_STORAGE_KEY);
+    if (!raw) {
+      return;
+    }
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object') {
+      DICE_ROLLER_STATE.settings.sendToDiscord =
+        typeof parsed.sendToDiscord === 'boolean' ? parsed.sendToDiscord : true;
+      DICE_ROLLER_STATE.settings.detailedMode =
+        typeof parsed.detailedMode === 'boolean' ? parsed.detailedMode : false;
+      DICE_ROLLER_STATE.settings.rollFromCharacter =
+        typeof parsed.rollFromCharacter === 'boolean' ? parsed.rollFromCharacter : false;
+      DICE_ROLLER_STATE.settings.rollFromSheetCharacter =
+        typeof parsed.rollFromSheetCharacter === 'boolean' ? parsed.rollFromSheetCharacter : true;
+      DICE_ROLLER_STATE.settings.characterId =
+        parsed.characterId && typeof parsed.characterId === 'string' ? parsed.characterId : null;
+    }
+  } catch (e) {
+    console.error('Failed to load dice settings from storage:', e);
+  }
+}
+
+function saveDiceLocalSettings() {
+  try {
+    localStorage.setItem(DICE_SETTINGS_STORAGE_KEY, JSON.stringify(DICE_ROLLER_STATE.settings));
+  } catch (e) {
+    console.error('Failed to save dice settings to storage:', e);
+  }
+}
+
 function initDiceRoller() {
+  loadDiceLocalSettings();
   // Создаём кнопку и панель
   createDiceRollerUI();
 
@@ -267,6 +324,7 @@ function initDiceRoller() {
       DICE_ROLLER_STATE.db = null;
       DICE_ROLLER_STATE.history = [];
       DICE_ROLLER_STATE.historyLoaded = true;
+      clearDiceCharacters();
       renderDiceHistory();
     }
 
@@ -279,6 +337,7 @@ function loadDiceUserSettingsAndHistory() {
     DICE_ROLLER_STATE.discordWebhookUrl = null;
     DICE_ROLLER_STATE.discordDisplayName = null;
     DICE_ROLLER_STATE.discordColor = null;
+    clearDiceCharacters();
     loadDiceHistory();
     return;
   }
@@ -309,8 +368,300 @@ function loadDiceUserSettingsAndHistory() {
       DICE_ROLLER_STATE.discordColor = null;
     })
     .finally(() => {
+      refreshDiceCharacters();
       loadDiceHistory();
     });
+}
+
+function clearDiceCharacters() {
+  DICE_ROLLER_STATE.characters = {
+    items: [],
+    loading: false,
+    fetched: false,
+    selected: null
+  };
+  updateDiceCharacterSectionState();
+}
+
+function normalizeCharacterBonuses(rawBonuses) {
+  if (!Array.isArray(rawBonuses)) {
+    return [];
+  }
+  return rawBonuses
+    .map((bonus) => {
+      const value = parseInt(bonus && bonus.value, 10);
+      if (Number.isNaN(value)) {
+        return null;
+      }
+      return {
+        name: bonus && typeof bonus.name === 'string' ? bonus.name.trim() : '',
+        stat: bonus && bonus.stat ? String(bonus.stat) : 'arcana',
+        value
+      };
+    })
+    .filter(Boolean);
+}
+
+function groupCharacterBonusesByStat(bonuses) {
+  const grouped = {
+    arcana: [],
+    attack: [],
+    cast: []
+  };
+  const normalized = normalizeCharacterBonuses(bonuses);
+  normalized.forEach((bonus) => {
+    if (grouped[bonus.stat]) {
+      grouped[bonus.stat].push(bonus);
+    }
+  });
+  return grouped;
+}
+
+function mapCharacterForDice(doc) {
+  if (!doc || !doc.data) {
+    return null;
+  }
+  const data = doc.data();
+  const baseLevel = typeof data.level === 'number' ? data.level : parseInt(data.level, 10) || 1;
+  const stats = calculateStatsByLevel(baseLevel);
+  const bonuses = Array.isArray(data.bonuses) ? data.bonuses : [];
+  const groupedBonuses = groupCharacterBonusesByStat(bonuses);
+  const sumGroup = function (list) {
+    return list.reduce((acc, bonus) => acc + (Number.isFinite(bonus.value) ? bonus.value : 0), 0);
+  };
+
+  const arcanaBonusTotal = sumGroup(groupedBonuses.arcana);
+  const attackBonusTotal = sumGroup(groupedBonuses.attack);
+  const castBonusTotal = sumGroup(groupedBonuses.cast);
+
+  const arcana = stats.arcana + arcanaBonusTotal;
+  const hit = arcana + attackBonusTotal;
+  const apply = arcana + castBonusTotal;
+
+  return {
+    id: doc.id,
+    name: data.name || 'Без имени',
+    level: baseLevel,
+    baseArcana: stats.arcana,
+    arcana,
+    hit,
+    apply,
+    bonuses: normalizeCharacterBonuses(bonuses),
+    bonusGroups: groupedBonuses,
+    bonusTotals: {
+      arcana: arcanaBonusTotal,
+      attack: attackBonusTotal,
+      cast: castBonusTotal
+    }
+  };
+}
+
+function refreshDiceCharacters() {
+  const loadingEl = document.getElementById('dice-character-loading');
+  if (!DICE_ROLLER_STATE.db || !DICE_ROLLER_STATE.user) {
+    clearDiceCharacters();
+    if (loadingEl) {
+      loadingEl.classList.add('hidden');
+    }
+    return;
+  }
+
+  DICE_ROLLER_STATE.characters.loading = true;
+  updateDiceCharacterSectionState();
+
+  DICE_ROLLER_STATE.db
+    .collection('users')
+    .doc(DICE_ROLLER_STATE.user.uid)
+    .collection('characters')
+    .orderBy('lastModified', 'desc')
+    .get()
+    .then((snapshot) => {
+      const list = [];
+      snapshot.forEach((doc) => {
+        const mapped = mapCharacterForDice(doc);
+        if (mapped) {
+          list.push(mapped);
+        }
+      });
+      DICE_ROLLER_STATE.characters.items = list;
+      DICE_ROLLER_STATE.characters.fetched = true;
+
+      const savedId = DICE_ROLLER_STATE.settings.characterId;
+      let selected = list.find((c) => c.id === savedId) || null;
+      if (!selected && list.length && DICE_ROLLER_STATE.settings.rollFromCharacter) {
+        selected = list[0];
+        DICE_ROLLER_STATE.settings.characterId = selected.id;
+        saveDiceLocalSettings();
+      }
+      DICE_ROLLER_STATE.characters.selected = selected;
+      updateDiceCharacterSectionState();
+    })
+    .catch((err) => {
+      console.error('Failed to load characters for dice:', err);
+      DICE_ROLLER_STATE.characters.items = [];
+      DICE_ROLLER_STATE.characters.selected = null;
+      updateDiceCharacterSectionState();
+    })
+    .finally(() => {
+      DICE_ROLLER_STATE.characters.loading = false;
+      DICE_ROLLER_STATE.characters.fetched = true;
+      updateDiceCharacterSectionState();
+    });
+}
+
+function getSelectedDiceCharacter() {
+  return DICE_ROLLER_STATE.characters.selected || null;
+}
+
+function setSelectedDiceCharacter(characterId) {
+  const selected =
+    DICE_ROLLER_STATE.characters.items.find((item) => item.id === characterId) || null;
+  DICE_ROLLER_STATE.characters.selected = selected;
+  DICE_ROLLER_STATE.settings.characterId = selected ? selected.id : null;
+  saveDiceLocalSettings();
+  updateDiceCharacterSectionState();
+}
+
+function renderDiceCharacterOptions(filterText) {
+  const optionsEl = document.getElementById('dice-character-options');
+  const emptyEl = document.getElementById('dice-character-empty');
+  if (!optionsEl || !emptyEl) {
+    return;
+  }
+
+  const list = DICE_ROLLER_STATE.characters.items || [];
+  const search = (filterText || '').toLowerCase();
+  const filtered = list.filter((item) => {
+    if (!search) return true;
+    return (
+      String(item.name || '').toLowerCase().indexOf(search) !== -1 ||
+      String(item.level || '').toLowerCase().indexOf(search) !== -1
+    );
+  });
+
+  optionsEl.innerHTML = '';
+  if (!filtered.length) {
+    emptyEl.classList.remove('hidden');
+    return;
+  }
+  emptyEl.classList.add('hidden');
+
+  filtered.forEach((item) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'dice-character-option';
+    btn.setAttribute('data-id', item.id);
+    btn.innerHTML = '<div class="dice-character-option-title">' + escapeHtml(item.name || 'Без имени') + '</div>';
+    btn.addEventListener('click', () => {
+      setSelectedDiceCharacter(item.id);
+      closeDiceCharacterDropdown();
+    });
+    optionsEl.appendChild(btn);
+  });
+}
+
+function updateDiceCharacterSectionState() {
+  const row = document.getElementById('dice-character-row');
+  const valueBtn = document.getElementById('dice-character-value');
+  const loadingEl = document.getElementById('dice-character-loading');
+  const searchInput = document.getElementById('dice-character-search');
+  const dropdown = document.getElementById('dice-character-dropdown');
+  const bonusArcana = document.getElementById('dice-bonus-arcana');
+  const bonusHit = document.getElementById('dice-bonus-hit');
+  const bonusApply = document.getElementById('dice-bonus-apply');
+  const bonusContainer = document.getElementById('dice-character-bonuses');
+  const selected = getSelectedDiceCharacter();
+  const enabled = !!DICE_ROLLER_STATE.settings.rollFromCharacter && !!DICE_ROLLER_STATE.user;
+
+  if (row) {
+    row.classList.toggle('disabled', !enabled);
+  }
+  if (valueBtn) {
+    valueBtn.disabled = !enabled || !!DICE_ROLLER_STATE.characters.loading;
+    valueBtn.textContent = selected
+      ? `${selected.name}`
+      : DICE_ROLLER_STATE.characters.loading
+      ? 'Загружаем...'
+      : 'Не выбран';
+  }
+  if (loadingEl) {
+    if (DICE_ROLLER_STATE.characters.loading) {
+      loadingEl.classList.remove('hidden');
+    } else {
+      loadingEl.classList.add('hidden');
+    }
+  }
+  if (searchInput) {
+    searchInput.value = '';
+    searchInput.disabled = !enabled || !DICE_ROLLER_STATE.characters.items.length;
+  }
+  if (dropdown && !enabled) {
+    dropdown.classList.add('hidden');
+  }
+
+  renderDiceCharacterOptions('');
+
+  const applyBonusValue = (el, value, active) => {
+    if (!el) return;
+    const safe = typeof value === 'number' ? value : 0;
+    el.textContent = (safe >= 0 ? '+' : '') + safe;
+    el.setAttribute('data-bonus', safe);
+    el.disabled = !active;
+    el.classList.toggle('disabled', !active);
+  };
+  const active = enabled && !!selected;
+  if (bonusContainer) {
+    bonusContainer.classList.toggle('disabled', !active);
+  }
+  applyBonusValue(bonusArcana, selected ? selected.arcana : 0, active);
+  applyBonusValue(bonusHit, selected ? selected.hit : 0, active);
+  applyBonusValue(bonusApply, selected ? selected.apply : 0, active);
+
+  updateQuickRollButtons();
+}
+
+function openDiceCharacterDropdown() {
+  const dropdown = document.getElementById('dice-character-dropdown');
+  const searchInput = document.getElementById('dice-character-search');
+  if (!dropdown || !searchInput) {
+    return;
+  }
+  dropdown.classList.remove('hidden');
+  searchInput.focus();
+  renderDiceCharacterOptions(searchInput.value || '');
+}
+
+function closeDiceCharacterDropdown() {
+  const dropdown = document.getElementById('dice-character-dropdown');
+  if (dropdown) {
+    dropdown.classList.add('hidden');
+  }
+}
+
+function formatBonusLabel(bonus) {
+  return bonus >= 0 ? `+${bonus}` : `${bonus}`;
+}
+
+function updateQuickRollButtons() {
+  const types = [
+    { type: 'arcana', label: 'Бросок на Аркану' },
+    { type: 'hit', label: 'Бросок на Попадание' },
+    { type: 'apply', label: 'Бросок на Наложение эффекта' }
+  ];
+  const selected = getSelectedDiceCharacter();
+  const canUseChar = DICE_ROLLER_STATE.settings.rollFromCharacter && !!selected;
+  types.forEach((t) => {
+    const btn = document.getElementById(`dice-quick-${t.type}`);
+    if (!btn) return;
+    let bonus = 0;
+    if (canUseChar) {
+      if (t.type === 'arcana') bonus = selected.arcana || 0;
+      if (t.type === 'hit') bonus = selected.hit || 0;
+      if (t.type === 'apply') bonus = selected.apply || 0;
+    }
+    btn.textContent = `${t.label} (${formatBonusLabel(bonus)})`;
+    btn.setAttribute('data-bonus', bonus);
+  });
 }
 
 /**
@@ -342,30 +693,84 @@ function createDiceRollerUI() {
   panel.id = 'dice-roller-panel';
   panel.className = 'dice-roller-panel hidden';
   panel.innerHTML = `
-    <div class="dice-roller-header">
+        <div class="dice-roller-header">
       <div class="dice-roller-title">Броски кубов</div>
-      <button type="button" id="dice-roller-close" aria-label="Скрыть">×</button>
+      <div class="dice-roller-header-actions">
+        <div class="dice-settings">
+          <button type="button" class="btn btn-icon btn-ghost dice-settings-button" id="dice-settings-toggle" aria-label="Настройки">⚙</button>
+          <div class="dice-settings-menu hidden" id="dice-settings-menu">
+            <label class="dice-settings-item">
+              <input type="checkbox" id="dice-setting-discord">
+              Отправлять Броски в Discord
+            </label>
+            <label class="dice-settings-item">
+              <input type="checkbox" id="dice-setting-detailed">
+              Автоматический Подробный Режим у Броска
+            </label>
+            <label class="dice-settings-item">
+              <input type="checkbox" id="dice-setting-sheet-authoritative">
+              В Листе Персонажа проводить броски от этого Персонажа
+            </label>
+            <label class="dice-settings-item">
+              <input type="checkbox" id="dice-setting-roll-character">
+              Совершать Броски от Персонажа
+            </label>
+            <div class="dice-character-row" id="dice-character-row">
+              <div class="dice-character-label">Выбранный Персонаж</div>
+              <div class="dice-character-select" id="dice-character-select">
+                <div class="dice-character-loading hidden" id="dice-character-loading">
+                  <div class="page-loader-spinner small"></div>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm dice-character-value" id="dice-character-value">Не выбран</button>
+                <div class="dice-character-dropdown hidden" id="dice-character-dropdown">
+                  <input type="text" id="dice-character-search" class="dice-character-search" placeholder="Поиск персонажа" autocomplete="off">
+                  <div class="dice-character-options" id="dice-character-options"></div>
+                  <div class="dice-character-empty hidden" id="dice-character-empty">Нет персонажей. Откройте Редактор персонажей.</div>
+                </div>
+              </div>
+              <div class="dice-character-bonuses" id="dice-character-bonuses">
+                <div class="dice-character-bonus">
+                  <span><a class="dice-character-link" href="db.html">Аркана</a></span>
+                  <button type="button" class="btn btn-secondary btn-sm dice-character-bonus-value" id="dice-bonus-arcana" data-roll-type="arcana" data-bonus="0">+0</button>
+                </div>
+                <div class="dice-character-bonus">
+                  <span><a class="dice-character-link" href="db.html">Бонус на Попадание</a></span>
+                  <button type="button" class="btn btn-secondary btn-sm dice-character-bonus-value" id="dice-bonus-hit" data-roll-type="hit" data-bonus="0">+0</button>
+                </div>
+                <div class="dice-character-bonus">
+                  <span><a class="dice-character-link" href="db.html">Бонус на Наложение</a></span>
+                  <button type="button" class="btn btn-secondary btn-sm dice-character-bonus-value" id="dice-bonus-apply" data-roll-type="apply" data-bonus="0">+0</button>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm btn-block dice-settings-clear" id="dice-settings-clear">Очистить историю</button>
+          </div>
+        </div>
+        <button type="button" class="btn btn-icon btn-ghost" id="dice-roller-close" aria-label="Скрыть">×</button>
+      </div>
     </div>
     <div class="dice-roller-body" id="dice-roller-messages">
       <p class="dice-roller-empty">История бросков появится здесь.</p>
     </div>
     <div class="dice-roller-footer">
       <div class="dice-quick-buttons" id="dice-quick-buttons">
-        <button type="button" class="dice-quick-button" data-dice="2">D2</button>
-        <button type="button" class="dice-quick-button" data-dice="4">D4</button>
-        <button type="button" class="dice-quick-button" data-dice="6">D6</button>
-        <button type="button" class="dice-quick-button" data-dice="8">D8</button>
-        <button type="button" class="dice-quick-button" data-dice="10">D10</button>
-        <button type="button" class="dice-quick-button" data-dice="12">D12</button>
-        <button type="button" class="dice-quick-button" data-dice="20">D20</button>
-        <button type="button" class="dice-quick-button" data-dice="100">D100</button>
+        <button type="button" class="btn btn-secondary btn-sm btn-pill dice-quick-button" data-dice="2">D2</button>
+        <button type="button" class="btn btn-secondary btn-sm btn-pill dice-quick-button" data-dice="4">D4</button>
+        <button type="button" class="btn btn-secondary btn-sm btn-pill dice-quick-button" data-dice="6">D6</button>
+        <button type="button" class="btn btn-secondary btn-sm btn-pill dice-quick-button" data-dice="8">D8</button>
+        <button type="button" class="btn btn-secondary btn-sm btn-pill dice-quick-button" data-dice="10">D10</button>
+        <button type="button" class="btn btn-secondary btn-sm btn-pill dice-quick-button" data-dice="12">D12</button>
+        <button type="button" class="btn btn-secondary btn-sm btn-pill dice-quick-button" data-dice="20">D20</button>
+        <button type="button" class="btn btn-secondary btn-sm btn-pill dice-quick-button" data-dice="100">D100</button>
+        <button type="button" class="btn btn-secondary btn-sm btn-pill dice-quick-roll-button" id="dice-quick-arcana" data-roll-type="arcana" data-bonus="0">Бросок на Аркану (+0)</button>
+        <button type="button" class="btn btn-secondary btn-sm btn-pill dice-quick-roll-button" id="dice-quick-hit" data-roll-type="hit" data-bonus="0">Бросок на Попадание (+0)</button>
+        <button type="button" class="btn btn-secondary btn-sm btn-pill dice-quick-roll-button" id="dice-quick-apply" data-roll-type="apply" data-bonus="0">Бросок на Наложение эффекта (+0)</button>
       </div>
       <div class="dice-input-row">
         <input type="text" id="dice-command-input" placeholder="/roll 2d4+3d6+2" autocomplete="off">
         <button type="button" class="btn btn-primary btn-sm" id="dice-roll-submit">Бросить</button>
       </div>
       <div class="dice-auth-hint" id="dice-auth-hint"></div>
-      <button type="button" class="dice-clear-history-button" id="dice-clear-history">Очистить историю</button>
     </div>
   `;
 
@@ -395,7 +800,15 @@ function createDiceRollerUI() {
 
   const input = document.getElementById('dice-command-input');
   const submitBtn = document.getElementById('dice-roll-submit');
-  const clearBtn = document.getElementById('dice-clear-history');
+  const settingsToggle = document.getElementById('dice-settings-toggle');
+  const settingsMenu = document.getElementById('dice-settings-menu');
+  const discordToggle = document.getElementById('dice-setting-discord');
+  const detailedToggle = document.getElementById('dice-setting-detailed');
+  const sheetAuthToggle = document.getElementById('dice-setting-sheet-authoritative');
+  const rollFromCharToggle = document.getElementById('dice-setting-roll-character');
+  const characterValueBtn = document.getElementById('dice-character-value');
+  const characterSearch = document.getElementById('dice-character-search');
+  const clearBtn = document.getElementById('dice-settings-clear');
 
   if (input) {
     input.addEventListener('keypress', (e) => {
@@ -418,9 +831,154 @@ function createDiceRollerUI() {
     });
   }
 
+  if (settingsToggle && settingsMenu) {
+    settingsToggle.addEventListener('click', () => {
+      settingsMenu.classList.toggle('hidden');
+    });
+    document.addEventListener('click', (event) => {
+      if (!settingsMenu || !settingsToggle) return;
+      if (
+        event.target === settingsToggle ||
+        settingsToggle.contains(event.target) ||
+        settingsMenu.contains(event.target)
+      ) {
+        return;
+      }
+      settingsMenu.classList.add('hidden');
+    });
+  }
+
+  if (discordToggle) {
+    discordToggle.checked = !!DICE_ROLLER_STATE.settings.sendToDiscord;
+    discordToggle.addEventListener('change', () => {
+      DICE_ROLLER_STATE.settings.sendToDiscord = !!discordToggle.checked;
+      saveDiceLocalSettings();
+    });
+  }
+
+  if (detailedToggle) {
+    detailedToggle.checked = !!DICE_ROLLER_STATE.settings.detailedMode;
+    detailedToggle.addEventListener('change', () => {
+      DICE_ROLLER_STATE.settings.detailedMode = !!detailedToggle.checked;
+      saveDiceLocalSettings();
+    });
+  }
+
+  if (sheetAuthToggle) {
+    sheetAuthToggle.checked = !!DICE_ROLLER_STATE.settings.rollFromSheetCharacter;
+    sheetAuthToggle.addEventListener('change', () => {
+      DICE_ROLLER_STATE.settings.rollFromSheetCharacter = !!sheetAuthToggle.checked;
+      saveDiceLocalSettings();
+    });
+  }
+
+  if (rollFromCharToggle) {
+    rollFromCharToggle.checked = !!DICE_ROLLER_STATE.settings.rollFromCharacter;
+    rollFromCharToggle.addEventListener('change', () => {
+      DICE_ROLLER_STATE.settings.rollFromCharacter = !!rollFromCharToggle.checked;
+      saveDiceLocalSettings();
+      if (DICE_ROLLER_STATE.settings.rollFromCharacter && !DICE_ROLLER_STATE.characters.fetched) {
+        refreshDiceCharacters();
+      }
+      updateDiceCharacterSectionState();
+    });
+  }
+
+  if (characterValueBtn) {
+    characterValueBtn.addEventListener('click', () => {
+      if (characterValueBtn.disabled) return;
+      const dropdown = document.getElementById('dice-character-dropdown');
+      if (dropdown && dropdown.classList.contains('hidden')) {
+        openDiceCharacterDropdown();
+      } else {
+        closeDiceCharacterDropdown();
+      }
+    });
+  }
+
+  if (characterSearch) {
+    characterSearch.addEventListener('input', (e) => {
+      renderDiceCharacterOptions(e.target.value || '');
+    });
+    characterSearch.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeDiceCharacterDropdown();
+      }
+    });
+  }
+
+  document.addEventListener('click', (event) => {
+    const isInside = event.target.closest('.dice-character-select');
+    if (!isInside) {
+      closeDiceCharacterDropdown();
+    }
+  });
+
+  const labelMap = {
+    arcana: (bonus) => `Бросок на Аркану (${formatBonusLabel(bonus)})`,
+    hit: (bonus) => `Бросок на Попадание (${formatBonusLabel(bonus)})`,
+    apply: (bonus) => `Бросок на Наложение эффекта (${formatBonusLabel(bonus)})`
+  };
+
+  const getCharacterBonus = (type) => {
+    const selected = getSelectedDiceCharacter();
+    if (!selected) return 0;
+    if (type === 'arcana') return selected.arcana || 0;
+    if (type === 'hit') return selected.hit || 0;
+    if (type === 'apply') return selected.apply || 0;
+    return 0;
+  };
+
+  const bonusButtons = document.querySelectorAll('.dice-character-bonus-value');
+  bonusButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('disabled')) return;
+      const type = btn.getAttribute('data-roll-type');
+      // Используем бонус выбранного персонажа только для подписи; формула — базовая,
+      // автодоливка + детализация придут из персонажа.
+      const bonus = getCharacterBonus(type);
+      const expr = '1d12';
+      const context = {
+        label: (labelMap[type] && labelMap[type](bonus)) || `Бросок (${formatBonusLabel(bonus)})`,
+        source: 'settings-bonus',
+        rollType: type || null,
+        baseExpression: expr
+      };
+      handleDiceRollCommand(expr, context);
+    });
+  });
+
+  // Быстрые кнопки "Бросок на ..." рядом с кубами
+  const quickRollButtons = panel.querySelectorAll('.dice-quick-roll-button');
+  const quickLabelMap = {
+    arcana: (bonus) => `Бросок на Аркану (${formatBonusLabel(bonus)})`,
+    hit: (bonus) => `Бросок на Попадание (${formatBonusLabel(bonus)})`,
+    apply: (bonus) => `Бросок на Наложение эффекта (${formatBonusLabel(bonus)})`
+  };
+  quickRollButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const type = btn.getAttribute('data-roll-type');
+      const bonus = parseInt(btn.getAttribute('data-bonus'), 10) || 0;
+      const expr = '1d12';
+      const label =
+        (quickLabelMap[type] && quickLabelMap[type](bonus)) || `Бросок (${formatBonusLabel(bonus)})`;
+      const context = {
+        label,
+        rollType: type || null,
+        baseExpression: expr
+      };
+      handleDiceRollCommand(expr, context);
+    });
+  });
+
+  updateDiceCharacterSectionState();
+
   if (clearBtn) {
     clearBtn.addEventListener('click', () => {
       clearDiceHistory();
+      if (settingsMenu) {
+        settingsMenu.classList.add('hidden');
+      }
     });
   }
 }
@@ -475,6 +1033,48 @@ function buildSpellLinkHtml(spellName) {
   return `<a href="${href}" class="dice-spell-link" data-spell-name="${safeName}">${safeName}</a>`;
 }
 
+function buildRollLabelLink(rollType) {
+  if (!rollType) return '';
+  const map = {
+    arcana: 'db.html?combat=аркана',
+    hit: 'db.html?combat=бонус-к-попаданию',
+    apply: 'db.html?combat=бонус-к-наложению'
+  };
+  return map[rollType] || '';
+}
+
+function buildCharacterLinkHtml(characterId, characterName) {
+  const safeName = escapeHtml(characterName || 'Нет');
+  if (characterId) {
+    const href = 'character-editor.html?characterId=' + encodeURIComponent(String(characterId));
+    return `<a href="${href}" class="dice-character-link">${safeName}</a>`;
+  }
+  return safeName;
+}
+
+function formatRollLabel(label, rollType) {
+  if (!label) return '';
+  const href = buildRollLabelLink(rollType);
+  if (!href) {
+    return escapeHtml(label);
+  }
+  let working = label;
+  let prefix = '';
+
+  // Отделяем бонус в скобках, чтобы не включать его в ссылку
+  let baseLabel = working;
+  let bonusSuffix = '';
+  const bonusMatch = working.match(/^(.*?)(\s*\([^)]+\))\s*$/);
+  if (bonusMatch) {
+    baseLabel = bonusMatch[1] || working;
+    bonusSuffix = bonusMatch[2] || '';
+  }
+
+  return `${escapeHtml(prefix)}<a href="${escapeHtml(href)}" class="dice-message-link">${escapeHtml(
+    baseLabel
+  )}</a>${bonusSuffix ? ' ' + escapeHtml(bonusSuffix.trim()) : ''}`;
+}
+
 function updateDiceAuthState(user) {
   const hintEl = document.getElementById('dice-auth-hint');
   const quickButtons = document.querySelectorAll('.dice-quick-button');
@@ -510,6 +1110,8 @@ function updateDiceAuthState(user) {
       hintEl.textContent = '';
     }
   }
+
+  updateDiceCharacterSectionState();
 }
 
 function parseRollExpression(raw) {
@@ -672,6 +1274,177 @@ function rollDiceExpression(parsed) {
   };
 }
 
+function getRollTypeFromContext(context) {
+  if (!context) {
+    return null;
+  }
+  if (context.rollType) {
+    return String(context.rollType);
+  }
+  if (!context.source) {
+    return null;
+  }
+  const source = String(context.source);
+  if (source.indexOf('arcana') !== -1) return 'arcana';
+  if (source.indexOf('hit') !== -1) return 'hit';
+  if (source.indexOf('apply') !== -1) return 'apply';
+  return null;
+}
+
+function buildRollBonusBreakdown(character, rollType) {
+  if (!character || !rollType) {
+    return null;
+  }
+
+  const bonusLabels = {
+    arcana: 'Бонус от Арканы',
+    attack: 'Бонус на Попадание',
+    cast: 'Бонус на Наложение эффекта'
+  };
+
+  const groups = character.bonusGroups || groupCharacterBonusesByStat(character.bonuses || []);
+  const arcanaBonusTotal =
+    (character.bonusTotals && character.bonusTotals.arcana) || groups.arcana.reduce((acc, bonus) => acc + bonus.value, 0);
+
+  let baseArcana = typeof character.baseArcana === 'number' ? character.baseArcana : null;
+  if (baseArcana === null || Number.isNaN(baseArcana)) {
+    const fallbackArcana = typeof character.arcana === 'number' ? character.arcana : 0;
+    baseArcana = fallbackArcana - arcanaBonusTotal;
+  }
+
+  const items = [];
+  if (Number.isFinite(baseArcana)) {
+    items.push({
+      label: 'Бонус от Арканы',
+      value: baseArcana,
+      stat: 'arcana',
+      kind: 'base'
+    });
+  }
+
+  const pushBonuses = function (list, statKey) {
+    list.forEach((bonus) => {
+      const label =
+        bonus && bonus.name ? 'Бонус от "' + bonus.name + '"' : bonusLabels[statKey] || 'Бонус';
+      items.push({
+        label,
+        value: bonus.value,
+        stat: statKey,
+        kind: 'bonus'
+      });
+    });
+  };
+
+  pushBonuses(groups.arcana || [], 'arcana');
+  if (rollType === 'hit') {
+    pushBonuses(groups.attack || [], 'attack');
+  } else if (rollType === 'apply') {
+    pushBonuses(groups.cast || [], 'cast');
+  }
+
+  const targetTotals = {
+    arcana: typeof character.arcana === 'number' ? character.arcana : 0,
+    hit: typeof character.hit === 'number' ? character.hit : 0,
+    apply: typeof character.apply === 'number' ? character.apply : 0
+  };
+  const targetTotal = targetTotals[rollType] || 0;
+
+  const breakdownSum = items.reduce((acc, bonus) => acc + (Number.isFinite(bonus.value) ? bonus.value : 0), 0);
+  if (Math.round(breakdownSum) !== Math.round(targetTotal)) {
+    const remainder = targetTotal - breakdownSum;
+    if (remainder !== 0) {
+      items.push({
+        label: 'Доп. модификатор',
+        value: remainder,
+        stat: rollType,
+        kind: 'adjustment'
+      });
+    }
+  }
+
+  return {
+    total: targetTotal,
+    items
+  };
+}
+
+function addBonusToExpression(rawCommand, bonus) {
+  if (!bonus) {
+    return rawCommand;
+  }
+  const trimmed = rawCommand.trim();
+  const hasCommand = trimmed.toLowerCase().startsWith('/roll');
+  const prefix = hasCommand ? '/roll ' : '';
+  const body = hasCommand ? trimmed.slice(5).trim() : trimmed;
+  const suffix = bonus > 0 ? `+${bonus}` : `${bonus}`;
+  if (!body) {
+    return `${prefix}1d12${suffix}`;
+  }
+  return `${prefix}${body}${suffix}`;
+}
+
+function applyCharacterBonusIfNeeded(rawCommand, context) {
+  const rollType = getRollTypeFromContext(context);
+
+  // Определяем, какого персонажа использовать (с листа или глобального)
+  const sheetCharacter = context && context.sheetCharacter ? context.sheetCharacter : null;
+  const useSheetCharacter = sheetCharacter && DICE_ROLLER_STATE.settings.rollFromSheetCharacter;
+  const globalSelected = DICE_ROLLER_STATE.settings.rollFromCharacter && DICE_ROLLER_STATE.user && DICE_ROLLER_STATE.characters.selected
+    ? DICE_ROLLER_STATE.characters.selected
+    : null;
+  
+  const selected = useSheetCharacter ? sheetCharacter : globalSelected;
+
+  // Если бонус уже включён в формулу, но нужно показать разбивку — возвращаем формулу как есть,
+  // но прикладываем breakdown по выбранному персонажу.
+  if (context && context.noAutoCharacterBonus) {
+    if (
+      context.allowCharacterBreakdown &&
+      rollType &&
+      selected
+    ) {
+      const breakdown = buildRollBonusBreakdown(selected, rollType);
+      return {
+        command: rawCommand,
+        bonus: breakdown
+      };
+    }
+    return {
+      command: rawCommand,
+      bonus: null
+    };
+  }
+
+  if (!rollType) {
+    return {
+      command: rawCommand,
+      bonus: null
+    };
+  }
+
+  // Нет права тянуть бонусы персонажа — возвращаем исходный бросок без автодоливки
+  if (!selected) {
+    return {
+      command: rawCommand,
+      bonus: null
+    };
+  }
+
+  const breakdown = buildRollBonusBreakdown(selected, rollType);
+  const bonusTotal =
+    breakdown && typeof breakdown.total === 'number'
+      ? breakdown.total
+      : rollType === 'arcana'
+      ? selected.arcana || 0
+      : rollType === 'hit'
+      ? selected.hit || 0
+      : selected.apply || 0;
+  return {
+    command: addBonusToExpression(rawCommand, bonusTotal),
+    bonus: breakdown
+  };
+}
+
 function handleDiceRollCommand(rawCommand, context) {
   if (!DICE_ROLLER_STATE.user) {
     updateDiceAuthState(null);
@@ -681,23 +1454,139 @@ function handleDiceRollCommand(rawCommand, context) {
   const input = document.getElementById('dice-command-input');
 
   try {
-    const parsed = parseRollExpression(rawCommand);
+    const extractSpellBonus = (expr) => {
+      if (!expr) return 0;
+      try {
+        const parsed = parseRollExpression(expr);
+        if (!parsed || !Array.isArray(parsed.segments)) return 0;
+        return parsed.segments
+          .filter((seg) => seg && seg.kind === 'number')
+          .reduce((acc, seg) => acc + seg.sign * seg.value, 0);
+      } catch (e) {
+        return 0;
+      }
+    };
+
+    const normalizeRawBody = (command) => {
+      const trimmed = (command || '').trim();
+      const lower = trimmed.toLowerCase();
+      if (lower.startsWith('/roll')) {
+        return trimmed.slice(5).trim();
+      }
+      return trimmed;
+    };
+
+    const rawBody = normalizeRawBody(rawCommand);
+    const spellBonusRaw = extractSpellBonus(rawBody);
+
+    // Детектим персонажа с листа, если он не передан
+    let effectiveContext = context;
+    if ((!context || !context.sheetCharacter) && DICE_ROLLER_STATE.settings.rollFromSheetCharacter) {
+        const editorPage = document.getElementById('character-editor-page');
+        if (editorPage && !editorPage.classList.contains('hidden')) {
+            const nameInput = document.getElementById('name');
+            const arcanaEl = document.getElementById('stat-arcana');
+            const hitEl = document.getElementById('stat-attack-bonus');
+            const applyEl = document.getElementById('stat-cast-bonus');
+            
+            if (nameInput) {
+               const parseBonus = (el) => {
+                  if (!el) return 0;
+                  return parseInt(el.textContent.replace('+', ''), 10) || 0;
+               };
+               
+               effectiveContext = context ? { ...context } : {};
+               effectiveContext.sheetCharacter = {
+                  id: 'sheet-detected', 
+                  name: nameInput.value || 'Персонаж с листа',
+                  arcana: parseBonus(arcanaEl),
+                  hit: parseBonus(hitEl),
+                  apply: parseBonus(applyEl),
+                  baseArcana: parseBonus(arcanaEl)
+               };
+            }
+        }
+    }
+
+    const commandData = applyCharacterBonusIfNeeded(rawCommand, effectiveContext);
+    const commandWithBonus = commandData.command;
+    const parsed = parseRollExpression(commandWithBonus);
+    const diceOnlyExpression = (() => {
+      if (!parsed || !Array.isArray(parsed.segments) || !parsed.segments.length) return null;
+      let result = '';
+      parsed.segments
+        .filter((seg) => seg && seg.kind === 'dice')
+        .forEach((seg, index) => {
+          const sign = seg.sign < 0 ? '-' : index === 0 ? '' : '+';
+          const count = seg.count || 1;
+          result += `${sign}${count}d${seg.sides}`;
+        });
+      return result || null;
+    })();
+    const displayExpression =
+      (effectiveContext && effectiveContext.baseExpression) ||
+      diceOnlyExpression ||
+      (rawCommand && rawCommand.trim()) ||
+      commandWithBonus;
     const result = rollDiceExpression(parsed);
 
     // Заполняем контекст броска
-    if (context && typeof context === 'object') {
-      if (context.label) {
-        result.contextLabel = String(context.label);
+    const rollType = getRollTypeFromContext(effectiveContext);
+    const sheetCharacter = effectiveContext && effectiveContext.sheetCharacter ? effectiveContext.sheetCharacter : null;
+    const useSheetCharacter = sheetCharacter && DICE_ROLLER_STATE.settings.rollFromSheetCharacter;
+
+    const freeLabelMap = {
+      arcana: 'Бросок на Аркану',
+      hit: 'Бросок на Попадание',
+      apply: 'Бросок на Наложение эффекта'
+    };
+    if (effectiveContext && typeof effectiveContext === 'object') {
+      if (effectiveContext.label) {
+        result.contextLabel = String(effectiveContext.label);
+      } else if (rollType && freeLabelMap[rollType]) {
+        result.contextLabel = freeLabelMap[rollType];
       }
-      if (context.spell) {
-        result.contextSpell = String(context.spell);
+      if (effectiveContext.spell) {
+        result.contextSpell = String(effectiveContext.spell);
       }
-      if (context.source) {
-        result.contextSource = String(context.source);
+      if (effectiveContext.source) {
+        result.contextSource = String(effectiveContext.source);
       }
     } else {
-      // Свободный бросок без контекста
-      result.contextLabel = 'Свободный Бросок';
+      // Бросок без контекста
+      result.contextLabel = rollType && freeLabelMap[rollType] ? freeLabelMap[rollType] : 'Бросок';
+    }
+    // Если метка так и не определена (например, контекст без label и без rollType)
+    if (!result.contextLabel) {
+      result.contextLabel = rollType && freeLabelMap[rollType] ? freeLabelMap[rollType] : 'Бросок';
+    }
+
+    // Сохраняем выражение для отображения без автодобавленного бонуса (если есть)
+    result.displayExpression = displayExpression;
+    result.contextRollType = rollType || null;
+    if (commandData.bonus) {
+      result.contextBonuses = commandData.bonus;
+      result.contextBonusTotal = commandData.bonus.total;
+    }
+    result.contextSpellBonus = spellBonusRaw;
+
+    const hasRollType = !!rollType;
+    const allowCharacterFlag = effectiveContext && effectiveContext.allowCharacter === true;
+    const shouldAttachCharacter =
+      !!useSheetCharacter ||
+      hasRollType ||
+      (DICE_ROLLER_STATE.settings.rollFromCharacter && (hasRollType || allowCharacterFlag));
+    const useSelectedCharacter = shouldAttachCharacter && DICE_ROLLER_STATE.settings.rollFromCharacter;
+    
+    // Если useSheetCharacter = true, мы должны использовать именно его, даже если он не selected в меню.
+    const selectedChar = useSheetCharacter ? sheetCharacter : (useSelectedCharacter ? getSelectedDiceCharacter() : null);
+    
+    if (selectedChar) {
+      result.contextCharacterId = selectedChar.id || null;
+      result.contextCharacterName = selectedChar.name || 'Персонаж';
+    } else if (shouldAttachCharacter) {
+      // Режим "от персонажа" включён, но персонаж не выбран
+      result.contextCharacterName = 'Нет';
     }
 
     addDiceResultToHistory(result, true);
@@ -734,12 +1623,19 @@ function addDiceResultToHistory(entry, shouldPersist) {
     try {
       const payload = {
         expression: entry.expression,
+        displayExpression: entry.displayExpression || null,
         total: entry.total,
         parts: entry.parts,
         createdAt: entry.createdAt,
         contextLabel: entry.contextLabel || null,
         contextSpell: entry.contextSpell || null,
-        contextSource: entry.contextSource || null
+        contextSource: entry.contextSource || null,
+        contextRollType: entry.contextRollType || null,
+        contextBonuses: entry.contextBonuses || null,
+        contextBonusTotal:
+          typeof entry.contextBonusTotal === 'number' ? entry.contextBonusTotal : null,
+        contextCharacterId: entry.contextCharacterId || null,
+        contextCharacterName: entry.contextCharacterName || null
       };
       DICE_ROLLER_STATE.db
         .collection('users')
@@ -754,7 +1650,7 @@ function addDiceResultToHistory(entry, shouldPersist) {
     }
   }
 
-  if (shouldPersist && !entry.system) {
+  if (shouldPersist && !entry.system && DICE_ROLLER_STATE.settings.sendToDiscord) {
     try {
       sendDiceResultToDiscord(entry);
     } catch (err) {
@@ -780,7 +1676,7 @@ function sendDiceResultToDiscord(entry) {
       ? DICE_ROLLER_STATE.discordDisplayName.trim()
       : usernameFallback;
 
-  const expression = entry.expression || '';
+  const expression = entry.displayExpression || entry.expression || '';
   const totalLabel =
     typeof entry.total === 'number' ? String(entry.total) : entry.total === null ? '—' : String(entry.total);
 
@@ -837,6 +1733,128 @@ function sendDiceResultToDiscord(entry) {
 
   // Детализация броска — одна строка или несколько, если частей несколько
   const detailLines = [];
+  const contextBonuses =
+    entry && entry.contextBonuses
+      ? Array.isArray(entry.contextBonuses.items)
+        ? entry.contextBonuses.items
+        : Array.isArray(entry.contextBonuses)
+        ? entry.contextBonuses
+        : []
+      : [];
+  const hasContextBonusBreakdown = contextBonuses.length > 0;
+  const normalizedExpression =
+    entry && entry.expression ? String(entry.expression).replace(/\s+/g, '') : null;
+  const normalizedDisplayExpression =
+    entry && entry.displayExpression ? String(entry.displayExpression).replace(/\s+/g, '') : null;
+  const contextBonusTotal =
+    entry && typeof entry.contextBonusTotal === 'number' ? entry.contextBonusTotal : null;
+  const hasHiddenAutoBonus =
+    hasContextBonusBreakdown &&
+    normalizedExpression &&
+    normalizedDisplayExpression &&
+    normalizedExpression !== normalizedDisplayExpression;
+  // Бонус от заклинания считаем только из исходной формулы (до автодоливки персонажа),
+  // чтобы не цеплять бонус персонажа как бонус заклинания.
+  let spellBonusValue = typeof entry.contextSpellBonus === 'number' ? entry.contextSpellBonus : 0;
+  let hasSpellBonus = spellBonusValue !== 0;
+
+  const buildSumParts = function (parts, totalValue) {
+    if (!Array.isArray(parts) || !parts.length || !Number.isFinite(totalValue)) {
+      return null;
+    }
+
+    const toNumber = (part) => {
+      if (!part) return null;
+      if (part.kind === 'dice') {
+        if (Number.isFinite(part.segmentTotal)) return part.sign * part.segmentTotal;
+        if (Number.isFinite(part.baseSum)) return part.sign * part.baseSum;
+        if (Array.isArray(part.rolls)) {
+          const sum = part.rolls.reduce((acc, v) => acc + (Number(v) || 0), 0);
+          return part.sign * sum;
+        }
+        return null;
+      }
+      if (part.kind === 'number') {
+        return part.sign * part.value;
+      }
+      if (part.type === 'dice') {
+        if (Number.isFinite(part.sum)) return part.sum;
+        if (Number.isFinite(part.baseSum)) return part.baseSum;
+        if (Array.isArray(part.rolls)) {
+          return part.rolls.reduce((acc, v) => acc + (Number(v) || 0), 0);
+        }
+        return null;
+      }
+      if (part.type === 'modifier') {
+        return part.value;
+      }
+      return null;
+    };
+
+    const partsLabels = [];
+    let componentCount = 0;
+
+    parts.forEach((part) => {
+      const val = toNumber(part);
+      // Если есть детальная разбивка бонусов персонажа — не добавляем суммарный числовой бонус,
+      // его заменим подробными значениями ниже.
+      if (hasContextBonusBreakdown && part && part.kind === 'number') {
+        const signedValue = Number.isFinite(part.sign) ? part.sign * part.value : part.value;
+        // Прячем только автодоливку персонажа (когда формула отличается от отображаемой)
+        // и значение совпадает с суммой бонусов персонажа.
+        if (
+          Number.isFinite(contextBonusTotal) &&
+          Math.round(signedValue) === Math.round(contextBonusTotal)
+        ) {
+          return;
+        }
+      }
+      if (!Number.isFinite(val) || val === 0) return;
+      const abs = Math.abs(val);
+      const isFirst = partsLabels.length === 0;
+      const label =
+        val >= 0
+          ? isFirst
+            ? String(abs)
+            : `+ ${abs}`
+          : isFirst
+          ? `-${abs}`
+          : `- ${abs}`;
+      partsLabels.push(label);
+      componentCount += 1;
+    });
+
+    // Добавляем разобранные бонусы (если они есть) вместо суммарного числа
+    if (hasContextBonusBreakdown) {
+      contextBonuses.forEach((bonus) => {
+        const rawValue =
+          bonus && typeof bonus.value === 'number' ? bonus.value : parseInt(bonus && bonus.value, 10);
+        if (!Number.isFinite(rawValue) || rawValue === 0) return;
+        const abs = Math.abs(rawValue);
+        const isFirst = partsLabels.length === 0;
+        const label =
+          rawValue >= 0
+            ? isFirst
+              ? String(abs)
+              : `+ ${abs}`
+            : isFirst
+            ? `-${abs}`
+            : `- ${abs}`;
+        partsLabels.push(label);
+        componentCount += 1;
+      });
+    }
+
+    if (!partsLabels.length) {
+      return null;
+    }
+
+    return {
+      label: `[${partsLabels.join(' ')}] = [${totalValue}]`,
+      count: componentCount
+    };
+  };
+
   if (entry.parts && Array.isArray(entry.parts) && entry.parts.length) {
     entry.parts.forEach((part) => {
       if (part.kind === 'dice') {
@@ -857,7 +1875,18 @@ function sendDiceResultToDiscord(entry) {
         detailLines.push(line);
       } else if (part.kind === 'number') {
         const signLabel = part.sign < 0 ? '-' : '+';
-        detailLines.push(`${signLabel} ${Math.abs(part.value)}`);
+        // Если есть детальная разбивка бонусов персонажа, не дублируем агрегированный бонус.
+        if (hasContextBonusBreakdown) {
+          const signedValue = Number.isFinite(part.sign) ? part.sign * part.value : part.value;
+          if (
+            !(hasHiddenAutoBonus && Number.isFinite(contextBonusTotal) && Math.round(signedValue) === Math.round(contextBonusTotal))
+          ) {
+            detailLines.push(`${signLabel} ${Math.abs(part.value)}`);
+          }
+        } else {
+          // Нет детальной разбивки — выводим числовую часть как есть
+          detailLines.push(`${signLabel} ${Math.abs(part.value)}`);
+        }
       } else if (part.type === 'dice') {
         const rollsLegacy = Array.isArray(part.rolls) ? part.rolls.join(' + ') : '';
         detailLines.push(`${part.count}d${part.sides}: ${rollsLegacy} = ${part.sum}`);
@@ -865,6 +1894,21 @@ function sendDiceResultToDiscord(entry) {
         const signLegacy = part.value >= 0 ? '+' : '-';
         detailLines.push(`Бонус: ${signLegacy}${Math.abs(part.value)}`);
       }
+    });
+  }
+
+  if (hasSpellBonus && spellBonusValue !== 0 && entry && entry.contextSpell) {
+    detailLines.push(`**Бонус от Заклинания** (${formatBonusLabel(spellBonusValue)}): [${spellBonusValue}]`);
+  }
+
+  if (contextBonuses.length) {
+    contextBonuses.forEach((bonus) => {
+      const rawValue = bonus && typeof bonus.value === 'number' ? bonus.value : parseInt(bonus && bonus.value, 10);
+      if (!Number.isFinite(rawValue) || rawValue === 0) {
+        return;
+      }
+      const label = bonus && bonus.label ? String(bonus.label) : 'Бонус';
+      detailLines.push(`**${label}**: [${rawValue}]`);
     });
   }
 
@@ -881,19 +1925,43 @@ function sendDiceResultToDiscord(entry) {
     }
   }
 
-  // Формируем описание в формате:
-  // Формула: [8d12]
-  // Броски:
-  // + 8d12: [1, 2, 3, 7] = [12]
-  // Итого: [63] — КРИТИЧЕСКИЙ УСПЕХ
   const blocks = [];
+  const isSimpleRoll =
+    !entry.contextSpell &&
+    !entry.contextSource &&
+    !entry.contextCharacterName &&
+    !entry.contextRollType &&
+    (!entry.contextLabel || entry.contextLabel === 'Бросок');
+
   blocks.push(expression ? `**Формула:** [${expression}]` : '**Формула:** —');
-  blocks.push('**Броски:**');
+  blocks.push('');
+
+  if (!isSimpleRoll) {
+    const characterLabel =
+      entry && entry.contextCharacterName ? String(entry.contextCharacterName) : 'Нет';
+    blocks.push(`**Персонаж:** ${characterLabel}`);
+    if (spellUrl && entry.contextSpell) {
+      if (entry.contextLabel) {
+        blocks.push(`**Источник:** ${entry.contextLabel} — [${entry.contextSpell}](${spellUrl})`);
+      } else {
+        blocks.push(`**Источник:** [${entry.contextSpell}](${spellUrl})`);
+      }
+    } else {
+      blocks.push('**Источник:** Нет');
+    }
+    blocks.push('');
+  }
+
   if (detailLines.length) {
     const detailsText = detailLines.join('\n');
     blocks.push(detailsText.length > 1000 ? detailsText.slice(0, 1000) + '\n…' : detailsText);
   } else {
     blocks.push('—');
+  }
+  blocks.push('');
+  const sumInfo = buildSumParts(entry.parts, entry.total);
+  if (sumInfo && sumInfo.count > 1) {
+    blocks.push(`**Итого (сумма):** ${sumInfo.label}`);
   }
   if (typeof entry.total === 'number') {
     if (isCrit) {
@@ -903,16 +1971,6 @@ function sendDiceResultToDiscord(entry) {
     }
   } else {
     blocks.push('**Итого:** —');
-  }
-
-  // Блок источника с аккуратной ссылкой только на название заклинания
-  if (spellUrl && entry.contextSpell) {
-    blocks.push('');
-    if (entry.contextLabel) {
-      blocks.push(`Источник: ${entry.contextLabel} — [${entry.contextSpell}](${spellUrl})`);
-    } else {
-      blocks.push(`Источник: [${entry.contextSpell}](${spellUrl})`);
-    }
   }
 
   const description = blocks.join('\n');
@@ -967,12 +2025,19 @@ function loadDiceHistory() {
         if (!data) return;
         items.push({
           expression: data.expression || '',
+          displayExpression: data.displayExpression || null,
           total: typeof data.total === 'number' ? data.total : null,
           parts: Array.isArray(data.parts) ? data.parts : [],
           createdAt: typeof data.createdAt === 'number' ? data.createdAt : Date.now(),
           contextLabel: data.contextLabel || null,
           contextSpell: data.contextSpell || null,
-          contextSource: data.contextSource || null
+          contextSource: data.contextSource || null,
+          contextRollType: data.contextRollType || null,
+        contextBonuses: data.contextBonuses || null,
+        contextBonusTotal:
+          typeof data.contextBonusTotal === 'number' ? data.contextBonusTotal : null,
+          contextCharacterId: data.contextCharacterId || null,
+          contextCharacterName: data.contextCharacterName || null
         });
       });
       // Сортируем по времени по возрастанию, чтобы новые записи отображались внизу
@@ -996,6 +2061,21 @@ function loadDiceHistory() {
 function renderDiceHistory() {
   const container = document.getElementById('dice-roller-messages');
   if (!container) return;
+
+  // Сохраняем состояние открытых деталей до перерисовки
+  const openDetails = new Set(DICE_ROLLER_STATE.openDetails || []);
+  container.querySelectorAll('.dice-message-details-toggle.expanded').forEach((btn) => {
+    const targetId = btn.getAttribute('data-target');
+    if (targetId) {
+      openDetails.add(targetId);
+    }
+  });
+  container.querySelectorAll('.dice-message-details:not(.hidden)').forEach((details) => {
+    if (details.id) {
+      openDetails.add(details.id);
+    }
+  });
+  DICE_ROLLER_STATE.openDetails = openDetails;
 
   container.innerHTML = '';
 
@@ -1060,33 +2140,31 @@ function renderDiceHistory() {
     const detailsId = `dice-details-${index}`;
 
     const labelParts = [];
+
     if (entry.contextLabel) {
-      labelParts.push(escapeHtml(entry.contextLabel));
+      labelParts.push(formatRollLabel(entry.contextLabel, entry.contextRollType));
     }
     if (entry.contextSpell) {
       labelParts.push(buildSpellLinkHtml(entry.contextSpell));
     }
     // Всегда добавляем само выражение в подпись
-    if (entry.expression) {
-      labelParts.push('[' + escapeHtml(entry.expression) + ']');
+    const exprToShow = entry.displayExpression || entry.expression;
+    if (exprToShow) {
+      labelParts.push('[' + escapeHtml(exprToShow) + ']');
     }
     const headerLabel = labelParts.length ? labelParts.join(' — ') : '';
-    const totalLabel = typeof entry.total === 'number' ? `[${entry.total}]` : '—';
+    const totalValue = typeof entry.total === 'number' ? entry.total : '—';
 
     item.innerHTML = `
       <div class="dice-message-header">
         <div class="dice-message-expression">${headerLabel}</div>
-        <div class="dice-message-total">= ${totalLabel}${isCrit ? ' <span class="dice-crit-label">КРИТ</span>' : ''}</div>
+        <div class="dice-message-total-box">
+          <span class="dice-message-total-value">${escapeHtml(String(totalValue))}</span>
+        </div>
       </div>
       <div class="dice-message-meta">
         <span>${timeLabel}</span>
-        <button
-          type="button"
-          class="dice-message-details-toggle"
-          data-target="${detailsId}"
-          aria-label="Раскрыть детали"
-          title="Раскрыть детали"
-        >▾</button>
+        ${isCrit ? '<span class="dice-crit-label">Критический Успех</span>' : ''}
       </div>
       <div class="dice-message-details hidden" id="${detailsId}">
         ${formatDiceDetails(entry)}
@@ -1094,20 +2172,12 @@ function renderDiceHistory() {
     `;
 
     container.appendChild(item);
-  });
 
-  // Подключаем обработчики разворота деталей — по клику на строку или кнопку
-  const detailButtons = container.querySelectorAll('.dice-message-details-toggle');
-  detailButtons.forEach((btn) => {
-    btn.addEventListener('click', (event) => {
-      event.stopPropagation();
-      const targetId = btn.getAttribute('data-target');
-      if (!targetId) return;
-      const details = document.getElementById(targetId);
-      if (!details) return;
-      const nowHidden = details.classList.toggle('hidden');
-      btn.classList.toggle('expanded', !nowHidden);
-    });
+    // Восстанавливаем открытое состояние, если оно было сохранено
+    if (DICE_ROLLER_STATE.openDetails.has(detailsId)) {
+      const detailsEl = item.querySelector('.dice-message-details');
+      if (detailsEl) detailsEl.classList.remove('hidden');
+    }
   });
 
   const messageBlocks = container.querySelectorAll('.dice-message');
@@ -1121,12 +2191,22 @@ function renderDiceHistory() {
       const details = block.querySelector('.dice-message-details');
       if (!details) return;
       const nowHidden = details.classList.toggle('hidden');
-      const toggleBtn = block.querySelector('.dice-message-details-toggle');
-      if (toggleBtn) {
-        toggleBtn.classList.toggle('expanded', !nowHidden);
+      if (!nowHidden && details.id) {
+        DICE_ROLLER_STATE.openDetails.add(details.id);
+      } else if (details.id) {
+        DICE_ROLLER_STATE.openDetails.delete(details.id);
       }
     });
   });
+
+  if (DICE_ROLLER_STATE.settings.detailedMode && DICE_ROLLER_STATE.history.length) {
+    const lastIndex = DICE_ROLLER_STATE.history.length - 1;
+    const lastDetails = document.getElementById(`dice-details-${lastIndex}`);
+    if (lastDetails) {
+      lastDetails.classList.remove('hidden');
+      DICE_ROLLER_STATE.openDetails.add(lastDetails.id);
+    }
+  }
 
   if (!container.dataset.spellLinkBound) {
     container.addEventListener('click', (event) => {
@@ -1137,17 +2217,11 @@ function renderDiceHistory() {
       const spellName = link.getAttribute('data-spell-name') || link.textContent || '';
       if (!spellName) return;
 
-      if (typeof showSpellPage === 'function') {
-        try {
-          showSpellPage(spellName);
-          return;
-        } catch (e) {
-          console.error('Failed to open spell popup from dice history:', e);
-        }
-      }
-
-      const targetUrl = 'db.html?spell=' + encodeURIComponent(spellName);
-      window.location.href = targetUrl;
+      openDbEntity('spell', spellName).catch((e) => {
+        console.error('Failed to open spell popup from dice history:', e);
+        const targetUrl = 'db.html?spell=' + encodeURIComponent(spellName);
+        window.location.href = targetUrl;
+      });
     });
     container.dataset.spellLinkBound = '1';
   }
@@ -1160,6 +2234,123 @@ function formatDiceDetails(entry) {
   if (!entry.parts || !entry.parts.length) {
     return 'Нет подробностей по броску.';
   }
+
+  const expression = entry.displayExpression || entry.expression || '';
+  const contextBonuses =
+    entry && entry.contextBonuses
+      ? Array.isArray(entry.contextBonuses.items)
+        ? entry.contextBonuses.items
+        : Array.isArray(entry.contextBonuses)
+        ? entry.contextBonuses
+        : []
+      : [];
+  const hasContextBonusBreakdown = contextBonuses.length > 0;
+  const normalizedExpression =
+    entry && entry.expression ? String(entry.expression).replace(/\s+/g, '') : null;
+  const normalizedDisplayExpression =
+    entry && entry.displayExpression ? String(entry.displayExpression).replace(/\s+/g, '') : null;
+  const contextBonusTotal =
+    entry && typeof entry.contextBonusTotal === 'number' ? entry.contextBonusTotal : null;
+  const hasHiddenAutoBonus =
+    hasContextBonusBreakdown &&
+    normalizedExpression &&
+    normalizedDisplayExpression &&
+    normalizedExpression !== normalizedDisplayExpression;
+
+  const buildSumParts = function (parts, totalValue) {
+    if (!Array.isArray(parts) || !parts.length || !Number.isFinite(totalValue)) {
+      return null;
+    }
+
+    const toNumber = (part) => {
+      if (!part) return null;
+      if (part.kind === 'dice') {
+        if (Number.isFinite(part.segmentTotal)) return part.sign * part.segmentTotal;
+        if (Number.isFinite(part.baseSum)) return part.sign * part.baseSum;
+        if (Array.isArray(part.rolls)) {
+          const sum = part.rolls.reduce((acc, v) => acc + (Number(v) || 0), 0);
+          return part.sign * sum;
+        }
+        return null;
+      }
+      if (part.kind === 'number') {
+        return part.sign * part.value;
+      }
+      if (part.type === 'dice') {
+        if (Number.isFinite(part.sum)) return part.sum;
+        if (Number.isFinite(part.baseSum)) return part.baseSum;
+        if (Array.isArray(part.rolls)) {
+          return part.rolls.reduce((acc, v) => acc + (Number(v) || 0), 0);
+        }
+        return null;
+      }
+      if (part.type === 'modifier') {
+        return part.value;
+      }
+      return null;
+    };
+
+    const partsLabels = [];
+    let componentCount = 0;
+
+    parts.forEach((part) => {
+      const val = toNumber(part);
+      // Если есть детальная разбивка бонусов персонажа — не добавляем суммарный числовой бонус,
+      // его заменим подробными значениями ниже.
+      if (hasContextBonusBreakdown && part && part.kind === 'number') {
+        const signedValue = Number.isFinite(part.sign) ? part.sign * part.value : part.value;
+        if (
+          Number.isFinite(contextBonusTotal) &&
+          Math.round(signedValue) === Math.round(contextBonusTotal)
+        ) {
+          return;
+        }
+      }
+      if (!Number.isFinite(val) || val === 0) return;
+      const abs = Math.abs(val);
+      const isFirst = partsLabels.length === 0;
+      const label =
+        val >= 0
+          ? isFirst
+            ? String(abs)
+            : `+ ${abs}`
+          : isFirst
+          ? `-${abs}`
+          : `- ${abs}`;
+      partsLabels.push(label);
+      componentCount += 1;
+    });
+
+    // Добавляем разобранные бонусы (если они есть) вместо суммарного числа
+    if (hasContextBonusBreakdown) {
+      contextBonuses.forEach((bonus) => {
+        const rawValue =
+          bonus && typeof bonus.value === 'number' ? bonus.value : parseInt(bonus && bonus.value, 10);
+        if (!Number.isFinite(rawValue) || rawValue === 0) return;
+        const abs = Math.abs(rawValue);
+        const isFirst = partsLabels.length === 0;
+        const label =
+          rawValue >= 0
+            ? isFirst
+              ? String(abs)
+              : `+ ${abs}`
+            : isFirst
+            ? `-${abs}`
+            : `- ${abs}`;
+        partsLabels.push(label);
+        componentCount += 1;
+      });
+    }
+
+    if (!partsLabels.length) {
+      return null;
+    }
+
+    return {
+      label: `[${partsLabels.join(' ')}] = [${totalValue}]`,
+      count: componentCount
+    };
+  };
 
   let isCrit = false;
   if (entry && Array.isArray(entry.parts)) {
@@ -1186,6 +2377,24 @@ function formatDiceDetails(entry) {
   }
 
   const lines = [];
+  const bonusLabelUsed = { used: false };
+  // Бонус от заклинания считаем только из исходной формулы (до автодоливки персонажа),
+  // чтобы не цеплять бонус персонажа как бонус заклинания.
+  let spellBonusValue = typeof entry.contextSpellBonus === 'number' ? entry.contextSpellBonus : 0;
+  let hasSpellBonus = spellBonusValue !== 0;
+  // Формула
+  lines.push(
+    `<div class="dice-detail-line"><span class="dice-detail-meta">Формула</span>: ${
+      expression ? '[' + escapeHtml(expression) + ']' : '—'
+    }</div>`
+  );
+  // Персонаж (если есть) вынесен сюда, а не в заголовок
+  if (entry.contextCharacterName) {
+    const charLabel = buildCharacterLinkHtml(entry.contextCharacterId, entry.contextCharacterName);
+    lines.push(
+      `<div class="dice-detail-line dice-detail-section"><span class="dice-detail-meta">Персонаж: ${charLabel}</span></div>`
+    );
+  }
 
   entry.parts.forEach((part) => {
     // Новый формат частей
@@ -1210,9 +2419,35 @@ function formatDiceDetails(entry) {
       lines.push(`<div class="dice-detail-line">${line}</div>`);
     } else if (part.kind === 'number') {
       const signLabel = part.sign < 0 ? '-' : '+';
-      lines.push(
-        `<div class="dice-detail-line"><span class="dice-detail-meta">${signLabel} [${Math.abs(part.value)}]</span></div>`
-      );
+      const bonusLabels = {
+        arcana: 'Бонус от Арканы',
+        hit: 'Бонус на Попадание',
+        apply: 'Бонус на Наложение эффекта'
+      };
+      const rawBonus = part.sign * part.value;
+      const isContextBonus = entry.contextRollType && bonusLabels[entry.contextRollType];
+      const shouldShowBonus =
+        isContextBonus &&
+        !bonusLabelUsed.used &&
+        typeof rawBonus === 'number' &&
+        rawBonus !== 0 &&
+        !hasContextBonusBreakdown &&
+        !entry.contextSpell;
+      if (shouldShowBonus) {
+        const labeled = `${signLabel} ${bonusLabels[entry.contextRollType]} (${formatBonusLabel(rawBonus)})`;
+        lines.push(
+          `<div class="dice-detail-line"><span class="dice-detail-bonus">${labeled}</span>: <span class="dice-detail-meta">[${Math.abs(
+            part.value
+          )}]</span></div>`
+        );
+        bonusLabelUsed.used = true;
+      } else if (!isContextBonus && !entry.contextSpell) {
+        lines.push(
+          `<div class="dice-detail-line"><span class="dice-detail-meta">${signLabel} [${Math.abs(
+            part.value
+          )}]</span></div>`
+        );
+      }
     } else if (part.type === 'dice') {
       // Обратная совместимость со старым форматом
       const rollsLegacy = Array.isArray(part.rolls) ? '[' + part.rolls.join(', ') + ']' : '';
@@ -1238,8 +2473,37 @@ function formatDiceDetails(entry) {
     }
   });
 
+  if (hasSpellBonus && spellBonusValue !== 0 && entry && entry.contextSpell) {
+    const signSpell = spellBonusValue >= 0 ? '+' : '';
+    lines.push(
+      `<div class="dice-detail-line"><span class="dice-detail-bonus">Бонус от Заклинания (${signSpell}${spellBonusValue})</span>: <span class="dice-detail-meta">[${spellBonusValue}]</span></div>`
+    );
+  }
+
+  if (contextBonuses.length) {
+    contextBonuses.forEach((bonus) => {
+      const rawValue = bonus && typeof bonus.value === 'number' ? bonus.value : parseInt(bonus && bonus.value, 10);
+      if (!Number.isFinite(rawValue) || rawValue === 0) {
+        return;
+      }
+      const signLabel = rawValue >= 0 ? '+' : '-';
+      const safeLabel = escapeHtml(bonus && bonus.label ? String(bonus.label) : 'Бонус');
+      lines.push(
+        `<div class="dice-detail-line"><span class="dice-detail-bonus">${safeLabel} (${signLabel}${Math.abs(
+          rawValue
+        )})</span>: <span class="dice-detail-meta">[${Math.abs(rawValue)}]</span></div>`
+      );
+    });
+  }
+
+  const sumInfo = buildSumParts(entry.parts, entry.total);
   const totalLabel =
     typeof entry.total === 'number' ? `[${entry.total}]` : entry.total === null ? '—' : String(entry.total || '—');
+  if (sumInfo && sumInfo.count > 1) {
+    lines.push(
+      `<div class="dice-detail-line dice-detail-total"><span class="dice-detail-total-label">Итого (сумма)</span>: ${sumInfo.label}</div>`
+    );
+  }
   lines.push(
     `<div class="dice-detail-line dice-detail-total"><span class="dice-detail-total-label">Итого</span>: ${totalLabel}${
       isCrit ? ' — <span class="dice-crit-label">КРИТИЧЕСКИЙ УСПЕХ</span>' : ''
@@ -1292,6 +2556,214 @@ function initGlobalDiceLinks() {
   });
 }
 
+// ----- Database detail modal (cross-page) -----
+const DB_MODAL_STATE_KEY = 'db_open_detail';
+let dbScriptPromise = null;
+
+function ensureDbDetailModal() {
+  if (document.getElementById('spell-detail-modal')) {
+    return;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.id = 'spell-detail-modal';
+  overlay.className = 'modal-overlay hidden';
+
+  overlay.innerHTML = `
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="spell-detail-title">Объект базы данных</h3>
+        <div class="modal-header-actions">
+          <button type="button" class="modal-nav-btn" id="db-modal-back" aria-label="Назад" disabled>←</button>
+          <button type="button" class="modal-nav-btn" id="db-modal-forward" aria-label="Вперёд" disabled>→</button>
+          <button type="button" class="modal-close-btn" id="spell-detail-close" aria-label="Закрыть">×</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div id="spell-detail-content"></div>
+      </div>
+      <div class="spell-detail-footer" id="spell-detail-footer"></div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const closeBtn = overlay.querySelector('#spell-detail-close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      if (typeof window.closeSpellDetailModal === 'function') {
+        window.closeSpellDetailModal();
+      } else {
+        overlay.classList.add('hidden');
+        document.body.classList.remove('modal-open');
+        document.documentElement.classList.remove('modal-open');
+        sessionStorage.removeItem(DB_MODAL_STATE_KEY);
+      }
+    });
+  }
+
+  const backBtn = overlay.querySelector('#db-modal-back');
+  const forwardBtn = overlay.querySelector('#db-modal-forward');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      if (typeof window.goBackInDbModalHistory === 'function') {
+        window.goBackInDbModalHistory();
+      }
+    });
+  }
+  if (forwardBtn) {
+    forwardBtn.addEventListener('click', () => {
+      if (typeof window.goForwardInDbModalHistory === 'function') {
+        window.goForwardInDbModalHistory();
+      }
+    });
+  }
+
+  overlay.addEventListener('click', (event) => {
+    if (event.target === overlay) {
+      if (typeof window.closeSpellDetailModal === 'function') {
+        window.closeSpellDetailModal();
+      } else {
+        overlay.classList.add('hidden');
+        document.body.classList.remove('modal-open');
+        document.documentElement.classList.remove('modal-open');
+        sessionStorage.removeItem(DB_MODAL_STATE_KEY);
+      }
+    }
+  });
+}
+
+function resolveDbScriptUrl() {
+  const scripts = Array.from(document.getElementsByTagName('script'));
+  const commonScript = scripts.find((s) => (s.getAttribute('src') || '').indexOf('common.js?v=ce53953f') !== -1);
+  if (commonScript) {
+    const abs = new URL(commonScript.getAttribute('src'), window.location.href).href;
+    return abs.replace(/common\.js.*$/i, 'db.js?v=055beedd');
+  }
+  return new URL('db.js?v=055beedd', window.location.href).href;
+}
+
+function ensureDbModuleLoaded() {
+  if (window.showSpellPage) {
+    return Promise.resolve();
+  }
+  if (dbScriptPromise) {
+    return dbScriptPromise;
+  }
+  const scriptUrl = resolveDbScriptUrl();
+  dbScriptPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = scriptUrl;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load db.js?v=055beedd'));
+    document.body.appendChild(script);
+  });
+  return dbScriptPromise;
+}
+
+function parseDbLinkTarget(url) {
+  if (!url) {
+    return null;
+  }
+  const params = url.searchParams;
+  const kinds = [
+    'spell',
+    'school',
+    'effect',
+    'archetype',
+    'action',
+    'skill',
+    'basic',
+    'actionType',
+    'combat',
+    'craftComponent',
+    'craftProfession',
+    'craftSpecialization',
+    'recipeType',
+    'recipe'
+  ];
+  for (let i = 0; i < kinds.length; i += 1) {
+    const key = kinds[i];
+    const value = params.get(key);
+    if (value) {
+      return { kind: key, id: value };
+    }
+  }
+  return null;
+}
+
+async function openDbEntity(kind, id) {
+  if (!kind || !id) {
+    return;
+  }
+  await ensureDbModuleLoaded();
+  ensureDbDetailModal();
+  const map = {
+    spell: window.showSpellPage,
+    school: window.showSchoolPage,
+    effect: window.showEffectPage,
+    archetype: window.showArchetypePage,
+    action: window.showActionPage,
+    skill: window.showSkillPage,
+    basic: window.showBasicPage,
+    actionType: window.showActionTypePage,
+    combat: window.showCombatPage,
+    craftComponent: window.showCraftComponentPage,
+    craftProfession: window.showCraftProfessionPage,
+    craftSpecialization: window.showCraftSpecializationPage,
+    recipeType: window.showRecipeTypePage,
+    recipe: window.showRecipePage
+  };
+  const fn = map[kind];
+  if (typeof fn === 'function') {
+    fn(id);
+  } else {
+    console.error('DB entity opener is missing for kind:', kind);
+  }
+}
+
+function handleDbLinkClick(event) {
+  const link = event.target.closest('a[href]');
+  if (!link) {
+    return;
+  }
+  const href = link.getAttribute('href') || '';
+  if (href.indexOf('db.html') === -1) {
+    return;
+  }
+  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+    return;
+  }
+  const url = new URL(href, window.location.href);
+  const target = parseDbLinkTarget(url);
+  if (!target) {
+    return;
+  }
+  event.preventDefault();
+  openDbEntity(target.kind, target.id);
+}
+
+function restoreDbDetailOnLoad() {
+  // На самой странице базы восстановления займётся db.js?v=055beedd
+  if (document.body.getAttribute('data-page') === 'db') {
+    return;
+  }
+  let saved = null;
+  try {
+    const raw = sessionStorage.getItem(DB_MODAL_STATE_KEY);
+    if (raw) {
+      saved = JSON.parse(raw);
+    }
+  } catch (e) {
+    saved = null;
+  }
+  if (!saved || !saved.kind || !saved.id || saved.path !== window.location.pathname) {
+    return;
+  }
+  openDbEntity(saved.kind, saved.id);
+}
+
 // Expose selected helpers for legacy inline handlers and other scripts
 Object.assign(window, {
   checkAccess,
@@ -1317,7 +2789,10 @@ Object.assign(window, {
   selectAllInCategory,
   clearAllInCategory,
   createFilterTags,
-  syncFilterTagsState
+  syncFilterTagsState,
+  // Делаем доступными для редактора общий поп-ап базы данных
+  openDbEntity,
+  ensureDbDetailModal
 });
 
 // Initialize common features on page load
@@ -1360,6 +2835,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Включаем поддержку кликабельных формул бросков в текстах
     initGlobalDiceLinks();
   }
+
+  // Унифицированные поп-апы БД по ссылкам db.html?... без перехода между страницами
+  document.addEventListener('click', handleDbLinkClick);
+  document.addEventListener('click', handleSpellLinkClick);
+  restoreDbDetailOnLoad();
   
   // Handle hash on page load
   if (window.location.hash) {
@@ -1369,3 +2849,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 100);
   }
 });
+
+function handleSpellLinkClick(event) {
+  const link = event.target.closest('a');
+  if (!link) {
+    return;
+  }
+  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+    return;
+  }
+  const isSpellLink = link.classList.contains('dice-spell-link');
+  const href = link.getAttribute('href') || '';
+  const hasSpellParam = href.indexOf('db.html?spell=') !== -1;
+  if (!isSpellLink && !hasSpellParam) {
+    return;
+  }
+  event.preventDefault();
+  const spellName = link.getAttribute('data-spell-name') || decodeURIComponent((href.split('spell=')[1] || '').split('&')[0] || link.textContent || '');
+  if (!spellName) {
+    return;
+  }
+  openDbEntity('spell', spellName).catch((err) => {
+    console.error('Failed to open spell link:', err);
+    window.location.href = href;
+  });
+}

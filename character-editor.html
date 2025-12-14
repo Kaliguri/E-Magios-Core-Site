@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Редактор персонажей — E'Magios Core</title>
-  <link rel="stylesheet" href="styles.css?v=ccee4032">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' ry='3' fill='%2310b981'/%3E%3Ctext x='8' y='12' font-size='10' text-anchor='middle' fill='%23fff' font-family='Arial'%3EEC%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css?v=10df9662">
 </head>
 <body data-page="editor">
   <div class="page-with-sidebar">
@@ -14,7 +15,7 @@
         <p id="page-loader-message" class="page-loader-message">Загружаем редактор...</p>
       </div>
     </div>
-    <!-- Sidebar will be injected here by common.js?v=39673edc -->
+    <!-- Sidebar will be injected here by common.js?v=6bfc8187 -->
     
     <main class="main-content main-content-wide">
   <style>
@@ -258,6 +259,45 @@
       color: var(--accent-emerald) !important;
     }
 
+    .stat-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-left: auto;
+    }
+
+    .stat-icon-btn {
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-color);
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      padding: 0;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+      font-size: 0.9rem;
+      line-height: 1;
+    }
+
+    .stat-icon-btn:hover,
+    .stat-icon-btn:focus-visible {
+      background: var(--bg-secondary);
+      border-color: var(--accent-emerald);
+      color: var(--accent-emerald);
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    .stat-icon-btn[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
     .stat-value-input {
       flex: 0 0 56px;
       width: 56px;
@@ -404,6 +444,17 @@
       text-decoration: underline;
     }
 
+    .spell-item.spell-inactive {
+      opacity: 0.38;
+      filter: grayscale(0.2);
+    }
+
+    .spell-item.spell-inactive .spell-name-btn,
+    .spell-item.spell-inactive .spell-subspell-name {
+      color: #ffffff;
+      opacity: 0.82;
+    }
+
     .spell-meta {
       font-size: 0.8rem;
       color: var(--text-muted);
@@ -418,6 +469,131 @@
       display: flex;
       align-items: center;
       gap: 0.35rem;
+    }
+
+    .spell-roll-mini {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-right: 0.25rem;
+    }
+
+    .spell-roll-mini-btn {
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-elevated);
+      color: var(--accent-emerald);
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .spell-roll-mini-btn:hover,
+    .spell-roll-mini-btn:focus-visible {
+      background: var(--bg-secondary);
+      border-color: var(--accent-emerald);
+      color: var(--accent-emerald);
+      outline: none;
+    }
+
+    .spell-roll-mini-btn.disabled,
+    .spell-roll-mini-btn[disabled] {
+      background: var(--bg-elevated);
+      border-color: var(--border-color);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      opacity: 0.65;
+      pointer-events: none;
+    }
+
+    .spell-item.has-subspells {
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    .spell-main.with-toggle {
+      width: 100%;
+    }
+
+    .spell-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-sm);
+    }
+
+    .spell-sub-toggle {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0;
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1;
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spell-subspells {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+      padding-left: calc(20px + var(--spacing-sm));
+    }
+
+    .spell-subspell-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-2xs) var(--spacing-sm);
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+    }
+
+    .spell-subspell-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .spell-subspell-name {
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .spell-subspell-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .spell-subspell-link {
+      color: var(--accent-emerald);
+      text-decoration: none;
+    }
+
+    .spell-subspell-link:hover {
+      text-decoration: underline;
     }
 
     .spell-active-toggle-btn {
@@ -482,7 +658,7 @@
       width: 95%;
     }
 
-    /* Фильтры используют общие стили из styles.css?v=ccee4032 */
+    /* Фильтры используют общие стили из styles.css?v=10df9662 */
 
     @media (max-width: 768px) {
       .spell-select-modal .filters-panel-inner {
@@ -519,6 +695,142 @@
 
     .spell-select-list::-webkit-scrollbar-thumb:hover {
       background: var(--border-hover);
+    }
+
+    .accordion {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    .accordion-item {
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: var(--bg-secondary);
+    }
+
+    .accordion-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-sm) var(--spacing-md);
+      cursor: pointer;
+      background: var(--bg-elevated);
+    }
+
+    .accordion-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+    }
+
+    .accordion-title {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--accent-emerald);
+    }
+
+    .accordion-toggle {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+
+    .accordion-item.open .accordion-toggle {
+      color: var(--accent-emerald);
+    }
+
+    .relation-remove-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .relation-remove-btn:hover,
+    .relation-remove-btn:focus {
+      color: var(--accent-emerald);
+      outline: none;
+    }
+
+    .accordion-body {
+      padding: var(--spacing-sm) var(--spacing-md) var(--spacing-md);
+      display: none;
+    }
+
+    .accordion-item.open > .accordion-body {
+      display: block;
+    }
+
+    .appearance-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: var(--spacing-sm);
+    }
+
+    .recipe-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+      margin-top: var(--spacing-sm);
+    }
+
+    .relation-add-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
+      margin-top: var(--spacing-sm);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      border-radius: var(--radius-md);
+    }
+
+    .relation-add-btn:hover,
+    .relation-add-btn:focus {
+      border-color: var(--accent-emerald);
+      color: var(--accent-emerald);
+      outline: none;
+    }
+
+    .recipe-item {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+      padding: var(--spacing-sm);
+      background: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+    }
+
+    .recipe-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--spacing-sm);
+      width: 100%;
+    }
+
+    .recipe-controls {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--spacing-sm);
+    }
+
+    .recipe-item textarea {
+      width: 100%;
+      resize: vertical;
+      min-height: 80px;
     }
 
     .spell-select-list table {
@@ -578,6 +890,10 @@
       margin-top: 0.25rem;
     }
 
+    .text-warning {
+      color: #ef4444;
+    }
+
     input[type="number"] {
       width: 80px;
     }
@@ -628,7 +944,7 @@
 
     .bonus-item {
       display: grid;
-      grid-template-columns: auto 2fr 1.2fr 0.8fr auto;
+      grid-template-columns: auto 1fr auto auto auto;
       gap: var(--spacing-xs);
       align-items: center;
       background: var(--bg-elevated);
@@ -642,16 +958,83 @@
       border-color: var(--accent-emerald);
     }
 
-    .bonus-item input[type="text"] {
-      width: 100%;
+    .bonus-item.bonus-inactive {
+      opacity: 0.38;
+      filter: grayscale(0.2);
     }
 
-    .bonus-item select {
-      width: 100%;
+    .bonus-title {
+      color: var(--accent-emerald);
+      font-weight: 600;
     }
 
-    .bonus-item input[type="number"] {
-      width: 100%;
+    .bonus-inactive .bonus-title {
+      color: #ffffff;
+      opacity: 0.82;
+    }
+
+    .bonus-settings-btn,
+    .bonus-remove-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.35rem;
+      border-radius: var(--radius-sm);
+    }
+
+    .bonus-settings-btn:hover,
+    .bonus-remove-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Toggle style consistent with site (reuse dice toggle look) */
+    .bonus-active-toggle {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 40px;
+      height: 22px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      margin: 0;
+    }
+
+    .bonus-active-toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      background: var(--text-muted);
+      border-radius: 50%;
+      transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .bonus-active-toggle:checked {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--accent-emerald);
+    }
+
+    .bonus-active-toggle:checked::after {
+      left: 20px;
+      background: var(--accent-emerald);
+      box-shadow: 0 1px 3px rgba(16, 185, 129, 0.4);
+    }
+
+    .bonus-item:hover .bonus-active-toggle {
+      border-color: var(--text-muted);
+    }
+
+    .bonus-item:hover .bonus-active-toggle:checked {
+      border-color: var(--accent-emerald);
     }
 
     .bonus-drag-handle {
@@ -668,6 +1051,95 @@
     .bonus-item.dragging .bonus-drag-handle {
       cursor: grabbing;
       color: var(--accent-emerald);
+    }
+
+    /* Level bonuses */
+    .level-bonuses-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .level-bonuses-subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin: 0;
+    }
+
+    .level-bonuses-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    .level-bonus-card {
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      background: var(--bg-elevated);
+      overflow: hidden;
+    }
+
+    .level-bonus-card.locked {
+      opacity: 0.35;
+      filter: grayscale(0.25);
+    }
+
+    .level-bonus-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
+      cursor: pointer;
+      background: var(--bg-secondary);
+    }
+
+    .level-bonus-title {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+    }
+
+    .level-bonus-title.achieved {
+      color: var(--accent-emerald);
+    }
+
+    .level-bonus-toggle {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      cursor: pointer;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .level-bonus-card.open .level-bonus-toggle {
+      color: var(--accent-emerald);
+    }
+
+    .level-bonus-content {
+      padding: var(--spacing-sm) var(--spacing-md) var(--spacing-md);
+      display: none;
+    }
+
+    .level-bonus-card.open .level-bonus-content {
+      display: block;
+    }
+
+    .level-bonus-items {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-2xs);
+      margin: 0;
+      padding-left: 1.1rem;
+      color: var(--text-secondary);
     }
 
     .bonus-remove-btn {
@@ -693,6 +1165,13 @@
       align-items: flex-start;
       gap: var(--spacing-xs);
       margin-bottom: var(--spacing-sm);
+    }
+
+    .editor-header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+      align-items: center;
     }
 
     #back-to-list-btn {
@@ -826,14 +1305,23 @@
         </div>
 
         <div class="editor-tabs-nav">
-          <button type="button" class="editor-tab-button active" data-tab="tab-main">
-            Основное
+          <button type="button" class="editor-tab-button" data-tab="tab-main">
+            Игровой Режим
           </button>
-          <button type="button" class="editor-tab-button" data-tab="tab-stats">
+          <button type="button" class="editor-tab-button" data-tab="tab-bonuses">
+            Бонусы
+          </button>
+          <button type="button" class="editor-tab-button active" data-tab="tab-stats">
             Характеристики
           </button>
           <button type="button" class="editor-tab-button" data-tab="tab-spells">
             Заклинания
+          </button>
+          <button type="button" class="editor-tab-button" data-tab="tab-inventory">
+            Инвентарь
+          </button>
+          <button type="button" class="editor-tab-button" data-tab="tab-recipes">
+            Ремесло
           </button>
           <button type="button" class="editor-tab-button" data-tab="tab-description">
             Описание
@@ -841,14 +1329,65 @@
         </div>
 
         <form id="character-form">
-          <!-- Вкладка "Основное" -->
-          <div id="tab-main" class="editor-tab-content active">
+          <!-- Вкладка "Игровой Режим" -->
+          <div id="tab-main" class="editor-tab-content">
+            <div class="form-section form-section-compact">
+              <h2>Характеристики</h2>
+              <div class="stat-list stat-list-wide" style="margin-top: var(--spacing-sm); margin-bottom: var(--spacing-sm);">
+                <div class="stat-row" data-editable="false">
+                  <span class="stat-label">Здоровье</span>
+                  <div class="defense-control">
+                    <button type="button" class="defense-step-btn" data-health-delta="-1" aria-label="Уменьшить здоровье">−</button>
+                    <div class="readonly-field stat-value" id="game-stat-health-display" data-health-display>8/8</div>
+                    <button type="button" class="defense-step-btn" data-health-delta="1" aria-label="Увеличить здоровье">+</button>
+                  </div>
+                  <div class="stat-actions">
+                    <button type="button" class="stat-icon-btn" data-stat-key="health" data-action="open-stat-info" aria-label="Описание характеристики">?</button>
+                    <button type="button" class="stat-icon-btn" data-stat-key="health" data-action="open-bonus-info" aria-label="Бонусы характеристики">⚙</button>
+                  </div>
+                </div>
+                <div class="stat-row" data-editable="false">
+                  <span class="stat-label">Воля</span>
+                  <div class="defense-control">
+                    <button type="button" class="defense-step-btn" data-will-delta="-1" aria-label="Уменьшить волю">−</button>
+                    <div class="readonly-field stat-value" id="game-stat-will-display" data-will-display>6/6</div>
+                    <button type="button" class="defense-step-btn" data-will-delta="1" aria-label="Увеличить волю">+</button>
+                  </div>
+                  <div class="stat-actions">
+                    <button type="button" class="stat-icon-btn" data-stat-key="will" data-action="open-stat-info" aria-label="Описание характеристики">?</button>
+                    <button type="button" class="stat-icon-btn" data-stat-key="will" data-action="open-bonus-info" aria-label="Бонусы характеристики">⚙</button>
+                  </div>
+                </div>
+              </div>
+
+              <h4 style="margin-top: 1rem;">Защита</h4>
+              <div class="stat-list">
+                <div class="stat-row">
+                  <span class="stat-label">Защита</span>
+                  <div class="defense-control">
+                    <button type="button" class="defense-step-btn" data-defense-delta="-1" aria-label="Уменьшить защиту">−</button>
+                    <div class="defense-shields" id="game-defense-shields" aria-hidden="true">
+                      <span class="defense-shield" data-index="0"></span>
+                      <span class="defense-shield" data-index="1"></span>
+                      <span class="defense-shield" data-index="2"></span>
+                      <span class="defense-shield" data-index="3"></span>
+                      <span class="defense-shield" data-index="4"></span>
+                    </div>
+                    <button type="button" class="defense-step-btn" data-defense-delta="1" aria-label="Увеличить защиту">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Вкладка "Характеристики" -->
+          <div id="tab-stats" class="editor-tab-content active">
             <!-- Основная информация -->
             <div class="form-section form-section-compact">
-              <h2>Основная информация</h2>
+              <h2>Основная Информация</h2>
               <div class="form-grid">
                 <div class="form-group">
-                  <label for="name">Имя персонажа *</label>
+                  <label for="name">Имя персонажа</label>
                   <input type="text" id="name" required placeholder="Введите имя персонажа">
                 </div>
                 <div class="form-group">
@@ -860,7 +1399,7 @@
 
             <!-- Боевые характеристики -->
             <div class="form-section">
-              <h2>Боевые характеристики</h2>
+              <h2>Боевые Характеристики</h2>
 
               <input type="hidden" id="health-current" value="8">
               <input type="hidden" id="health-max" value="8">
@@ -870,20 +1409,24 @@
 
               <h4 style="margin-top: 1rem;">Основное</h4>
               <div class="stat-list stat-list-wide" style="margin-top: var(--spacing-sm); margin-bottom: var(--spacing-sm);">
-                <div class="stat-row stat-row-clickable" id="health-stat-row" title="Open Health editor">
+                <div class="stat-row" id="health-stat-row" data-editable="false">
                   <span class="stat-label">Здоровье</span>
                   <div class="defense-control">
-                    <button type="button" class="defense-step-btn" id="health-minus" aria-label="Уменьшить здоровье">−</button>
-                    <div class="readonly-field stat-value" id="stat-health-display">8/8</div>
-                    <button type="button" class="defense-step-btn" id="health-plus" aria-label="Увеличить здоровье">+</button>
+                    <div class="readonly-field stat-value" id="stat-health-display" data-health-display>8/8</div>
+                  </div>
+                  <div class="stat-actions">
+                    <button type="button" class="stat-icon-btn" data-stat-key="health" data-action="open-stat-info" aria-label="Описание характеристики">?</button>
+                    <button type="button" class="stat-icon-btn" data-stat-key="health" data-action="open-bonus-info" aria-label="Бонусы характеристики">⚙</button>
                   </div>
                 </div>
-                <div class="stat-row stat-row-clickable" id="will-stat-row" title="Open Will editor">
+                <div class="stat-row" id="will-stat-row" data-editable="false">
                   <span class="stat-label">Воля</span>
                   <div class="defense-control">
-                    <button type="button" class="defense-step-btn" id="will-minus" aria-label="Уменьшить волю">−</button>
-                    <div class="readonly-field stat-value" id="stat-will-display">6/6</div>
-                    <button type="button" class="defense-step-btn" id="will-plus" aria-label="Увеличить волю">+</button>
+                    <div class="readonly-field stat-value" id="stat-will-display" data-will-display>6/6</div>
+                  </div>
+                  <div class="stat-actions">
+                    <button type="button" class="stat-icon-btn" data-stat-key="will" data-action="open-stat-info" aria-label="Описание характеристики">?</button>
+                    <button type="button" class="stat-icon-btn" data-stat-key="will" data-action="open-bonus-info" aria-label="Бонусы характеристики">⚙</button>
                   </div>
                 </div>
               </div>
@@ -893,14 +1436,26 @@
                 <div class="stat-row">
                   <span class="stat-label">Аркана</span>
                   <div class="readonly-field stat-value" id="stat-arcana">+4</div>
+                  <div class="stat-actions">
+                    <button type="button" class="stat-icon-btn" data-stat-key="arcana" data-action="open-stat-info" aria-label="Описание характеристики">?</button>
+                    <button type="button" class="stat-icon-btn" data-stat-key="arcana" data-action="open-bonus-info" aria-label="Бонусы характеристики">⚙</button>
+                  </div>
                 </div>
                 <div class="stat-row">
-                  <span class="stat-label">Бонус к попаданию</span>
+                  <span class="stat-label">Бонус к Попаданию</span>
                   <div class="readonly-field stat-value" id="stat-attack-bonus">+4</div>
+                  <div class="stat-actions">
+                    <button type="button" class="stat-icon-btn" data-stat-key="attack" data-action="open-stat-info" aria-label="Описание характеристики">?</button>
+                    <button type="button" class="stat-icon-btn" data-stat-key="attack" data-action="open-bonus-info" aria-label="Бонусы характеристики">⚙</button>
+                  </div>
                 </div>
                 <div class="stat-row">
-                  <span class="stat-label">Бонус к наложению</span>
+                  <span class="stat-label">Бонус к Наложению</span>
                   <div class="readonly-field stat-value" id="stat-cast-bonus">+4</div>
+                  <div class="stat-actions">
+                    <button type="button" class="stat-icon-btn" data-stat-key="cast" data-action="open-stat-info" aria-label="Описание характеристики">?</button>
+                    <button type="button" class="stat-icon-btn" data-stat-key="cast" data-action="open-bonus-info" aria-label="Бонусы характеристики">⚙</button>
+                  </div>
                 </div>
               </div>
 
@@ -909,23 +1464,17 @@
                 <div class="stat-row">
                   <span class="stat-label">Уклонение</span>
                   <div class="readonly-field stat-value" id="stat-evasion">10</div>
+                  <div class="stat-actions">
+                    <button type="button" class="stat-icon-btn" data-stat-key="evasion" data-action="open-stat-info" aria-label="Описание характеристики">?</button>
+                    <button type="button" class="stat-icon-btn" data-stat-key="evasion" data-action="open-bonus-info" aria-label="Бонусы характеристики">⚙</button>
+                  </div>
                 </div>
                 <div class="stat-row">
                   <span class="stat-label">Спасбросок</span>
                   <div class="readonly-field stat-value" id="stat-save">4</div>
-                </div>
-                <div class="stat-row">
-                  <span class="stat-label">Защита</span>
-                  <div class="defense-control">
-                    <button type="button" class="defense-step-btn" id="defense-minus" aria-label="Уменьшить защиту">−</button>
-                    <div class="defense-shields" id="defense-shields" aria-hidden="true">
-                      <span class="defense-shield" data-index="0"></span>
-                      <span class="defense-shield" data-index="1"></span>
-                      <span class="defense-shield" data-index="2"></span>
-                      <span class="defense-shield" data-index="3"></span>
-                      <span class="defense-shield" data-index="4"></span>
-                    </div>
-                    <button type="button" class="defense-step-btn" id="defense-plus" aria-label="Увеличить защиту">+</button>
+                  <div class="stat-actions">
+                    <button type="button" class="stat-icon-btn" data-stat-key="save" data-action="open-stat-info" aria-label="Описание характеристики">?</button>
+                    <button type="button" class="stat-icon-btn" data-stat-key="save" data-action="open-bonus-info" aria-label="Бонусы характеристики">⚙</button>
                   </div>
                 </div>
               </div>
@@ -933,25 +1482,73 @@
               <h4 style="margin-top: 1rem;">Стойкость</h4>
               <div class="stat-list">
                 <div class="stat-row">
+                  <span class="stat-label">Базовая Стойкость</span>
+                  <div class="readonly-field stat-value" id="stat-fort-base">2</div>
+                  <div class="stat-actions">
+                    <button type="button" class="stat-icon-btn" data-stat-key="fortitude" data-action="open-stat-info" aria-label="Описание характеристики">?</button>
+                    <button type="button" class="stat-icon-btn" data-stat-key="fortitude" data-action="open-bonus-info" aria-label="Бонусы характеристики">⚙</button>
+                  </div>
+                </div>
+                <div class="stat-row">
                   <span class="stat-label">Нижняя Стойкость</span>
-                  <div class="readonly-field stat-value" id="stat-fort-low">4</div>
+                  <div class="readonly-field stat-value" id="stat-fort-low">8</div>
+                  <div class="stat-actions">
+                    <button type="button" class="stat-icon-btn" data-stat-key="fortitudeLow" data-action="open-stat-info" aria-label="Описание характеристики">?</button>
+                    <button type="button" class="stat-icon-btn" data-stat-key="fortitudeLow" data-action="open-bonus-info" aria-label="Бонусы характеристики">⚙</button>
+                  </div>
                 </div>
                 <div class="stat-row">
                   <span class="stat-label">Средняя Стойкость</span>
-                  <div class="readonly-field stat-value" id="stat-fort-mid">8</div>
+                  <div class="readonly-field stat-value" id="stat-fort-mid">16</div>
+                  <div class="stat-actions">
+                    <button type="button" class="stat-icon-btn" data-stat-key="fortitudeMid" data-action="open-stat-info" aria-label="Описание характеристики">?</button>
+                    <button type="button" class="stat-icon-btn" data-stat-key="fortitudeMid" data-action="open-bonus-info" aria-label="Бонусы характеристики">⚙</button>
+                  </div>
                 </div>
                 <div class="stat-row">
                   <span class="stat-label">Верхняя Стойкость</span>
-                  <div class="readonly-field stat-value" id="stat-fort-high">12</div>
+                  <div class="readonly-field stat-value" id="stat-fort-high">24</div>
+                  <div class="stat-actions">
+                    <button type="button" class="stat-icon-btn" data-stat-key="fortitudeHigh" data-action="open-stat-info" aria-label="Описание характеристики">?</button>
+                    <button type="button" class="stat-icon-btn" data-stat-key="fortitudeHigh" data-action="open-bonus-info" aria-label="Бонусы характеристики">⚙</button>
+                  </div>
+                </div>
+              </div>
+
+              <h4 style="margin-top: 1rem;">Дополнительно</h4>
+              <div class="stat-list">
+                <div class="stat-row">
+                  <span class="stat-label">Пассивная Внимательность</span>
+                  <div class="stat-actions">
+                    <button type="button" class="stat-icon-btn" data-stat-key="passiveAttentiveness" data-action="open-stat-info" aria-label="Описание характеристики" disabled>?</button>
+                    <button type="button" class="stat-icon-btn" data-stat-key="passiveAttentiveness" data-action="open-bonus-info" aria-label="Бонусы характеристики">⚙</button>
+                  </div>
+                  <div class="readonly-field stat-value" id="stat-attentiveness">4</div>
                 </div>
               </div>
             </div>
 
-            <!-- Бонусы -->
+            <!-- Навыки Магии -->
+            <div class="form-section">
+              <h2>Навыки Магии</h2>
+              <p class="help-text">Максимум +2 на каждую характеристику</p>
+              <div id="magic-skills-list" class="stat-list"></div>
+            </div>
+
+            <!-- Навыки Личности -->
+            <div class="form-section">
+              <h2>Навыки Личности</h2>
+              <p class="help-text">Максимум +3 на каждую характеристику</p>
+              <div id="personality-skills-list" class="stat-list"></div>
+            </div>
+          </div>
+
+          <!-- Вкладка "Бонусы" -->
+          <div id="tab-bonuses" class="editor-tab-content">
             <div class="form-section">
               <div class="bonuses-header">
-                <h2>Бонусы</h2>
-                <button type="button" class="btn btn-secondary" id="add-bonus-btn">
+                <h2>Временные Бонусы</h2>
+                <button type="button" class="btn btn-secondary open-bonus-modal-btn" id="add-bonus-btn">
                   Добавить бонус
                 </button>
               </div>
@@ -960,75 +1557,19 @@
                 <div id="bonuses-list" class="bonus-list"></div>
               </div>
             </div>
+
+            <div class="form-section">
+              <div class="level-bonuses-header">
+                <h2 style="margin: 0;">Бонусы Уровня</h2>
+                <p class="level-bonuses-subtitle" id="level-bonuses-meta">—</p>
+              </div>
+              <div id="level-bonuses-list" class="level-bonuses-list"></div>
+            </div>
           </div>
 
-          <!-- Вкладка "Характеристики" -->
-          <div id="tab-stats" class="editor-tab-content">
-            <!-- Магическое Мастерство -->
-            <div class="form-section">
-              <h2>Магическое Мастерство</h2>
-              <p class="help-text">Максимум +2 на каждую характеристику</p>
-              
-              <div class="stat-list">
-                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="construction">
-                  <span class="stat-label">Конструирование</span>
-                  <input type="text" id="construction" value="+0" class="stat-value-input stat-value">
-                </div>
-                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="spontaneity">
-                  <span class="stat-label">Спонтанность</span>
-                  <input type="text" id="spontaneity" value="+0" class="stat-value-input stat-value">
-                </div>
-                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="metamagic">
-                  <span class="stat-label">Метамагия</span>
-                  <input type="text" id="metamagic" value="+0" class="stat-value-input stat-value">
-                </div>
-                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="creation">
-                  <span class="stat-label">Созидание</span>
-                  <input type="text" id="creation" value="+0" class="stat-value-input stat-value">
-                </div>
-                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="ritualism">
-                  <span class="stat-label">Ритуалогия</span>
-                  <input type="text" id="ritualism" value="+0" class="stat-value-input stat-value">
-                </div>
-                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="versatility">
-                  <span class="stat-label">Многогранность</span>
-                  <input type="text" id="versatility" value="+0" class="stat-value-input stat-value">
-                </div>
-              </div>
-            </div>
-
-            <!-- Навыки Личности -->
-            <div class="form-section">
-              <h2>Навыки Личности</h2>
-              <p class="help-text">Максимум +3 на каждую характеристику</p>
-              
-              <div class="stat-list">
-                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="communication">
-                  <span class="stat-label">Общение</span>
-                  <input type="text" id="communication" value="+0" class="stat-value-input stat-value">
-                </div>
-                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="contacts">
-                  <span class="stat-label">Контакты</span>
-                  <input type="text" id="contacts" value="+0" class="stat-value-input stat-value">
-                </div>
-                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="knowledge">
-                  <span class="stat-label">Знания</span>
-                  <input type="text" id="knowledge" value="+0" class="stat-value-input stat-value">
-                </div>
-                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="perception">
-                  <span class="stat-label">Внимательность</span>
-                  <input type="text" id="perception" value="+0" class="stat-value-input stat-value">
-                </div>
-                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="stealth">
-                  <span class="stat-label">Скрытность</span>
-                  <input type="text" id="stealth" value="+0" class="stat-value-input stat-value">
-                </div>
-                <div class="stat-row stat-row-clickable signed-stat-row" data-stat-id="physique">
-                  <span class="stat-label">Телосложение</span>
-                  <input type="text" id="physique" value="+0" class="stat-value-input stat-value">
-                </div>
-              </div>
-            </div>
+          <!-- Вкладка "Инвентарь" -->
+          <div id="tab-inventory" class="editor-tab-content">
+            <!-- Пусто — содержимое будет добавлено позже -->
           </div>
 
           <!-- Вкладка "Заклинания" -->
@@ -1052,13 +1593,13 @@
             </div>
 
             <div class="form-section">
-              <h2>Учебные заклинания</h2>
+              <h2>Учебные Заклинания</h2>
               <div id="study-spells-list" class="spell-list"></div>
               <button type="button" class="btn btn-secondary btn-add" onclick="openSpellSelectModal('study')">+ Добавить учебное заклинание</button>
             </div>
 
             <div class="form-section">
-              <h2>Фирменные заклинания</h2>
+              <h2>Фирменные Заклинания</h2>
               <div id="signature-spells-list" class="spell-list"></div>
               <button type="button" class="btn btn-secondary btn-add" onclick="openSpellSelectModal('signature')">+ Добавить фирменное заклинание</button>
             </div>
@@ -1070,13 +1611,131 @@
             </div>
           </div>
 
+          <!-- Вкладка "Ремесло" -->
+          <div id="tab-recipes" class="editor-tab-content">
+            <div class="form-section">
+              <h2>Профессии</h2>
+              <p class="help-text" id="professions-limit-hint">Активных профессий: 0 / 2</p>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="profession-select">Добавить профессию</label>
+                  <select id="profession-select" class="form-control">
+                    <option value="">Выберите профессию</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>&nbsp;</label>
+                  <button type="button" class="btn btn-secondary btn-add" id="add-profession-btn">
+                    + Добавить профессию
+                  </button>
+                </div>
+              </div>
+              <div id="professions-list" class="spell-list"></div>
+            </div>
+
+            <div class="form-section">
+              <h2>Рецепты</h2>
+              <div id="known-recipes-list" class="spell-list"></div>
+              <button type="button" class="btn btn-secondary btn-add" id="add-known-recipe-btn">
+                + Добавить рецепт
+              </button>
+            </div>
+          </div>
+
           <!-- Вкладка "Описание" -->
           <div id="tab-description" class="editor-tab-content">
             <div class="form-section">
               <h2>Описание персонажа</h2>
-              <div class="form-group">
-                <label for="description">Описание (раса, внешность, история)</label>
-                <textarea id="description" rows="6" placeholder="Опишите вашего персонажа: расу, рост, цвет глаз, историю и т.д."></textarea>
+              <div class="accordion" id="description-accordion">
+                <div class="accordion-item open">
+                  <div class="accordion-header" data-target="desc-background">
+                    <h3 class="accordion-title">О Персонаже (Основное)</h3>
+                    <button type="button" class="accordion-toggle" aria-label="Свернуть">▾</button>
+                  </div>
+                  <div class="accordion-body" id="desc-background">
+                    <div class="form-group">
+                      <textarea id="description-background" rows="5" placeholder=""></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <div class="accordion-header" data-target="desc-beliefs">
+                    <h3 class="accordion-title">Мировоззрение</h3>
+                    <button type="button" class="accordion-toggle" aria-label="Свернуть">▾</button>
+                  </div>
+                  <div class="accordion-body" id="desc-beliefs">
+                    <div class="form-group">
+                      <textarea id="description-beliefs" rows="4" placeholder=""></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <div class="accordion-header" data-target="desc-appearance">
+                    <h3 class="accordion-title">Внешний вид</h3>
+                    <button type="button" class="accordion-toggle" aria-label="Свернуть">▾</button>
+                  </div>
+                  <div class="accordion-body" id="desc-appearance">
+                    <div class="appearance-grid">
+                      <div class="form-group">
+                        <label for="appearance-gender">Пол</label>
+                        <input id="appearance-gender" type="text" class="form-control" placeholder="">
+                      </div>
+                      <div class="form-group">
+                        <label for="appearance-race">Раса</label>
+                        <input id="appearance-race" type="text" class="form-control" placeholder="">
+                      </div>
+                      <div class="form-group">
+                        <label for="appearance-height">Рост</label>
+                        <input id="appearance-height" type="text" class="form-control" placeholder="">
+                      </div>
+                      <div class="form-group">
+                        <label for="appearance-eyes">Цвет глаз</label>
+                        <input id="appearance-eyes" type="text" class="form-control" placeholder="">
+                      </div>
+                      <div class="form-group">
+                        <label for="appearance-hair">Цвет/тип волос</label>
+                        <input id="appearance-hair" type="text" class="form-control" placeholder="">
+                      </div>
+                      <div class="form-group">
+                        <label for="appearance-skin">Оттенок кожи</label>
+                        <input id="appearance-skin" type="text" class="form-control" placeholder="">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="appearance-notes">Особенности, одежда, походка</label>
+                      <textarea id="appearance-notes" rows="3" placeholder=""></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <div class="accordion-header" data-target="desc-relations">
+                    <h3 class="accordion-title">Взаимоотношения</h3>
+                    <button type="button" class="accordion-toggle" aria-label="Свернуть">▾</button>
+                  </div>
+                  <div class="accordion-body" id="desc-relations">
+                    <div class="form-group">
+                      <div id="relations-list" class="recipe-list"></div>
+                      <button type="button" class="relation-add-btn" id="add-relation-btn">
+                        + Добавить взаимоотношение
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="accordion-item">
+                  <div class="accordion-header" data-target="desc-misc">
+                    <h3 class="accordion-title">Прочее</h3>
+                    <button type="button" class="accordion-toggle" aria-label="Свернуть">▾</button>
+                  </div>
+                  <div class="accordion-body" id="desc-misc">
+                    <div class="form-group">
+                      <textarea id="description-misc" rows="4" placeholder=""></textarea>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1092,6 +1751,67 @@
     </div>
     </main>
   </div> <!-- page-with-sidebar -->
+
+  <div id="bonus-edit-modal" class="modal-overlay hidden bonuses-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Добавить Бонус</h3>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="bonus-edit-name">Название Бонуса</label>
+            <input type="text" id="bonus-edit-name" placeholder="">
+          </div>
+          <div class="form-group">
+            <label for="bonus-edit-stat">Характеристика</label>
+            <select id="bonus-edit-stat" class="form-control"></select>
+          </div>
+          <div class="form-group">
+            <label for="bonus-edit-value-input">Значение</label>
+            <input type="text" id="bonus-edit-value-input" class="form-control" placeholder="+0">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="bonus-edit-save">
+          Сохранить
+        </button>
+        <button type="button" class="btn btn-secondary" id="bonus-edit-cancel">
+          Отмена
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="stat-bonus-info-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="stat-bonus-info-title">Бонусы</h3>
+      </div>
+      <div class="modal-body">
+        <div id="stat-bonus-info-list" class="bonus-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="stat-bonus-info-close">Закрыть</button>
+        <button type="button" class="btn btn-primary" id="stat-bonus-info-add">Добавить бонус</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="stat-info-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="stat-info-title">Характеристика</h3>
+      </div>
+      <div class="modal-body">
+        <p id="stat-info-description"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="stat-info-close">Закрыть</button>
+      </div>
+    </div>
+  </div>
 
   <div id="stat-edit-modal" class="modal-overlay hidden">
     <div class="modal">
@@ -1350,6 +2070,60 @@
     </div>
   </div>
 
+  <div id="recipe-select-modal" class="modal-overlay hidden spell-select-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="recipe-select-title">Выбор рецепта</h3>
+      </div>
+      <div class="modal-body">
+        <div class="filters">
+          <div class="filters-row">
+            <div class="form-group">
+              <label for="recipe-search-input">Поиск по названию</label>
+              <input type="text" id="recipe-search-input" placeholder="Начните вводить название рецепта">
+            </div>
+            <div class="form-group">
+              <label for="recipe-profession-filter">Профессия</label>
+              <select id="recipe-profession-filter" class="form-control">
+                <option value="">Все</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="recipe-specialization-filter">Специализация</label>
+              <select id="recipe-specialization-filter" class="form-control">
+                <option value="">Все</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div id="recipe-select-list" class="spell-select-list results-table"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="recipe-select-cancel">
+          Отмена
+        </button>
+        <button type="button" class="btn btn-primary" id="recipe-select-apply">
+          Выбрать
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="confirm-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="confirm-modal-title">Подтверждение</h3>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-modal-message">Удалить элемент?</p>
+      </div>
+      <div class="modal-footer confirm-actions">
+        <button type="button" class="btn btn-primary" id="confirm-modal-apply">Удалить</button>
+        <button type="button" class="btn btn-secondary" id="confirm-modal-cancel">Отмена</button>
+      </div>
+    </div>
+  </div>
+
   <div id="spell-details-modal" class="modal-overlay hidden">
     <div class="modal">
       <div class="modal-header">
@@ -1365,7 +2139,7 @@
   <!-- Scroll to top button -->
   <button id="scroll-to-top" class="scroll-to-top" aria-label="Наверх">↑</button>
 
-  <script type="module" src="common.js?v=39673edc"></script>
+  <script type="module" src="common.js?v=6bfc8187"></script>
 
   <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -1373,15 +2147,15 @@
 
     <script defer src="firebase-config.js?v=311c55f4"></script>
 
-  <script defer src="auth.js?v=1c96cbf0"></script>
+  <script defer src="auth.js?v=2100a550"></script>
   <script defer>
     document.addEventListener('DOMContentLoaded', function () {
       initCharacterEditorAuth();
     });
   </script>
 
-  <script defer src="schema.js?v=5a2b271e"></script>
-  <script defer src="character-editor.js?v=c0f3a938"></script>
+  <script defer src="schema.js?v=12ecd423"></script>
+  <script defer src="character-editor.js?v=8f306db4"></script>
 </body>
 </html>
 

@@ -421,6 +421,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const discordColorPalette = document.getElementById('discord-color-palette');
   const discordColorPopover = document.getElementById('discord-color-popover');
   const discordColorPreviewBtn = document.getElementById('discord-color-preview');
+  const discordColorPickerInput = document.getElementById('discord-color-picker');
   const discordTestBtn = document.getElementById('discord-test-btn');
 
   if (saveBtn) {
@@ -476,11 +477,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const swatches = discordColorPalette.querySelectorAll('.discord-color-swatch[data-color]');
     swatches.forEach(function (btn) {
       const swatchColor = btn.getAttribute('data-color');
-      if (swatchColor) {
+      if (swatchColor && swatchColor !== 'custom') {
         btn.style.backgroundColor = swatchColor;
       }
       btn.addEventListener('click', function () {
         const color = btn.getAttribute('data-color') || '';
+        if (color === 'custom') {
+          openNativeColorPicker();
+          return;
+        }
         if (discordColorInput) {
           discordColorInput.value = color;
         }
@@ -495,7 +500,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function toggleColorPopover() {
     if (!discordColorPopover) return;
-    discordColorPopover.classList.toggle('hidden');
+    const isHidden = discordColorPopover.classList.contains('hidden');
+    if (isHidden) {
+      discordColorPopover.classList.remove('hidden');
+    } else {
+      discordColorPopover.classList.add('hidden');
+    }
   }
 
   if (discordColorPreviewBtn) {
@@ -512,6 +522,37 @@ document.addEventListener('DOMContentLoaded', function () {
       discordColorPopover.classList.add('hidden');
     }
   });
+
+  function sanitizeHexColor(raw, fallback) {
+    const trimmed = (raw || '').trim();
+    const hexBody = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
+    if (/^[0-9a-fA-F]{6}$/.test(hexBody)) {
+      return '#' + hexBody.toUpperCase();
+    }
+    return fallback;
+  }
+
+  function openNativeColorPicker() {
+    if (!discordColorPickerInput) return;
+    // Проставляем текущее значение в picker, чтобы оно совпадало с вводом
+    const normalized = sanitizeHexColor(discordColorInput ? discordColorInput.value : '', '#10B981');
+    discordColorPickerInput.value = normalized;
+    discordColorPickerInput.click();
+  }
+
+  if (discordColorPickerInput) {
+    discordColorPickerInput.addEventListener('input', function () {
+      const normalized = sanitizeHexColor(discordColorPickerInput.value, '#10B981');
+      if (discordColorInput) {
+        discordColorInput.value = normalized;
+      }
+      updateDiscordColorPreviewFromValue(normalized);
+      setDiscordStatus('', false);
+      if (discordColorPopover) {
+        discordColorPopover.classList.add('hidden');
+      }
+    });
+  }
 
   if (discordTestBtn) {
     discordTestBtn.addEventListener('click', function () {

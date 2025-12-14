@@ -1,0 +1,13 @@
+### Plan: subspell groups in character spell list
+1) Inspect current character spell list rendering and data (character-editor.js/html) to see how spells, rolls, activity checkbox, delete button are built. Identify markers for subspells/isSubSpell.
+2) Design/adjust data structure and DOM: render parent spells with collapsible container; render subspells nested, each with roll buttons, no active/delete controls; ensure toggles and state persistence remain intact.
+3) Implement and test: grouping logic (collect subspells under parent), toggle expand/collapse, maintain rolls functionality, ensure add/remove/update flows; sanity check styles if needed.
+1) Rename editor spell/school data vars to avoid conflict with db.js globals (spellsData, schoolsData, flags/promises).
+2) Update all references/functions in character-editor.js to new names.
+3) Quick sanity: ensure openSpellDetailsModal uses db popup; smoke-check console for errors.
+*** Begin Plan ***
+1) Review obsidian Markdown for arcana, hit/cast bonuses, fortitude rules, and attentiveness to confirm intended formulas.
+2) Update character-editor calculations to tie hit/cast to arcana total, derive fortitude low/mid/high from base fortitude value, and remove direct bonus application to derived fortitude.
+3) Expose base fortitude and attentiveness in UI and data; compute attentiveness from perception + 4; adjust common stats helper if needed; verify rendering.
+*** End Plan ***
+

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Профиль — E'Magios Core</title>
-  <link rel="stylesheet" href="styles.css?v=ccee4032">
+  <link rel="stylesheet" href="styles.css?v=10df9662">
 </head>
 <body data-page="profile">
   <div class="page-with-sidebar">
@@ -14,12 +14,11 @@
         <p id="page-loader-message" class="page-loader-message">Загружаем профиль...</p>
       </div>
     </div>
-    <!-- Sidebar will be injected here by common.js?v=39673edc -->
+    <!-- Sidebar will be injected here by common.js?v=6bfc8187 -->
 
     <main class="main-content">
       <div class="container profile-container">
         <h1>Профиль</h1>
-        <p class="text-muted">Управление аккаунтом и персональными данными</p>
 
         <div class="auth-status">
           <div id="auth-status">
@@ -100,7 +99,7 @@
                 Если оставить пустым, будет использовано ваше отображаемое имя профиля.
               </p>
             </div>
-            <div class="form-group">
+            <div class="form-group discord-color-group">
               <label for="discord-color">Цвет сообщений (HEX)</label>
               <div class="discord-color-row">
                 <button type="button" class="discord-color-preview-btn" id="discord-color-preview" aria-label="Выбрать цвет сообщений"></button>
@@ -129,8 +128,15 @@
                   <button type="button" class="discord-color-swatch" data-color="#64748B" title="#64748B"></button>
                   <button type="button" class="discord-color-swatch" data-color="#9CA3AF" title="#9CA3AF"></button>
                   <button type="button" class="discord-color-swatch" data-color="#FFFFFF" title="#FFFFFF"></button>
-                  <button type="button" class="discord-color-swatch" data-color="#1F2937" title="#1F2937"></button>
+                  <button type="button" class="discord-color-swatch discord-color-swatch-rainbow" data-color="custom" title="Выбрать свой цвет">🎨</button>
                 </div>
+                <input
+                  type="color"
+                  id="discord-color-picker"
+                  aria-label="Выбрать произвольный цвет"
+                  value="#10b981"
+                  class="sr-only"
+                >
               </div>
             </div>
           </div>
@@ -157,7 +163,7 @@
     </main>
   </div>
 
-  <script type="module" src="common.js?v=39673edc"></script>
+  <script type="module" src="common.js?v=6bfc8187"></script>
 
   <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -165,8 +171,8 @@
 
     <script defer src="firebase-config.js?v=311c55f4"></script>
 
-  <script defer src="auth.js?v=1c96cbf0"></script>
-  <script defer src="profile.js?v=caedd36b"></script>
+  <script defer src="auth.js?v=2100a550"></script>
+  <script defer src="profile.js?v=abfafd90"></script>
 </body>
 </html>
 
