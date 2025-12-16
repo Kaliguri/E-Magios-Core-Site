@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">E-Magios-Core-Mobile</string>
+
+    <string name="title_login">Вход</string>
+    <string name="title_home">Главная</string>
+    <string name="title_characters">Персонажи</string>
+    <string name="title_character_create">Создать персонажа</string>
+    <string name="title_character_detail">Персонаж</string>
+    <string name="title_db">База данных</string>
+
+    <string name="btn_sign_in_google">Войти через Google</string>
+    <string name="btn_sign_out">Выйти</string>
+    <string name="btn_characters">Персонажи</string>
+    <string name="btn_db">База данных</string>
+    <string name="btn_create">Создать</string>
+    <string name="btn_save">Сохранить</string>
+
+    <string name="hint_character_name">Имя персонажа</string>
+    <string name="hint_character_description">Описание (кратко)</string>
+
+    <string name="tab_spells">Заклинания</string>
+    <string name="tab_schools">Школы</string>
+    <string name="tab_effects">Эффекты</string>
+
+    <string name="msg_loading">Загрузка…</string>
+    <string name="msg_not_signed_in">Вы не вошли</string>
+</resources>
