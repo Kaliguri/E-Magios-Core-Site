@@ -41,6 +41,10 @@ const TABS: TabConfig[] = [
   { key: 'recipes', label: 'Рецепты', fetcher: () => CompendiumRepository.getRecipes() },
 ];
 
+const DEFAULT_FILTERS: Partial<Record<TabKey, Record<string, string[]>>> = {
+  spells: { subspell: ['Нет'] },
+};
+
 function TabContent({ tabKey, fetcher }: { tabKey: TabKey; fetcher: () => Promise<CompendiumEntity[]> }) {
   const schema = COMPENDIUM_SCHEMAS[tabKey];
   const stableFetcher = useCallback(fetcher, []);
@@ -60,7 +64,7 @@ function TabContent({ tabKey, fetcher }: { tabKey: TabKey; fetcher: () => Promis
     filterItems,
     getOptions,
     hasActiveFilters,
-  } = useCompendiumFilters();
+  } = useCompendiumFilters(DEFAULT_FILTERS[tabKey]);
   const detailModal = useDetailModal();
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -122,6 +126,11 @@ function TabContent({ tabKey, fetcher }: { tabKey: TabKey; fetcher: () => Promis
         onClose={detailModal.close}
         onBack={detailModal.goBack}
         onForward={detailModal.goForward}
+        onNavigateTo={(entity, entityType) => detailModal.open(entity, entityType)}
+        resolveEntityByName={(name, entityType) => {
+          if (entityType !== tabKey) return null;
+          return items.find(item => String((item as unknown as Record<string, unknown>)['name'] ?? '') === name) ?? null;
+        }}
       />
     </div>
   );

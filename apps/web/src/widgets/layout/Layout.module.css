@@ -9,6 +9,41 @@
   min-width: 0;
 }
 
+.resetAccessHover {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 64px;
+  height: 64px;
+  z-index: 900;
+}
+
+.resetAccessButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.resetAccessHover:hover .resetAccessButton,
+.resetAccessButton:hover,
+.resetAccessButton:focus-visible {
+  opacity: 1;
+}
+
+.resetAccessButton:hover {
+  color: var(--accent-emerald);
+  border-color: var(--accent-emerald);
+}
+
 @media (max-width: 768px) {
   .root {
     flex-direction: column;

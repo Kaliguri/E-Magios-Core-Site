@@ -1,5 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import type { CompendiumEntity } from '@/entities/compendium/types';
+
+const DB_MODAL_HISTORY_KEY = 'react_db_modal_history';
 
 interface ModalEntry {
   entity: CompendiumEntity;
@@ -18,9 +20,44 @@ interface UseDetailModalResult {
 }
 
 export function useDetailModal(): UseDetailModalResult {
-  const [history, setHistory] = useState<ModalEntry[]>([]);
-  const [index, setIndex] = useState(-1);
-  const [isOpen, setIsOpen] = useState(false);
+  const [history, setHistory] = useState<ModalEntry[]>(() => {
+    try {
+      const raw = sessionStorage.getItem(DB_MODAL_HISTORY_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw) as { history?: ModalEntry[] };
+      return Array.isArray(parsed.history) ? parsed.history : [];
+    } catch {
+      return [];
+    }
+  });
+  const [index, setIndex] = useState(() => {
+    try {
+      const raw = sessionStorage.getItem(DB_MODAL_HISTORY_KEY);
+      if (!raw) return -1;
+      const parsed = JSON.parse(raw) as { index?: number };
+      return typeof parsed.index === 'number' ? parsed.index : -1;
+    } catch {
+      return -1;
+    }
+  });
+  const [isOpen, setIsOpen] = useState(() => {
+    try {
+      const raw = sessionStorage.getItem(DB_MODAL_HISTORY_KEY);
+      if (!raw) return false;
+      const parsed = JSON.parse(raw) as { isOpen?: boolean };
+      return Boolean(parsed.isOpen);
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(DB_MODAL_HISTORY_KEY, JSON.stringify({ history, index, isOpen }));
+    } catch {
+      // Session persistence is a convenience; modal state can stay in memory.
+    }
+  }, [history, index, isOpen]);
 
   const open = useCallback((entity: CompendiumEntity, entityType: string) => {
     setHistory(prev => {

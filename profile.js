@@ -3,6 +3,12 @@
 let profileUser = null;
 let profileDocData = null;
 
+// #region agent log
+function agentProfileDebugLog(hypothesisId, location, message, data) {
+  fetch('http://127.0.0.1:7505/ingest/6fe2bbd0-0b0b-4dd2-93c9-a900d2b0a38b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'787a5f'},body:JSON.stringify({sessionId:'787a5f',runId:'auth-popup',hypothesisId:hypothesisId,location:location,message:message,data:data,timestamp:Date.now()})}).catch(function () {});
+}
+// #endregion
+
 function showProfileLoader(message) {
   if (typeof showPageLoader === 'function') {
     showPageLoader(message || 'Загружаем профиль...');
@@ -62,13 +68,108 @@ function updateAvatarPreview(url, sourceText) {
 
   circle.innerHTML = '';
 
+  // #region agent log
+  agentProfileDebugLog('A1,A2,A3', 'profile.js:72', 'Avatar preview update requested', {
+    hasUrl: Boolean(url),
+    urlStart: url ? url.slice(0, 80) : '',
+    sourceText: sourceText || '',
+    devicePixelRatio: window.devicePixelRatio || 1
+  });
+  // #endregion
+
   if (url) {
     const img = document.createElement('img');
+    img.onload = function () {
+      // #region agent log
+      agentProfileDebugLog('A1,A2,A3', 'profile.js:84', 'Avatar image loaded', {
+        naturalWidth: img.naturalWidth,
+        naturalHeight: img.naturalHeight,
+        renderedWidth: img.clientWidth,
+        renderedHeight: img.clientHeight,
+        currentSrcStart: img.currentSrc ? img.currentSrc.slice(0, 80) : ''
+      });
+      // #endregion
+      console.info('Avatar image loaded details:', {
+        naturalWidth: img.naturalWidth,
+        naturalHeight: img.naturalHeight,
+        renderedWidth: img.clientWidth,
+        renderedHeight: img.clientHeight
+      });
+    };
+    img.onerror = function () {
+      // #region agent log
+      agentProfileDebugLog('A1', 'profile.js:103', 'Avatar image failed to load', {
+        urlStart: url.slice(0, 120),
+        currentSrcStart: img.currentSrc ? img.currentSrc.slice(0, 120) : ''
+      });
+      // #endregion
+      console.error('Avatar image failed to load:', {
+        urlStart: url.slice(0, 120),
+        currentSrcStart: img.currentSrc ? img.currentSrc.slice(0, 120) : ''
+      });
+    };
     img.src = url;
     img.alt = 'Avatar';
     img.style.width = '100%';
     img.style.height = '100%';
     img.style.objectFit = 'cover';
+    // #region agent log
+    agentProfileDebugLog('H6,H7,H8', 'profile.js:76', 'Google avatar image created', {
+      hasUrl: Boolean(url),
+      urlLength: url.length,
+      urlHost: (function () {
+        try {
+          return new URL(url).host;
+        } catch (error) {
+          return 'invalid-url';
+        }
+      })(),
+      referrerPolicy: img.referrerPolicy,
+      sourceText: sourceText || ''
+    });
+    console.info('Google avatar debug:', {
+      hasUrl: Boolean(url),
+      urlLength: url.length,
+      urlHost: (function () {
+        try {
+          return new URL(url).host;
+        } catch (error) {
+          return 'invalid-url';
+        }
+      })(),
+      referrerPolicy: img.referrerPolicy
+    });
+    // #endregion
+    img.addEventListener('load', function () {
+      // #region agent log
+      agentProfileDebugLog('H7,H8', 'profile.js:106', 'Google avatar image loaded', {
+        naturalWidth: img.naturalWidth,
+        naturalHeight: img.naturalHeight,
+        renderedWidth: img.clientWidth,
+        renderedHeight: img.clientHeight
+      });
+      console.info('Google avatar loaded:', {
+        naturalWidth: img.naturalWidth,
+        naturalHeight: img.naturalHeight,
+        renderedWidth: img.clientWidth,
+        renderedHeight: img.clientHeight
+      });
+      // #endregion
+    });
+    img.addEventListener('error', function () {
+      // #region agent log
+      agentProfileDebugLog('H7', 'profile.js:122', 'Google avatar image failed to load', {
+        complete: img.complete,
+        naturalWidth: img.naturalWidth,
+        naturalHeight: img.naturalHeight
+      });
+      console.error('Google avatar failed to load:', {
+        complete: img.complete,
+        naturalWidth: img.naturalWidth,
+        naturalHeight: img.naturalHeight
+      });
+      // #endregion
+    });
     circle.appendChild(img);
   } else {
     const span = document.createElement('span');
@@ -455,12 +556,49 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (loginBtn) {
     loginBtn.addEventListener('click', function () {
+      // #region agent log
+      agentProfileDebugLog('H1,H2,H3,H5', 'profile.js:466', 'Google sign-in button clicked', {
+        hasFirebase: typeof firebase !== 'undefined',
+        hasAuth: Boolean(typeof firebase !== 'undefined' && firebase.auth),
+        hasProvider: Boolean(typeof firebase !== 'undefined' && firebase.auth && firebase.auth.GoogleAuthProvider),
+        origin: window.location.origin,
+        protocol: window.location.protocol,
+        host: window.location.host
+      });
+      // #endregion
+
       if (firebase && firebase.auth && firebase.auth.GoogleAuthProvider) {
         const provider = new firebase.auth.GoogleAuthProvider();
         firebase
           .auth()
           .signInWithPopup(provider)
+          .then(function (result) {
+            // #region agent log
+            agentProfileDebugLog('H5', 'profile.js:483', 'Google sign-in popup resolved', {
+              hasUser: Boolean(result && result.user),
+              uidPresent: Boolean(result && result.user && result.user.uid),
+              providerId: result && result.credential && result.credential.providerId
+            });
+            // #endregion
+          })
           .catch(function (error) {
+            // #region agent log
+            agentProfileDebugLog('H1,H2,H5', 'profile.js:493', 'Google sign-in popup failed', {
+              code: error && error.code,
+              message: error && error.message,
+              origin: window.location.origin,
+              host: window.location.host
+            });
+            // #endregion
+            const errorCode = error && error.code ? error.code : 'unknown';
+            const errorMessage = error && error.message ? error.message : String(error);
+            setProfileStatus('Ошибка входа Google: ' + errorCode, true);
+            console.error('Google sign-in failed details:', {
+              code: errorCode,
+              message: errorMessage,
+              origin: window.location.origin,
+              host: window.location.host
+            });
             console.error('Google sign-in failed (profile page):', error);
           });
       }

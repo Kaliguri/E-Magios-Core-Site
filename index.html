@@ -1,169 +1,124 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Профиль — E'Magios Core</title>
+  <title>E'Magios Core — Настольная Ролевая Система</title>
   <link rel="stylesheet" href="styles.css?v=9408e766">
 </head>
 <body data-page="home">
   <div class="page-with-sidebar">
-    <div id="page-loader" class="page-loader content-only">
-      <div class="page-loader-content">
-        <div class="page-loader-spinner"></div>
-        <p id="page-loader-message" class="page-loader-message">Загружаем профиль...</p>
+    <!-- Sidebar будет создан через common.js?v=4f2957ea -->
+    
+    <main class="main-content main-content-home">
+      <div class="container">
+      <div class="text-center" style="margin-top: 3rem; margin-bottom: 2rem;">
+        <h1>E'Magios Core</h1>
+        <p class="text-muted" style="font-size: 1.2rem; max-width: 600px; margin: 0 auto;">
+          Настольная ролевая система о магах, создающих свои уникальные заклинания и исследующих мир магии
+        </p>
       </div>
-    </div>
-    <!-- Sidebar will be injected here by common.js?v=c291babb -->
 
-    <main class="main-content">
-      <div class="container profile-container">
-        <h1>Профиль</h1>
-
-        <div class="auth-status">
-          <div id="auth-status">
-            <p class="text-muted">Проверка статуса авторизации...</p>
+      <!-- Книги -->
+      <section style="margin-bottom: 3rem;">
+        <h2 style="margin-bottom: 1.5rem; color: var(--accent-emerald);">Книги</h2>
+        
+        <div style="margin-bottom: 2rem;">
+          <h3 style="font-size: 1.2rem; color: var(--text-primary); margin-bottom: 1rem;">Доступные</h3>
+          <div class="card-grid">
+            <a href="phb.html" class="card">
+              <div class="card-icon">PHB</div>
+              <div class="card-title">Player's Handbook</div>
+              <div class="card-description">
+                Основные правила для игроков: создание персонажей, характеристики, заклинания и боевая система
+              </div>
+            </a>
           </div>
         </div>
 
-        <section id="profile-guest" class="form-section">
-          <h2>Требуется авторизация</h2>
-          <p class="text-muted" style="font-size: 1.05rem; max-width: 720px;">
-            Для доступа ко всем возможностям сайта, включая сохранение персонажей,
-            историю бросков и интеграцию с Discord, требуется вход через Google.
-          </p>
-          <p class="text-muted" style="margin-top: 0.5rem; max-width: 720px;">
-            После входа вы сможете настроить профиль, сохранить свои данные и связать броски кубов с Discord.
-          </p>
-
-          <div style="margin-top: var(--spacing-lg);">
-            <button type="button" class="btn btn-primary" id="profile-google-login-btn" style="min-width: 260px; font-size: 1.05rem;">
-              Войти через Google
-            </button>
-          </div>
-        </section>
-
-        <section id="profile-content" class="form-section">
-          <div class="profile-header">
-            <div id="profile-avatar-preview" class="profile-avatar-circle">
-              <span class="text-muted" style="font-size:0.8rem;">Нет аватара</span>
-            </div>
-            <div class="profile-header-info">
-              <h2 id="profile-display-name">Без имени</h2>
-              <p class="text-muted" id="profile-display-email"></p>
-            </div>
-          </div>
-
-          <div class="form-grid-2" style="margin-top: var(--spacing-lg);">
-            <div class="form-group">
-              <label for="profile-name">Отображаемое имя</label>
-              <input type="text" id="profile-name" placeholder="Имя, которое будет видно в интерфейсе">
-            </div>
-            <div class="form-group">
-              <label for="profile-email">Email</label>
-              <input type="text" id="profile-email" readonly>
-            </div>
-          </div>
-        </section>
-
-        <section id="profile-discord-section" class="form-section" style="margin-top: var(--spacing-xl);">
-          <h2>Интеграция с Discord</h2>
-          <p class="text-muted">
-            Здесь вы можете настроить отправку ваших бросков кубов в Discord через вебхук.
-            Настройки сохраняются для вашего аккаунта и используются на всех страницах.
-          </p>
-
-          <div class="form-group">
-            <label for="discord-webhook-url">URL вебхука Discord</label>
-            <input
-              type="text"
-              id="discord-webhook-url"
-              placeholder="https://discord.com/api/webhooks/..."
-            >
-            <p class="text-muted" style="margin-top: 0.25rem;">
-              Получите ссылку вебхука в настройках Discord-сервера
-              (Интеграции → Вебхуки) и вставьте её сюда.
-            </p>
-          </div>
-
-          <div class="form-grid-2" style="margin-top: var(--spacing-md);">
-            <div class="form-group">
-              <label for="discord-display-name">Имя в Discord для бросков</label>
-              <input
-                type="text"
-                id="discord-display-name"
-                placeholder="Например: Эльдриан, маг 5 уровня"
-              >
-              <p class="text-muted" style="margin-top: 0.25rem;">
-                Это имя будет отображаться как имя отправителя сообщений о бросках.
-                Если оставить пустым, будет использовано ваше отображаемое имя профиля.
-              </p>
-            </div>
-            <div class="form-group discord-color-group">
-              <label for="discord-color">Цвет сообщений (HEX)</label>
-              <div class="discord-color-row">
-                <button type="button" class="discord-color-preview-btn" id="discord-color-preview" aria-label="Выбрать цвет сообщений"></button>
-                <input
-                  type="text"
-                  id="discord-color"
-                  placeholder="#10b981"
-                >
+        <div>
+          <h3 style="font-size: 1.2rem; color: var(--text-primary); margin-bottom: 1rem;">На тестировании 🔒</h3>
+          <div class="card-grid">
+            <a href="master.html" class="card locked">
+              <div class="card-icon">MH</div>
+              <div class="card-title">Master's Handbook</div>
+              <div class="card-description">
+                Руководство для мастера: ведение игры, долгосрочные проекты, вехи и уровни силы магов
               </div>
-              <p class="text-muted" style="margin-top: 0.25rem;">
-                Необязательный цвет рамки сообщения в формате HEX
-                (например, <code>#10b981</code>).
-              </p>
-              <div class="discord-color-palette-popover hidden" id="discord-color-popover">
-                <div class="discord-color-palette" id="discord-color-palette">
-                  <button type="button" class="discord-color-swatch" data-color="#EF4444" title="#EF4444"></button>
-                  <button type="button" class="discord-color-swatch" data-color="#F97316" title="#F97316"></button>
-                  <button type="button" class="discord-color-swatch" data-color="#FACC15" title="#FACC15"></button>
-                  <button type="button" class="discord-color-swatch" data-color="#22C55E" title="#22C55E"></button>
-                  <button type="button" class="discord-color-swatch" data-color="#10B981" title="#10B981"></button>
-                  <button type="button" class="discord-color-swatch" data-color="#14B8A6" title="#14B8A6"></button>
-                  <button type="button" class="discord-color-swatch" data-color="#0EA5E9" title="#0EA5E9"></button>
-                  <button type="button" class="discord-color-swatch" data-color="#6366F1" title="#6366F1"></button>
-                  <button type="button" class="discord-color-swatch" data-color="#A855F7" title="#A855F7"></button>
-                  <button type="button" class="discord-color-swatch" data-color="#EC4899" title="#EC4899"></button>
-                  <button type="button" class="discord-color-swatch" data-color="#64748B" title="#64748B"></button>
-                  <button type="button" class="discord-color-swatch" data-color="#9CA3AF" title="#9CA3AF"></button>
-                  <button type="button" class="discord-color-swatch" data-color="#FFFFFF" title="#FFFFFF"></button>
-                  <button type="button" class="discord-color-swatch discord-color-swatch-rainbow" data-color="custom" title="Выбрать свой цвет">🎨</button>
-                </div>
-                <input
-                  type="color"
-                  id="discord-color-picker"
-                  aria-label="Выбрать произвольный цвет"
-                  value="#10b981"
-                  class="sr-only"
-                >
+            </a>
+
+            <a href="spellbook.html" class="card locked">
+              <div class="card-icon">SB</div>
+              <div class="card-title">Spellbook</div>
+              <div class="card-description">
+                Школы магии и заклинания: 41 школа магии с уникальными особенностями и принципами
               </div>
-            </div>
-          </div>
+            </a>
 
-          <div style="margin-top: var(--spacing-md); display:flex; gap: var(--spacing-sm); align-items: center;">
-            <button type="button" class="btn btn-primary" id="discord-test-btn">
-              Отправить тест в Discord
-            </button>
-            <p id="discord-status" class="text-muted" style="margin-top: 0.25rem;"></p>
-          </div>
-        </section>
+            <a href="craftbook.html" class="card locked">
+              <div class="card-icon">CB</div>
+              <div class="card-title">Craftbook</div>
+              <div class="card-description">
+                Ремёсла и создание: виды профессий, магические ремёсла и создание артефактов
+              </div>
+            </a>
 
-        <div class="profile-actions-bar">
-          <div class="profile-actions-bar-inner">
-            <p id="profile-status" class="text-muted profile-status-text"></p>
-            <div class="profile-actions-buttons">
-              <button type="button" class="btn btn-primary" id="profile-save-btn">Сохранить</button>
-              <button type="button" class="btn btn-secondary" id="profile-reset-btn">Сбросить изменения</button>
-              <button type="button" class="btn btn-secondary" id="profile-logout-btn">Выйти из аккаунта</button>
-            </div>
+            <a href="rumors.html" class="card locked">
+              <div class="card-icon">CR</div>
+              <div class="card-title">Compendium of Rumors</div>
+              <div class="card-description">
+                Идеи и слухи: дополнительные материалы, необычные концепции и вдохновение для игр
+              </div>
+            </a>
           </div>
         </div>
+      </section>
+
+      <!-- Инструменты -->
+      <section style="margin-bottom: 3rem;">
+        <h2 style="margin-bottom: 1.5rem; color: var(--accent-emerald);">Инструменты</h2>
+        <div class="card-grid">
+          <a href="character-editor.html" class="card">
+            <div class="card-icon">CE</div>
+            <div class="card-title">Редактор персонажей</div>
+            <div class="card-description">
+              Создавайте и управляйте персонажами с автоматическим расчётом характеристик
+            </div>
+          </a>
+
+          <a href="db.html" class="card">
+            <div class="card-icon">DB</div>
+            <div class="card-title">База данных</div>
+            <div class="card-description">
+              Поиск заклинаний, школ магии и эффектов с расширенными фильтрами
+            </div>
+          </a>
+
+          <a href="lobby.html" class="card">
+            <div class="card-icon">LB</div>
+            <div class="card-title">Лобби</div>
+            <div class="card-description">
+              Создавайте комнаты, подключайтесь по ссылке, бросайте кости и рисуйте карту вместе
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <div style="margin-top: 3rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+      <p>🔒 = Требуется пароль для доступа</p>
+      <p style="margin-top: 1rem;">
+          Версия 1.1 | 
+          <a href="https://github.com/Kaliguri/E-Magios-Core-Site" target="_blank">GitHub</a>
+        </p>
+      </div>
       </div>
     </main>
   </div>
 
-  <script type="module" src="common.js?v=c291babb"></script>
+  <!-- Scroll to top button -->
+  <button id="scroll-to-top" class="scroll-to-top" aria-label="Наверх">↑</button>
+
+  <script type="module" src="common.js?v=4f2957ea"></script>
 
   <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -172,6 +127,6 @@
     <script defer src="firebase-config.js?v=311c55f4"></script>
 
   <script defer src="auth.js?v=2100a550"></script>
-  <script defer src="profile.js?v=abfafd90"></script>
 </body>
 </html>
+

@@ -85,3 +85,14 @@
   font-size: 0.8rem;
   color: var(--text-secondary);
 }
+
+.tagButton {
+  cursor: pointer;
+  color: var(--accent-emerald);
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.tagButton:hover {
+  border-color: var(--accent-emerald);
+  background: rgba(16, 185, 129, 0.08);
+}

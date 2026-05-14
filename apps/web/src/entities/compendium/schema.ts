@@ -34,7 +34,7 @@ export const COMPENDIUM_SCHEMAS: SchemaMap = {
       { key: 'school', label: 'Школа', sourceField: 'school' },
       { key: 'damage', label: 'Тип урона', sourceField: 'damageType', split: true },
       { key: 'concentration', label: 'Концентрация', options: ['Да', 'Нет'] },
-      { key: 'subspell', label: 'Является Подзаклинанием', options: ['Да', 'Нет'] },
+      { key: 'subspell', label: 'Является Подзаклинанием', sourceField: 'isSubSpell', options: ['Да', 'Нет'] },
       { key: 'requiredLevel', label: 'Требуемый уровень', sourceField: 'requiredLevel', numeric: true },
       { key: 'signature', label: 'Фирменное заклинание', options: ['Да', 'Нет'] },
       { key: 'source', label: 'Источник', options: ['Учебное', 'Фирменное'] },

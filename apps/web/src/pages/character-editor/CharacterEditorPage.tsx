@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useCharacterAuth } from '@/features/character-editor/useCharacterAuth';
 import { useCharacterState } from '@/features/character-editor/useCharacterState';
 import { MAGIC_SKILLS, PERSONALITY_SKILLS } from '@/features/character-editor/characterCalculations';
@@ -8,6 +8,45 @@ import type { Character } from '@/entities/character/types';
 import styles from './CharacterEditorPage.module.css';
 
 type View = 'list' | 'editor';
+const LOCAL_CHARACTERS_KEY = 'emagiosCharacters';
+const TEST_GUEST_MODE_KEY = 'emagiosTestGuestCharacters';
+
+function isGuestTestModeEnabled(): boolean {
+  if (import.meta.env.MODE === 'test') return true;
+  try {
+    return localStorage.getItem(TEST_GUEST_MODE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function readLocalCharacters(): Character[] {
+  try {
+    const raw = localStorage.getItem(LOCAL_CHARACTERS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as Character[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalCharacters(characters: Character[]) {
+  localStorage.setItem(LOCAL_CHARACTERS_KEY, JSON.stringify(characters));
+}
+
+function downloadCharacter(character: Character) {
+  const json = JSON.stringify(character, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${(character.name || 'character').replace(/[^a-zA-Zа-яА-Я0-9]/g, '_')}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
 
 function AuthBanner({
   auth,
@@ -22,7 +61,7 @@ function AuthBanner({
   if (!auth.uid) {
     return (
       <div className={styles.authBanner}>
-        <span className={styles.authHint}>Войдите через Google, чтобы сохранять персонажей в облаке</span>
+        <span className={styles.authHint}>Войдите через Google, чтобы создавать и сохранять персонажей</span>
         <Button variant="outline" size="sm" onClick={onSignIn}>Войти через Google</Button>
       </div>
     );
@@ -39,10 +78,12 @@ function CharacterCard({
   character,
   onLoad,
   onDelete,
+  onExport,
 }: {
   character: Character;
   onLoad: () => void;
   onDelete: () => void;
+  onExport: () => void;
 }) {
   return (
     <div className={styles.characterCard}>
@@ -52,6 +93,7 @@ function CharacterCard({
       </div>
       <div className={styles.characterCardActions}>
         <Button variant="outline" size="sm" onClick={onLoad}>Загрузить</Button>
+        <Button variant="ghost" size="sm" onClick={onExport}>Экспорт</Button>
         <Button variant="ghost" size="sm" onClick={onDelete}>Удалить</Button>
       </div>
     </div>
@@ -91,27 +133,77 @@ export function CharacterEditorPage() {
   const state = useCharacterState(authHook.auth.uid, authHook.refreshCharacters);
   const [view, setView] = useState<View>('list');
   const [activeTab, setActiveTab] = useState<'stats' | 'skills' | 'spells'>('stats');
+  const [guestTestMode] = useState(isGuestTestModeEnabled);
+  const [localCharacters, setLocalCharacters] = useState<Character[]>(readLocalCharacters);
+  const importInputRef = useRef<HTMLInputElement | null>(null);
+  const isCloudMode = Boolean(authHook.auth.uid);
+  const canEditCharacters = isCloudMode || guestTestMode;
+  const visibleCharacters = isCloudMode ? authHook.characters : guestTestMode ? localCharacters : [];
 
   function handleNew() {
+    if (!canEditCharacters) return;
     state.reset();
     setView('editor');
   }
 
   function handleLoad(character: Character) {
+    if (!canEditCharacters) return;
     state.loadCharacter(character);
     setView('editor');
   }
 
   async function handleDelete(character: Character) {
-    if (!authHook.auth.uid) return;
-    await CharacterRepository.deleteCharacter(authHook.auth.uid, character.id);
-    authHook.refreshCharacters();
+    if (authHook.auth.uid) {
+      await CharacterRepository.deleteCharacter(authHook.auth.uid, character.id);
+      authHook.refreshCharacters();
+      return;
+    }
+    if (!guestTestMode) return;
+    const next = localCharacters.filter(c => c.id !== character.id);
+    setLocalCharacters(next);
+    writeLocalCharacters(next);
   }
 
   async function handleSave() {
-    if (!authHook.auth.uid) return;
-    await state.saveNow(authHook.auth.uid);
-    authHook.refreshCharacters();
+    if (authHook.auth.uid) {
+      await state.saveNow(authHook.auth.uid);
+      authHook.refreshCharacters();
+      return;
+    }
+    if (!guestTestMode) return;
+    const nextCharacter: Character = {
+      ...state.character,
+      updatedAt: new Date().toISOString(),
+      version: (state.character.version ?? 0) + 1,
+    };
+    const exists = localCharacters.some(c => c.id === nextCharacter.id);
+    const next = exists
+      ? localCharacters.map(c => c.id === nextCharacter.id ? nextCharacter : c)
+      : [nextCharacter, ...localCharacters];
+    setLocalCharacters(next);
+    writeLocalCharacters(next);
+    state.loadCharacter(nextCharacter);
+  }
+
+  async function handleImportFile(file: File) {
+    if (!guestTestMode) return;
+    const text = await file.text();
+    const parsed = JSON.parse(text) as Character;
+    if (!parsed || typeof parsed !== 'object' || !parsed.id) {
+      throw new Error('Invalid character file');
+    }
+    const imported: Character = {
+      ...parsed,
+      updatedAt: new Date().toISOString(),
+    };
+    const exists = localCharacters.some(c => c.id === imported.id);
+    const next = exists
+      ? localCharacters.map(c => c.id === imported.id ? imported : c)
+      : [imported, ...localCharacters];
+    setLocalCharacters(next);
+    writeLocalCharacters(next);
+    state.loadCharacter(imported);
+    setView('editor');
   }
 
   const { character, isDirty, isSaving, updateField, updateLevel, updateSkillLevel } = state;
@@ -130,32 +222,63 @@ export function CharacterEditorPage() {
 
         <div className={styles.listHeader}>
           <h2>Персонажи</h2>
-          <Button variant="primary" onClick={handleNew}>+ Создать персонажа</Button>
+          {canEditCharacters && (
+            <div className={styles.listActions}>
+              {guestTestMode && (
+                <Button variant="secondary" onClick={() => importInputRef.current?.click()}>Импорт JSON</Button>
+              )}
+              <Button variant="primary" onClick={handleNew}>+ Создать персонажа</Button>
+            </div>
+          )}
         </div>
 
-        {authHook.charactersLoading && (
+        {guestTestMode && (
+          <input
+            ref={importInputRef}
+            type="file"
+            accept="application/json,.json"
+            className={styles.hiddenInput}
+            onChange={event => {
+              const file = event.target.files?.[0];
+              event.target.value = '';
+              if (file) {
+                void handleImportFile(file);
+              }
+            }}
+          />
+        )}
+
+        {isCloudMode && authHook.charactersLoading && (
           <div className={styles.hint}>Загружаем персонажей...</div>
         )}
 
         {!authHook.auth.uid && !authHook.auth.loading && (
-          <div className={styles.hint}>Войдите, чтобы увидеть сохранённых персонажей</div>
+          <div className={styles.hint}>
+            {guestTestMode
+              ? 'Тестовый режим: персонажи сохраняются в localStorage этого браузера.'
+              : 'Войдите, чтобы увидеть сохранённых персонажей и создать нового.'}
+          </div>
         )}
 
-        {authHook.characters.length > 0 && (
+        {visibleCharacters.length > 0 && (
           <div className={styles.characterList}>
-            {authHook.characters.map(c => (
+            {visibleCharacters.map(c => (
               <CharacterCard
                 key={c.id}
                 character={c}
                 onLoad={() => handleLoad(c)}
                 onDelete={() => handleDelete(c)}
+                onExport={() => downloadCharacter(c)}
               />
             ))}
           </div>
         )}
 
-        {authHook.auth.uid && !authHook.charactersLoading && authHook.characters.length === 0 && (
+        {isCloudMode && !authHook.charactersLoading && visibleCharacters.length === 0 && (
           <div className={styles.hint}>Персонажей пока нет. Создайте первого!</div>
+        )}
+        {guestTestMode && visibleCharacters.length === 0 && (
+          <div className={styles.hint}>Нет локально сохранённых персонажей. Создайте нового или импортируйте JSON.</div>
         )}
       </div>
     );
@@ -169,11 +292,12 @@ export function CharacterEditorPage() {
         <div className={styles.editorActions}>
           {isDirty && <span className={styles.dirtyBadge}>Несохранённые изменения</span>}
           {isSaving && <span className={styles.savingBadge}>Сохранение...</span>}
-          {authHook.auth.uid && (
-            <Button variant="primary" size="sm" onClick={handleSave} disabled={isSaving}>
-              Сохранить
-            </Button>
-          )}
+          <Button variant="ghost" size="sm" onClick={() => downloadCharacter(character)}>
+            Экспорт JSON
+          </Button>
+          <Button variant="primary" size="sm" onClick={handleSave} disabled={isSaving}>
+            {authHook.auth.uid ? 'Сохранить в облако' : 'Сохранить тестово'}
+          </Button>
         </div>
       </div>
 
@@ -302,6 +426,28 @@ export function CharacterEditorPage() {
       )}
 
       <div className={styles.notesSection}>
+        <h3>Школы Магии</h3>
+        <input
+          className={styles.textInput}
+          placeholder="Например: Базовая Аркана, Огонь"
+          value={character.schools.join(', ')}
+          onChange={e => updateField('schools', e.target.value.split(',').map(v => v.trim()).filter(Boolean))}
+        />
+        <h3>Архетипы</h3>
+        <input
+          className={styles.textInput}
+          placeholder="Архетипы персонажа"
+          value={character.archetypes.join(', ')}
+          onChange={e => updateField('archetypes', e.target.value.split(',').map(v => v.trim()).filter(Boolean))}
+        />
+        <h3>Экипировка</h3>
+        <textarea
+          className={styles.textarea}
+          placeholder="Экипировка..."
+          value={character.equipment ?? ''}
+          onChange={e => updateField('equipment', e.target.value)}
+          rows={3}
+        />
         <h3>Описание</h3>
         <textarea
           className={styles.textarea}

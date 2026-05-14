@@ -4,6 +4,21 @@ import type { FilterDescriptor } from '@/entities/compendium/schema';
 
 export type FilterState = Record<string, string[]>;
 
+function cloneFilters(filters: FilterState): FilterState {
+  return Object.fromEntries(Object.entries(filters).map(([key, values]) => [key, [...values]]));
+}
+
+function filtersEqual(a: FilterState, b: FilterState): boolean {
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+  for (const key of keys) {
+    const av = a[key] ?? [];
+    const bv = b[key] ?? [];
+    if (av.length !== bv.length) return false;
+    if (av.some(value => !bv.includes(value))) return false;
+  }
+  return true;
+}
+
 function splitToArray(val: unknown): string[] {
   if (Array.isArray(val)) return val.map(String);
   if (typeof val === 'string' && val.includes(',')) {
@@ -34,7 +49,7 @@ function matchesFilters(item: CompendiumEntity, filters: FilterState, filterDefs
         if (selected.includes('Да') && !selected.includes('Нет') && !hasConc) return false;
         if (selected.includes('Нет') && !selected.includes('Да') && hasConc) return false;
       } else if (fd.key === 'subspell') {
-        const isSubspell = val === 'Да';
+        const isSubspell = val === 'Да' || val === true;
         if (selected.includes('Да') && !selected.includes('Нет') && !isSubspell) return false;
         if (selected.includes('Нет') && !selected.includes('Да') && isSubspell) return false;
       } else if (fd.key === 'signature') {
@@ -95,8 +110,9 @@ interface UseCompendiumFiltersResult {
 }
 
 export function useCompendiumFilters(initialFilters?: FilterState): UseCompendiumFiltersResult {
-  const [filters, setFilters] = useState<FilterState>(initialFilters ?? {});
-  const [tempFilters, setTempFiltersState] = useState<FilterState>(initialFilters ?? {});
+  const initial = initialFilters ?? {};
+  const [filters, setFilters] = useState<FilterState>(() => cloneFilters(initial));
+  const [tempFilters, setTempFiltersState] = useState<FilterState>(() => cloneFilters(initial));
 
   const setTempFilter = useCallback((key: string, values: string[]) => {
     setTempFiltersState(prev => ({ ...prev, [key]: values }));
@@ -111,8 +127,8 @@ export function useCompendiumFilters(initialFilters?: FilterState): UseCompendiu
   }, [filters]);
 
   const clearFilters = useCallback(() => {
-    setTempFiltersState({});
-  }, []);
+    setTempFiltersState(cloneFilters(initial));
+  }, [initial]);
 
   const filterItems = useCallback(<T extends CompendiumEntity>(
     items: T[],
@@ -125,7 +141,7 @@ export function useCompendiumFilters(initialFilters?: FilterState): UseCompendiu
     return collectOptions(items, fd);
   }, []);
 
-  const hasActiveFilters = Object.values(filters).some(v => v.length > 0);
+  const hasActiveFilters = !filtersEqual(filters, initial);
 
   return {
     filters,

@@ -66,7 +66,7 @@ const NEWS_ENTRIES = [
       recipes: []
     },
     links: [
-      { text: 'Профиль', url: 'index.html' }
+      { text: 'Профиль', url: 'profile.html' }
     ]
   },
   {
@@ -843,7 +843,7 @@ function renderNews(spells, schools, effects, archetypes, actions, basics, skill
       linksHtml = '<p class="news-entry-links">См. также: ' + linksParts.join(' · ') + '</p>';
     }
 
-    const isLatest = true; // entry.id === NEWS_ENTRIES[0].id;
+    const isLatest = entry.id === NEWS_ENTRIES[0].id;
     const openAttr = isLatest ? ' open' : '';
 
     const briefHtml = entry.brief

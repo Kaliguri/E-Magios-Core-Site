@@ -14,6 +14,7 @@ interface DetailModalProps {
   onBack: () => void;
   onForward: () => void;
   onNavigateTo?: (entity: CompendiumEntity, type: string) => void;
+  resolveEntityByName?: (name: string, type: string) => CompendiumEntity | null;
 }
 
 function Row({ label, value }: { label: string; value?: unknown }) {
@@ -36,6 +37,32 @@ function HtmlBlock({ html }: { html: string }) {
   );
 }
 
+function NavigateTag({
+  label,
+  entityType,
+  resolveEntityByName,
+  onNavigateTo,
+}: {
+  label: string;
+  entityType: string;
+  resolveEntityByName?: (name: string, type: string) => CompendiumEntity | null;
+  onNavigateTo?: (entity: CompendiumEntity, type: string) => void;
+}) {
+  const target = resolveEntityByName?.(label, entityType) ?? null;
+  if (!target || !onNavigateTo) {
+    return <span className={styles.tag}>{label}</span>;
+  }
+  return (
+    <button
+      type="button"
+      className={[styles.tag, styles.tagButton].join(' ')}
+      onClick={() => onNavigateTo(target, entityType)}
+    >
+      {label}
+    </button>
+  );
+}
+
 function SpellDetail({ spell }: { spell: Spell }) {
   return (
     <div className={styles.detail}>
@@ -53,17 +80,39 @@ function SpellDetail({ spell }: { spell: Spell }) {
         <Row label="Концентрация" value={spell.concentration} />
         <Row label="Поддержание" value={spell.maintenance} />
         <Row label="Источник" value={spell.source} />
+        <Row label="Родительское заклинание" value={spell.parentName} />
       </div>
       {spell.description && (
         <div className={styles.section}>
           <HtmlBlock html={spell.description} />
         </div>
       )}
+      {spell.subSpells && spell.subSpells.length > 0 && (
+        <div className={styles.section}>
+          <h4>Подзаклинания</h4>
+          <ul className={styles.list}>
+            {spell.subSpells.map(sub => (
+              <li key={sub.id}>
+                <strong>{sub.name}</strong>
+                {sub.description ? ` — ${sub.description.replace(/<[^>]+>/g, '').slice(0, 180)}${sub.description.length > 180 ? '...' : ''}` : ''}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
 
-function SchoolDetail({ school }: { school: School }) {
+function SchoolDetail({
+  school,
+  resolveEntityByName,
+  onNavigateTo,
+}: {
+  school: School;
+  resolveEntityByName?: (name: string, type: string) => CompendiumEntity | null;
+  onNavigateTo?: (entity: CompendiumEntity, type: string) => void;
+}) {
   return (
     <div className={styles.detail}>
       <h2 className={styles.entityName}>{school.name}</h2>
@@ -108,7 +157,13 @@ function SchoolDetail({ school }: { school: School }) {
           <h4>Связанные школы</h4>
           <div className={styles.tags}>
             {school.relatedSchools.map((s, i) => (
-              <span key={i} className={styles.tag}>{s}</span>
+              <NavigateTag
+                key={i}
+                label={s}
+                entityType="schools"
+                resolveEntityByName={resolveEntityByName}
+                onNavigateTo={onNavigateTo}
+              />
             ))}
           </div>
         </div>
@@ -215,10 +270,26 @@ function GenericDetail({ entity }: { entity: CompendiumEntity }) {
   );
 }
 
-function EntityDetail({ entity, entityType }: { entity: CompendiumEntity; entityType: string }) {
+function EntityDetail({
+  entity,
+  entityType,
+  resolveEntityByName,
+  onNavigateTo,
+}: {
+  entity: CompendiumEntity;
+  entityType: string;
+  resolveEntityByName?: (name: string, type: string) => CompendiumEntity | null;
+  onNavigateTo?: (entity: CompendiumEntity, type: string) => void;
+}) {
   switch (entityType) {
     case 'spells': return <SpellDetail spell={entity as Spell} />;
-    case 'schools': return <SchoolDetail school={entity as School} />;
+    case 'schools': return (
+      <SchoolDetail
+        school={entity as School}
+        resolveEntityByName={resolveEntityByName}
+        onNavigateTo={onNavigateTo}
+      />
+    );
     case 'effects': return <EffectDetail effect={entity as Effect} />;
     case 'actions': return <ActionDetail action={entity as Action} />;
     case 'skills': return <SkillDetail skill={entity as Skill} />;
@@ -236,6 +307,8 @@ export function DetailModal({
   onClose,
   onBack,
   onForward,
+  onNavigateTo,
+  resolveEntityByName,
 }: DetailModalProps) {
   const footer = (
     <>
@@ -252,7 +325,14 @@ export function DetailModal({
       title={entity ? String((entity as unknown as Record<string, unknown>)['name'] ?? '') : ''}
       footer={footer}
     >
-      {entity && <EntityDetail entity={entity} entityType={entityType} />}
+      {entity && (
+        <EntityDetail
+          entity={entity}
+          entityType={entityType}
+          resolveEntityByName={resolveEntityByName}
+          onNavigateTo={onNavigateTo}
+        />
+      )}
     </Modal>
   );
 }
