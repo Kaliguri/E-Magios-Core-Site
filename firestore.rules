@@ -1,0 +1,109 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Content manifest — public read, no client write
+    match /contentManifest/{env} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Compendium collections — public read for published docs, no client write
+    match /spells/{docId} {
+      allow read: if resource.data.status == 'published';
+      allow write: if false;
+    }
+
+    match /schools/{docId} {
+      allow read: if resource.data.status == 'published';
+      allow write: if false;
+    }
+
+    match /effects/{docId} {
+      allow read: if resource.data.status == 'published';
+      allow write: if false;
+    }
+
+    match /actions/{docId} {
+      allow read: if resource.data.status == 'published';
+      allow write: if false;
+    }
+
+    match /skills/{docId} {
+      allow read: if resource.data.status == 'published';
+      allow write: if false;
+    }
+
+    match /archetypes/{docId} {
+      allow read: if resource.data.status == 'published';
+      allow write: if false;
+    }
+
+    match /basics/{docId} {
+      allow read: if resource.data.status == 'published';
+      allow write: if false;
+    }
+
+    match /action_types/{docId} {
+      allow read: if resource.data.status == 'published';
+      allow write: if false;
+    }
+
+    match /combat_components/{docId} {
+      allow read: if resource.data.status == 'published';
+      allow write: if false;
+    }
+
+    match /craft_components/{docId} {
+      allow read: if resource.data.status == 'published';
+      allow write: if false;
+    }
+
+    match /craft_professions/{docId} {
+      allow read: if resource.data.status == 'published';
+      allow write: if false;
+    }
+
+    match /craft_specializations/{docId} {
+      allow read: if resource.data.status == 'published';
+      allow write: if false;
+    }
+
+    match /recipe_types/{docId} {
+      allow read: if resource.data.status == 'published';
+      allow write: if false;
+    }
+
+    match /recipes/{docId} {
+      allow read: if resource.data.status == 'published';
+      allow write: if false;
+    }
+
+    // News — public read for published, no client write
+    match /news/{docId} {
+      allow read: if resource.data.status == 'published';
+      allow write: if false;
+    }
+
+    // User profiles — auth read/write own only
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      // Characters subcollection — auth read/write own only
+      match /characters/{characterId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // Audit logs — no client write, no client read
+    match /auditLogs/{docId} {
+      allow read, write: if false;
+    }
+
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

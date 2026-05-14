@@ -1,0 +1,137 @@
+.sidebar {
+  width: var(--sidebar-width);
+  min-height: 100vh;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.logo {
+  padding: var(--spacing-md) var(--spacing-sm);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.logoLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.logoLink:hover {
+  text-decoration: none;
+}
+
+.logoIcon {
+  font-size: 1.5rem;
+  color: var(--accent-emerald);
+}
+
+.logoText {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.section {
+  padding: var(--spacing-xs) 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sectionLabel {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-top: var(--spacing-xs);
+}
+
+.navItem {
+  display: block;
+  padding: 0.5rem var(--spacing-sm);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.navItem:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.navItem.active {
+  color: var(--accent-emerald);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.bookGroup {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.bookToggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem var(--spacing-sm);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+}
+
+.bookToggle:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.bookTitle {
+  font-weight: 500;
+}
+
+.arrow {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+  display: inline-block;
+}
+
+.arrowOpen {
+  transform: rotate(90deg);
+}
+
+.chapters {
+  background: var(--bg-primary);
+  border-top: 1px solid var(--border-color);
+}
+
+.chapterLink {
+  display: block;
+  padding: 0.4rem var(--spacing-md);
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.chapterLink:hover {
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.chapterLink.active {
+  color: var(--accent-emerald);
+  background: rgba(16, 185, 129, 0.08);
+}

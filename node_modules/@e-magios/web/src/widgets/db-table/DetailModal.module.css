@@ -1,0 +1,87 @@
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.entityName {
+  font-size: 1.3rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.params {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm);
+}
+
+.row {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.label {
+  color: var(--text-muted);
+  min-width: 140px;
+  flex-shrink: 0;
+}
+
+.value {
+  color: var(--text-secondary);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.section h4 {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.htmlBlock {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.htmlBlock a {
+  color: var(--accent-emerald);
+  text-decoration: none;
+}
+
+.htmlBlock a:hover {
+  text-decoration: underline;
+}
+
+.list {
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tag {
+  padding: 0.2rem 0.5rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
