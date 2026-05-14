@@ -1,10 +1,12 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useCharacterAuth } from '@/features/character-editor/useCharacterAuth';
 import { useCharacterState } from '@/features/character-editor/useCharacterState';
 import { MAGIC_SKILLS, PERSONALITY_SKILLS } from '@/features/character-editor/characterCalculations';
 import { CharacterRepository } from '@/shared/repositories/CharacterRepository';
+import { CompendiumRepository } from '@/shared/repositories/CompendiumRepository';
 import { Button } from '@/shared/ui/Button';
-import type { Character } from '@/entities/character/types';
+import type { Character, CharacterSpell } from '@/entities/character/types';
+import type { School, Spell } from '@/entities/compendium/types';
 import styles from './CharacterEditorPage.module.css';
 
 type View = 'list' | 'editor';
@@ -128,6 +130,16 @@ function SkillRow({
   );
 }
 
+function spellToCharacterSpell(spell: Spell): CharacterSpell {
+  return {
+    id: spell.id,
+    name: spell.name,
+    source: spell.source,
+    school: Array.isArray(spell.school) ? spell.school.join(', ') : spell.school,
+    type: spell.type,
+  };
+}
+
 export function CharacterEditorPage() {
   const authHook = useCharacterAuth();
   const state = useCharacterState(authHook.auth.uid, authHook.refreshCharacters);
@@ -135,10 +147,32 @@ export function CharacterEditorPage() {
   const [activeTab, setActiveTab] = useState<'stats' | 'skills' | 'spells'>('stats');
   const [guestTestMode] = useState(isGuestTestModeEnabled);
   const [localCharacters, setLocalCharacters] = useState<Character[]>(readLocalCharacters);
+  const [spells, setSpells] = useState<Spell[]>([]);
+  const [schools, setSchools] = useState<School[]>([]);
+  const [selectedSpellId, setSelectedSpellId] = useState('');
+  const [selectedSchool, setSelectedSchool] = useState('');
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const isCloudMode = Boolean(authHook.auth.uid);
   const canEditCharacters = isCloudMode || guestTestMode;
   const visibleCharacters = isCloudMode ? authHook.characters : guestTestMode ? localCharacters : [];
+
+  useEffect(() => {
+    if (!canEditCharacters || view !== 'editor') return;
+    let cancelled = false;
+    Promise.all([
+      CompendiumRepository.getSpells(),
+      CompendiumRepository.getSchools(),
+    ]).then(([spellItems, schoolItems]) => {
+      if (cancelled) return;
+      setSpells(spellItems as Spell[]);
+      setSchools(schoolItems as School[]);
+    }).catch(() => {
+      if (cancelled) return;
+      setSpells([]);
+      setSchools([]);
+    });
+    return () => { cancelled = true; };
+  }, [canEditCharacters, view]);
 
   function handleNew() {
     if (!canEditCharacters) return;
@@ -335,26 +369,47 @@ export function CharacterEditorPage() {
       </div>
 
       {activeTab === 'stats' && (
-        <div className={styles.statsGrid}>
-          {[
-            { label: 'Аркана', value: stats.arcana },
-            { label: 'Здоровье', value: stats.health },
-            { label: 'Воля', value: stats.will },
-            { label: 'Скорость', value: stats.speed },
-            { label: 'Инициатива', value: stats.initiative },
-            { label: 'Бонус к Попаданию', value: `+${stats.hitBonus}` },
-            { label: 'Бонус к Наложению', value: `+${stats.effectBonus}` },
-            { label: 'Уклонение', value: stats.evasion },
-            { label: 'Стойкость', value: stats.fortitude },
-            { label: 'Действия', value: stats.actions },
-            { label: 'Реакции', value: stats.reactions },
-          ].map(s => (
-            <div key={s.label} className={styles.statCard}>
-              <span className={styles.statValue}>{s.value}</span>
-              <span className={styles.statLabel}>{s.label}</span>
-            </div>
-          ))}
-        </div>
+        <>
+          <div className={styles.statsGrid}>
+            {[
+              { label: 'Аркана', value: stats.arcana },
+              { label: 'Здоровье', value: stats.health },
+              { label: 'Воля', value: stats.will },
+              { label: 'Скорость', value: stats.speed },
+              { label: 'Инициатива', value: stats.initiative },
+              { label: 'Бонус к Попаданию', value: `+${stats.hitBonus}` },
+              { label: 'Бонус к Наложению', value: `+${stats.effectBonus}` },
+              { label: 'Уклонение', value: stats.evasion },
+              { label: 'Стойкость', value: stats.fortitude },
+              { label: 'Действия', value: stats.actions },
+              { label: 'Реакции', value: stats.reactions },
+            ].map(s => (
+              <div key={s.label} className={styles.statCard}>
+                <span className={styles.statValue}>{s.value}</span>
+                <span className={styles.statLabel}>{s.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.resourceGrid}>
+            {[
+              ['currentHealth', 'Текущее здоровье', character.currentHealth ?? stats.health],
+              ['maxHealth', 'Макс. здоровье', character.maxHealth ?? stats.health],
+              ['currentWill', 'Текущая воля', character.currentWill ?? stats.will],
+              ['maxWill', 'Макс. воля', character.maxWill ?? stats.will],
+              ['defense', 'Защита', character.defense ?? stats.evasion],
+            ].map(([key, label, value]) => (
+              <label key={key} className={styles.resourceField}>
+                <span>{label}</span>
+                <input
+                  type="number"
+                  value={Number(value)}
+                  onChange={event => updateField(key as keyof Character, Number(event.target.value) as never)}
+                />
+              </label>
+            ))}
+          </div>
+        </>
       )}
 
       {activeTab === 'skills' && (
@@ -392,6 +447,35 @@ export function CharacterEditorPage() {
 
       {activeTab === 'spells' && (
         <div className={styles.spellsSection}>
+          <div className={styles.pickerRow}>
+            <select
+              className={styles.select}
+              value={selectedSpellId}
+              onChange={event => setSelectedSpellId(event.target.value)}
+            >
+              <option value="">Выберите заклинание из БД</option>
+              {spells.map(spell => (
+                <option key={spell.id} value={spell.id}>
+                  {spell.name}
+                </option>
+              ))}
+            </select>
+            {(['study', 'signature', 'spontaneous'] as const).map(type => (
+              <Button
+                key={type}
+                variant="secondary"
+                size="sm"
+                disabled={!selectedSpellId}
+                onClick={() => {
+                  const spell = spells.find(item => item.id === selectedSpellId);
+                  if (spell) state.addSpell(type, spellToCharacterSpell(spell));
+                }}
+              >
+                {type === 'study' ? 'В учебные' : type === 'signature' ? 'В фирменные' : 'В спонтанные'}
+              </Button>
+            ))}
+          </div>
+
           {([
             { key: 'studySpells' as const, label: 'Учебные Заклинания' },
             { key: 'signatureSpells' as const, label: 'Фирменные Заклинания' },
@@ -420,13 +504,38 @@ export function CharacterEditorPage() {
             </div>
           ))}
           <p className={styles.hint}>
-            Добавление заклинаний через выбор из Базы Данных будет доступно в следующей версии.
+            Заклинания добавляются из текущей Базы Данных и сохраняются вместе с персонажем.
           </p>
         </div>
       )}
 
       <div className={styles.notesSection}>
         <h3>Школы Магии</h3>
+        <div className={styles.pickerRow}>
+          <select
+            className={styles.select}
+            value={selectedSchool}
+            onChange={event => setSelectedSchool(event.target.value)}
+          >
+            <option value="">Выберите школу из БД</option>
+            {schools.map(school => (
+              <option key={school.id} value={school.name}>
+                {school.name}
+              </option>
+            ))}
+          </select>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={!selectedSchool || character.schools.includes(selectedSchool)}
+            onClick={() => {
+              updateField('schools', [...character.schools, selectedSchool]);
+              setSelectedSchool('');
+            }}
+          >
+            Добавить школу
+          </Button>
+        </div>
         <input
           className={styles.textInput}
           placeholder="Например: Базовая Аркана, Огонь"

@@ -40,6 +40,11 @@ export interface Character {
   spontaneousSpells: CharacterSpell[];
   schools: string[];
   archetypes: string[];
+  currentHealth?: number;
+  maxHealth?: number;
+  currentWill?: number;
+  maxWill?: number;
+  defense?: number;
   equipment?: string;
   notes?: string;
   updatedAt?: string | null;

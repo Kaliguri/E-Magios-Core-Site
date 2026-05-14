@@ -109,10 +109,31 @@ interface UseCompendiumFiltersResult {
   hasActiveFilters: boolean;
 }
 
-export function useCompendiumFilters(initialFilters?: FilterState): UseCompendiumFiltersResult {
+function loadStoredFilters(storageKey: string | undefined, initial: FilterState): FilterState {
+  if (!storageKey) return cloneFilters(initial);
+  try {
+    const raw = sessionStorage.getItem(storageKey);
+    if (!raw) return cloneFilters(initial);
+    const parsed = JSON.parse(raw) as FilterState;
+    return parsed && typeof parsed === 'object' ? parsed : cloneFilters(initial);
+  } catch {
+    return cloneFilters(initial);
+  }
+}
+
+function saveStoredFilters(storageKey: string | undefined, filters: FilterState) {
+  if (!storageKey) return;
+  try {
+    sessionStorage.setItem(storageKey, JSON.stringify(filters));
+  } catch {
+    // Filter persistence is optional.
+  }
+}
+
+export function useCompendiumFilters(initialFilters?: FilterState, storageKey?: string): UseCompendiumFiltersResult {
   const initial = initialFilters ?? {};
-  const [filters, setFilters] = useState<FilterState>(() => cloneFilters(initial));
-  const [tempFilters, setTempFiltersState] = useState<FilterState>(() => cloneFilters(initial));
+  const [filters, setFilters] = useState<FilterState>(() => loadStoredFilters(storageKey, initial));
+  const [tempFilters, setTempFiltersState] = useState<FilterState>(() => loadStoredFilters(storageKey, initial));
 
   const setTempFilter = useCallback((key: string, values: string[]) => {
     setTempFiltersState(prev => ({ ...prev, [key]: values }));
@@ -120,7 +141,8 @@ export function useCompendiumFilters(initialFilters?: FilterState): UseCompendiu
 
   const applyFilters = useCallback(() => {
     setFilters(tempFilters);
-  }, [tempFilters]);
+    saveStoredFilters(storageKey, tempFilters);
+  }, [storageKey, tempFilters]);
 
   const cancelFilters = useCallback(() => {
     setTempFiltersState(filters);
@@ -128,7 +150,9 @@ export function useCompendiumFilters(initialFilters?: FilterState): UseCompendiu
 
   const clearFilters = useCallback(() => {
     setTempFiltersState(cloneFilters(initial));
-  }, [initial]);
+    saveStoredFilters(storageKey, initial);
+    setFilters(cloneFilters(initial));
+  }, [initial, storageKey]);
 
   const filterItems = useCallback(<T extends CompendiumEntity>(
     items: T[],

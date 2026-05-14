@@ -1,30 +1,25 @@
 import { useEffect, useState, useCallback } from 'react';
-import type { CompendiumEntity } from '@/entities/compendium/types';
+import type { EntityRef } from './useCompendiumIndex';
 
 const DB_MODAL_HISTORY_KEY = 'react_db_modal_history';
 
-interface ModalEntry {
-  entity: CompendiumEntity;
-  entityType: string;
-}
-
 interface UseDetailModalResult {
   isOpen: boolean;
-  current: ModalEntry | null;
+  current: EntityRef | null;
   canGoBack: boolean;
   canGoForward: boolean;
-  open: (entity: CompendiumEntity, entityType: string) => void;
+  open: (ref: EntityRef) => void;
   close: () => void;
   goBack: () => void;
   goForward: () => void;
 }
 
 export function useDetailModal(): UseDetailModalResult {
-  const [history, setHistory] = useState<ModalEntry[]>(() => {
+  const [history, setHistory] = useState<EntityRef[]>(() => {
     try {
       const raw = sessionStorage.getItem(DB_MODAL_HISTORY_KEY);
       if (!raw) return [];
-      const parsed = JSON.parse(raw) as { history?: ModalEntry[] };
+      const parsed = JSON.parse(raw) as { history?: EntityRef[] };
       return Array.isArray(parsed.history) ? parsed.history : [];
     } catch {
       return [];
@@ -59,14 +54,24 @@ export function useDetailModal(): UseDetailModalResult {
     }
   }, [history, index, isOpen]);
 
-  const open = useCallback((entity: CompendiumEntity, entityType: string) => {
+  const open = useCallback((ref: EntityRef) => {
     setHistory(prev => {
       const next = prev.slice(0, index + 1);
-      return [...next, { entity, entityType }];
+      const latest = next[next.length - 1];
+      if (latest?.entityType === ref.entityType && latest.id === ref.id) {
+        return next;
+      }
+      return [...next, ref];
     });
-    setIndex(prev => prev + 1);
+    setIndex(prev => {
+      const latest = history[Math.max(0, prev)];
+      if (latest?.entityType === ref.entityType && latest.id === ref.id) {
+        return prev;
+      }
+      return prev + 1;
+    });
     setIsOpen(true);
-  }, [index]);
+  }, [history, index]);
 
   const close = useCallback(() => {
     setIsOpen(false);

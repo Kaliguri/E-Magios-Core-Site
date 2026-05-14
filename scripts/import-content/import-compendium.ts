@@ -105,7 +105,7 @@ async function updateManifest(
     environment: 'production',
     publishedAt: FieldValue.serverTimestamp(),
     collections: collectionsMap,
-  });
+  }, { merge: true });
 
   console.log('Content manifest updated.');
 }

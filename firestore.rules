@@ -2,6 +2,18 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function hasOnlyProfileFields() {
+      return request.resource.data.keys().hasOnly([
+        'displayName',
+        'discordWebhookUrl',
+        'discordDisplayName',
+        'discordColor'
+      ]);
+    }
 
     // Content manifest — public read, no client write
     match /contentManifest/{env} {
@@ -86,13 +98,15 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // User profiles — auth read/write own only
+    // User profiles — auth read/write own profile fields only
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid) && hasOnlyProfileFields();
+      allow delete: if false;
 
       // Characters subcollection — auth read/write own only
       match /characters/{characterId} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
+        allow read, write: if isOwner(uid);
       }
     }
 

@@ -5,7 +5,7 @@
 }
 
 .entityName {
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   color: var(--text-primary);
   margin: 0;
 }
@@ -35,6 +35,21 @@
   color: var(--text-secondary);
 }
 
+.inlineLink {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent-emerald);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.inlineLink:hover {
+  color: var(--accent-emerald-dark);
+  text-decoration: underline;
+}
+
 .section {
   display: flex;
   flex-direction: column;
@@ -48,9 +63,23 @@
 }
 
 .htmlBlock {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: var(--text-secondary);
   line-height: 1.7;
+}
+
+.htmlBlock p {
+  margin: 0 0 var(--spacing-sm);
+}
+
+.htmlBlock p:last-child {
+  margin-bottom: 0;
+}
+
+.htmlBlock strong,
+.list strong {
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 .htmlBlock a {
@@ -66,8 +95,9 @@
   padding-left: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.9rem;
+  gap: var(--spacing-xs);
+  font-size: 0.95rem;
+  line-height: 1.6;
   color: var(--text-secondary);
 }
 
@@ -95,4 +125,36 @@
 .tagButton:hover {
   border-color: var(--accent-emerald);
   background: rgba(16, 185, 129, 0.08);
+}
+
+.rollFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--border-color);
+}
+
+.rollButton {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--accent-emerald);
+  border-radius: var(--radius-sm);
+  background: var(--accent-emerald);
+  color: white;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.rollButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  border-color: var(--border-color);
+}
+
+.rollResult {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
 }

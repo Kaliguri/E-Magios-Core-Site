@@ -23,7 +23,7 @@ npx tsx import-compendium.ts
 
 Writes to Firestore collections: `spells`, `schools`, `effects`, `actions`, `skills`, `archetypes`, `basics`, `action_types`, `combat_components`, `craft_components`, `craft_professions`, `craft_specializations`, `recipe_types`, `recipes`.
 
-Also updates `contentManifest/production` document with version info.
+Also merges version info into `contentManifest/production` without removing manifest entries owned by other import scripts.
 
 ## Import news
 
@@ -39,3 +39,4 @@ Writes to Firestore `news` collection from `data/news.json`.
 - Document IDs are taken from the `id` field in each JSON record
 - All documents are marked `status: "published"` and `version: 1`
 - Safe to re-run — uses `set()` which overwrites existing documents
+- Run both imports after changing local `data/*.json` content so Firestore and JSON fallback stay aligned

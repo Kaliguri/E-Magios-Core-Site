@@ -1,6 +1,8 @@
 .page {
   padding: var(--spacing-lg);
-  max-width: 960px;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .section {

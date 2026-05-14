@@ -13,7 +13,7 @@ export interface Book {
 export const BOOKS: Record<string, Book> = {
   phb: {
     title: "Player's Handbook",
-    locked: true,
+    locked: false,
     chapters: [
       { id: 'intro', title: 'Введение', file: 'phb/intro.html' },
       { id: 'creation', title: 'Создание Персонажа', file: 'phb/creation.html' },
@@ -38,7 +38,7 @@ export const BOOKS: Record<string, Book> = {
   },
   spellbook: {
     title: 'Spellbook',
-    locked: true,
+    locked: false,
     chapters: [
       { id: 'intro', title: 'Введение', file: 'spellbook/intro.html' },
       { id: 'schools', title: 'Школы Магии', file: 'spellbook/schools.html' },
@@ -52,7 +52,7 @@ export const BOOKS: Record<string, Book> = {
   },
   master: {
     title: "Master's Handbook",
-    locked: true,
+    locked: false,
     chapters: [
       { id: 'intro', title: 'Введение', file: 'master/intro.html' },
       { id: 'genre', title: 'Жанр повествования', file: 'master/genre.html' },
@@ -64,7 +64,7 @@ export const BOOKS: Record<string, Book> = {
   },
   craftbook: {
     title: 'Craftbook',
-    locked: true,
+    locked: false,
     chapters: [
       { id: 'intro', title: 'Введение', file: 'craftbook/intro.html' },
       { id: 'professions', title: 'Виды профессий', file: 'craftbook/professions.html' },

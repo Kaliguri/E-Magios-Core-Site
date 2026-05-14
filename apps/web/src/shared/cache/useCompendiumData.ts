@@ -28,16 +28,9 @@ export function useCompendiumData<T>(
       setLoading(true);
       setError(null);
 
-      // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/6fe2bbd0-0b0b-4dd2-93c9-a900d2b0a38b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'787a5f'},body:JSON.stringify({sessionId:'787a5f',runId:'initial',hypothesisId:'H2,H3',location:'src/shared/cache/useCompendiumData.ts:31',message:'Data load started',data:{cacheKey,manifestCollectionKey},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
-
       // 1. Serve from IndexedDB immediately
       const cached = await getCached<T>(cacheKey);
       if (cached && !cancelled) {
-        // #region agent log
-        fetch('http://127.0.0.1:7505/ingest/6fe2bbd0-0b0b-4dd2-93c9-a900d2b0a38b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'787a5f'},body:JSON.stringify({sessionId:'787a5f',runId:'initial',hypothesisId:'H3',location:'src/shared/cache/useCompendiumData.ts:38',message:'Cached data used',data:{cacheKey,hasData:Boolean(cached.data),cachedVersion:cached.version},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
         setData(cached.data);
         setLoading(false);
       }
@@ -57,10 +50,6 @@ export function useCompendiumData<T>(
 
       const cachedVersion = await getCachedVersion(cacheKey);
 
-      // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/6fe2bbd0-0b0b-4dd2-93c9-a900d2b0a38b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'787a5f'},body:JSON.stringify({sessionId:'787a5f',runId:'initial',hypothesisId:'H2,H3',location:'src/shared/cache/useCompendiumData.ts:57',message:'Manifest and cache versions resolved',data:{cacheKey,manifestCollectionKey,manifestVersion,cachedVersion},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
-
       // 3. If cached version matches manifest, skip network fetch
       if (
         cached &&
@@ -75,17 +64,11 @@ export function useCompendiumData<T>(
       // 4. Fetch fresh data
       try {
         const fresh = await fetcher();
-        // #region agent log
-        fetch('http://127.0.0.1:7505/ingest/6fe2bbd0-0b0b-4dd2-93c9-a900d2b0a38b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'787a5f'},body:JSON.stringify({sessionId:'787a5f',runId:'initial',hypothesisId:'H2',location:'src/shared/cache/useCompendiumData.ts:77',message:'Fresh data fetched',data:{cacheKey,itemCount:Array.isArray(fresh) ? fresh.length : null},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
         if (!cancelled) {
           setData(fresh);
           await setCached(cacheKey, fresh, manifestVersion ?? (cachedVersion ?? 0) + 1);
         }
       } catch (err) {
-        // #region agent log
-        fetch('http://127.0.0.1:7505/ingest/6fe2bbd0-0b0b-4dd2-93c9-a900d2b0a38b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'787a5f'},body:JSON.stringify({sessionId:'787a5f',runId:'initial',hypothesisId:'H2',location:'src/shared/cache/useCompendiumData.ts:85',message:'Fresh data fetch failed',data:{cacheKey,error:err instanceof Error ? err.message : String(err),hadCachedData:Boolean(cached)},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
         if (!cancelled) {
           if (!cached) {
             setError(err instanceof Error ? err.message : 'Ошибка загрузки данных');

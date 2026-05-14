@@ -51,12 +51,6 @@ export function Sidebar() {
         >
           👤 Профиль
         </NavLink>
-        <NavLink
-          to="/lobby"
-          className={({ isActive }) => [styles.navItem, isActive ? styles.active : ''].join(' ')}
-        >
-          🎲 Лобби
-        </NavLink>
       </div>
 
       <div className={styles.sectionLabel}>Книги</div>
