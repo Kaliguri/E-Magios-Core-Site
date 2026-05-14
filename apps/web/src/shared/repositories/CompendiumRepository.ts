@@ -19,20 +19,7 @@ import {
   craftSpecializationFromJson, recipeTypeFromJson, recipeFromJson,
 } from '@/entities/compendium/mappers';
 
-const BASE_URL = import.meta.env.BASE_URL;
-
-async function fetchJson<T>(
-  path: string,
-  mapper: (raw: Record<string, unknown>) => T,
-): Promise<T[]> {
-  const url = `${BASE_URL}data/${path}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`);
-  const json = await res.json() as Record<string, unknown>[];
-  return json.map(mapper);
-}
-
-async function fetchFromFirestore<T>(
+async function fetchPublished<T>(
   collectionName: string,
   mapper: (raw: Record<string, unknown>) => T,
 ): Promise<T[]> {
@@ -42,74 +29,60 @@ async function fetchFromFirestore<T>(
   return snap.docs.map(d => mapper({ id: d.id, ...d.data() } as Record<string, unknown>));
 }
 
-async function fetchWithFallback<T>(
-  collectionName: string,
-  jsonFile: string,
-  mapper: (raw: Record<string, unknown>) => T,
-): Promise<T[]> {
-  try {
-    const firestoreItems = await fetchFromFirestore(collectionName, mapper);
-    if (firestoreItems.length > 0) return firestoreItems;
-    return fetchJson(jsonFile, mapper);
-  } catch {
-    return fetchJson(jsonFile, mapper);
-  }
-}
-
 export const CompendiumRepository = {
   async getSpells(): Promise<Spell[]> {
-    return fetchWithFallback('spells', 'spells.json', spellFromJson);
+    return fetchPublished('spells', spellFromJson);
   },
 
   async getSchools(): Promise<School[]> {
-    return fetchWithFallback('schools', 'schools.json', schoolFromJson);
+    return fetchPublished('schools', schoolFromJson);
   },
 
   async getEffects(): Promise<Effect[]> {
-    return fetchWithFallback('effects', 'effects.json', effectFromJson);
+    return fetchPublished('effects', effectFromJson);
   },
 
   async getActions(): Promise<Action[]> {
-    return fetchWithFallback('actions', 'actions.json', actionFromJson);
+    return fetchPublished('actions', actionFromJson);
   },
 
   async getSkills(): Promise<Skill[]> {
-    return fetchWithFallback('skills', 'skills.json', skillFromJson);
+    return fetchPublished('skills', skillFromJson);
   },
 
   async getArchetypes(): Promise<Archetype[]> {
-    return fetchWithFallback('archetypes', 'archetypes.json', archetypeFromJson);
+    return fetchPublished('archetypes', archetypeFromJson);
   },
 
   async getBasics(): Promise<Basic[]> {
-    return fetchWithFallback('basics', 'basics.json', basicFromJson);
+    return fetchPublished('basics', basicFromJson);
   },
 
   async getActionTypes(): Promise<ActionType[]> {
-    return fetchWithFallback('action_types', 'action_types.json', actionTypeFromJson);
+    return fetchPublished('action_types', actionTypeFromJson);
   },
 
   async getCombatComponents(): Promise<CombatComponent[]> {
-    return fetchWithFallback('combat_components', 'combat_components.json', combatComponentFromJson);
+    return fetchPublished('combat_components', combatComponentFromJson);
   },
 
   async getCraftComponents(): Promise<CraftComponent[]> {
-    return fetchWithFallback('craft_components', 'craft_components.json', craftComponentFromJson);
+    return fetchPublished('craft_components', craftComponentFromJson);
   },
 
   async getCraftProfessions(): Promise<CraftProfession[]> {
-    return fetchWithFallback('craft_professions', 'craft_professions.json', craftProfessionFromJson);
+    return fetchPublished('craft_professions', craftProfessionFromJson);
   },
 
   async getCraftSpecializations(): Promise<CraftSpecialization[]> {
-    return fetchWithFallback('craft_specializations', 'craft_specializations.json', craftSpecializationFromJson);
+    return fetchPublished('craft_specializations', craftSpecializationFromJson);
   },
 
   async getRecipeTypes(): Promise<RecipeType[]> {
-    return fetchWithFallback('recipe_types', 'recipe_types.json', recipeTypeFromJson);
+    return fetchPublished('recipe_types', recipeTypeFromJson);
   },
 
   async getRecipes(): Promise<Recipe[]> {
-    return fetchWithFallback('recipes', 'recipes.json', recipeFromJson);
+    return fetchPublished('recipes', recipeFromJson);
   },
 };
