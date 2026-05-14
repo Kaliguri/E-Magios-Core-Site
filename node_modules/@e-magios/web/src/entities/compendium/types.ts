@@ -15,6 +15,10 @@ export interface Spell {
   maintenance?: string;
   source?: string;
   subspell?: string;
+  isSubSpell?: boolean;
+  parentId?: string;
+  parentName?: string;
+  subSpells?: Spell[];
   signatureBonus?: string;
   description?: string;
 }

@@ -76,6 +76,11 @@
   border-bottom: 1px solid var(--border-color);
 }
 
+.bookActive .bookToggle {
+  color: var(--accent-emerald);
+  background: rgba(16, 185, 129, 0.08);
+}
+
 .bookToggle {
   width: 100%;
   display: flex;

@@ -48,7 +48,9 @@ async function fetchWithFallback<T>(
   mapper: (raw: Record<string, unknown>) => T,
 ): Promise<T[]> {
   try {
-    return await fetchFromFirestore(collectionName, mapper);
+    const firestoreItems = await fetchFromFirestore(collectionName, mapper);
+    if (firestoreItems.length > 0) return firestoreItems;
+    return fetchJson(jsonFile, mapper);
   } catch {
     return fetchJson(jsonFile, mapper);
   }

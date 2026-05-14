@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useCompendiumData } from '@/shared/cache/useCompendiumData';
 import { ContentRepository } from '@/shared/repositories/ContentRepository';
+import { LegacyText } from '@/shared/ui/LegacyText';
 import type { NewsItem } from '@/entities/content/types';
 import styles from './NewsPage.module.css';
 
@@ -32,20 +33,30 @@ export function NewsPage() {
     <div className={styles.page}>
       <h1>Новости</h1>
       <div className={styles.list}>
-        {news?.map(item => (
+        {news?.map((item, index) => (
           <article key={item.id} className={styles.item}>
-            <div className={styles.meta}>
-              <span className={styles.date}>{item.date}</span>
-            </div>
-            <h2 className={styles.title}>{item.title}</h2>
-            <p className={styles.brief}>{item.brief}</p>
-            {item.features.length > 0 && (
-              <ul className={styles.features}>
-                {item.features.map((f, i) => (
-                  <li key={i}>{f}</li>
-                ))}
-              </ul>
-            )}
+            <details className={styles.details} open={index === 0}>
+              <summary className={styles.summary}>
+                <span className={styles.summaryTop}>
+                  <span className={styles.title}>{item.title}</span>
+                  <span className={styles.date}>{item.date}</span>
+                  <span className={styles.toggle}>▾</span>
+                </span>
+                <LegacyText text={item.brief} className={styles.brief} />
+              </summary>
+              {item.features.length > 0 && (
+                <div className={styles.body}>
+                  <section className={styles.section}>
+                    <h3>Что изменилось</h3>
+                    <ul className={styles.features}>
+                      {item.features.map((f, i) => (
+                        <li key={i}><LegacyText text={f} /></li>
+                      ))}
+                    </ul>
+                  </section>
+                </div>
+              )}
+            </details>
           </article>
         ))}
       </div>

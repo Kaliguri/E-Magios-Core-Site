@@ -10,12 +10,13 @@ function generateId(): string {
 }
 
 function makeEmptyCharacter(): Character {
+  const stats = calculateStats(1);
   return {
     id: generateId(),
     name: '',
     description: '',
     level: 1,
-    stats: calculateStats(1),
+    stats,
     magicSkills: MAGIC_SKILLS.map(s => ({ id: s.id, name: s.name, level: 0 })),
     personalitySkills: PERSONALITY_SKILLS.map(s => ({ id: s.id, name: s.name, level: 0 })),
     studySpells: [],
@@ -23,6 +24,11 @@ function makeEmptyCharacter(): Character {
     spontaneousSpells: [],
     schools: [],
     archetypes: [],
+    currentHealth: stats.health,
+    maxHealth: stats.health,
+    currentWill: stats.will,
+    maxWill: stats.will,
+    defense: stats.evasion,
     equipment: '',
     notes: '',
   };
@@ -80,7 +86,17 @@ export function useCharacterState(
   const updateLevel = useCallback((level: number) => {
     setCharacter(prev => {
       const clamped = Math.max(1, Math.min(20, level));
-      const next = { ...prev, level: clamped, stats: calculateStats(clamped) };
+      const stats = calculateStats(clamped);
+      const next = {
+        ...prev,
+        level: clamped,
+        stats,
+        maxHealth: prev.maxHealth ?? stats.health,
+        currentHealth: Math.min(prev.currentHealth ?? stats.health, prev.maxHealth ?? stats.health),
+        maxWill: prev.maxWill ?? stats.will,
+        currentWill: Math.min(prev.currentWill ?? stats.will, prev.maxWill ?? stats.will),
+        defense: prev.defense ?? stats.evasion,
+      };
       setIsDirty(true);
       scheduleAutosave(next);
       return next;

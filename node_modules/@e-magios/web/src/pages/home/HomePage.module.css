@@ -1,5 +1,7 @@
 .page {
   padding: var(--spacing-lg);
+  max-width: 1200px;
+  width: 100%;
 }
 
 .hero {
@@ -33,13 +35,14 @@
   border-radius: var(--radius-lg);
   text-decoration: none;
   color: var(--text-secondary);
-  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 
 .card:hover {
   background: var(--bg-elevated);
   border-color: var(--accent-emerald);
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
   text-decoration: none;
   color: var(--text-secondary);
 }

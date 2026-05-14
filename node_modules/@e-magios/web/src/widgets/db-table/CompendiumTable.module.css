@@ -1,5 +1,8 @@
 .wrapper {
   overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
 }
 
 .table {
@@ -11,7 +14,7 @@
 .th {
   padding: 0.6rem var(--spacing-sm);
   background: var(--bg-elevated);
-  border-bottom: 2px solid var(--border-color);
+  border: 1px solid var(--border-color);
   text-align: left;
   color: var(--text-primary);
   font-weight: 600;
@@ -21,7 +24,7 @@
 }
 
 .th:hover {
-  background: var(--bg-secondary);
+  background: var(--bg-card);
 }
 
 .thContent {
@@ -45,7 +48,7 @@
 }
 
 .row:nth-child(even) {
-  background: var(--bg-card);
+  background: var(--bg-secondary);
 }
 
 .row:nth-child(even):hover {
@@ -54,7 +57,7 @@
 
 .td {
   padding: 0.5rem var(--spacing-sm);
-  border-bottom: 1px solid var(--border-color);
+  border: 1px solid var(--border-color);
   color: var(--text-secondary);
   max-width: 300px;
   overflow: hidden;
