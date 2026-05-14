@@ -555,7 +555,7 @@ async function initDbScript() {
     return;
   }
 
-  // Ждём, пока common.js?v=6bfc8187 успеет повесить createFilterTags в window (иначе падаем до инициализации)
+  // Ждём, пока common.js?v=4f2957ea успеет повесить createFilterTags в window (иначе падаем до инициализации)
   if (typeof window.createFilterTags !== 'function') {
     return;
   }
@@ -750,8 +750,8 @@ function getDbBasePath() {
   const scripts = Array.from(document.getElementsByTagName('script'));
   const dbScript = scripts.find(function (s) {
     const src = s.getAttribute('src') || '';
-    // Поддерживаем как обычный db.js?v=7d88c8d0 так и хэшированные файлы вида db.<hash>.js
-    return src.indexOf('db.js?v=7d88c8d0') !== -1 || /db\.[a-f0-9]{6,}\.js/i.test(src);
+    // Поддерживаем как обычный db.js?v=e0c86bb5 так и хэшированные файлы вида db.<hash>.js
+    return src.indexOf('db.js?v=e0c86bb5') !== -1 || /db\.[a-f0-9]{6,}\.js/i.test(src);
   });
 
   if (dbScript) {

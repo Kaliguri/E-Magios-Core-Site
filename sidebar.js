@@ -28,7 +28,6 @@ export function initSidebar() {
           <ul>
             <li><a href="${homeLink}" class="${isHomeActive}">Главная страница</a></li>
             <li><a href="${newsLink}" class="${isNewsActive}">Новости</a></li>
-            <li><a href="${profileLink}" class="${isProfileActive}">Профиль</a></li>
             <li><a href="${lobbyLink}" class="${isLobbyActive}">Лобби</a></li>
           </ul>
         </div>

@@ -15,10 +15,20 @@ class DbActivity : BaseActivity() {
     private var kind: DbKind = DbKind.SPELLS
 
     private val adapter = SimpleItemAdapter { item ->
-        val intent = Intent(this, DbDetailActivity::class.java)
-        intent.putExtra(DbDetailActivity.EXTRA_TITLE, item.title)
-        intent.putExtra(DbDetailActivity.EXTRA_BODY, item.body)
-        startActivity(intent)
+        try {
+            val intent = Intent(this, DbDetailActivity::class.java)
+            intent.putExtra(DbDetailActivity.EXTRA_TITLE, item.title)
+            // Truncate body if excessively large to prevent crash, though normally shouldn't happen
+            if (item.body.length > 200_000) {
+                intent.putExtra(DbDetailActivity.EXTRA_BODY, item.body.take(200_000) + "... (обрезано)")
+            } else {
+                intent.putExtra(DbDetailActivity.EXTRA_BODY, item.body)
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            com.google.android.material.snackbar.Snackbar.make(binding.root, "Не удалось открыть: ${e.message}", com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,14 +38,13 @@ class DbActivity : BaseActivity() {
 
         binding.toolbarInclude.toolbar.title = getString(R.string.title_db)
         setSupportActionBar(binding.toolbarInclude.toolbar)
-        // Top-level destination: no back arrow (exit app via system back).
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         binding.recycler.layoutManager = LinearLayoutManager(this)
         binding.recycler.adapter = adapter
 
         binding.btnSpells.setOnClickListener { select(DbKind.SPELLS) }
         binding.btnSchools.setOnClickListener { select(DbKind.SCHOOLS) }
-        binding.btnEffects.setOnClickListener { select(DbKind.EFFECTS) }
 
         select(DbKind.SPELLS)
     }
@@ -45,7 +54,6 @@ class DbActivity : BaseActivity() {
         // naive toggle styles for MVP
         binding.btnSpells.isEnabled = next != DbKind.SPELLS
         binding.btnSchools.isEnabled = next != DbKind.SCHOOLS
-        binding.btnEffects.isEnabled = next != DbKind.EFFECTS
         load()
     }
 

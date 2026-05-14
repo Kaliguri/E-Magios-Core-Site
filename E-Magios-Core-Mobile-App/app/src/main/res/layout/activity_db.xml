@@ -36,36 +36,27 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="12dp"
+        android:layout_marginEnd="4dp"
         android:text="@string/tab_spells"
         app:layout_constraintEnd_toStartOf="@+id/btnSchools"
+        app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/title"
-        app:layout_constraintWidth_percent="0.33" />
+        app:layout_constraintWidth_percent="0.35" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSchools"
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
         android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp"
         android:text="@string/tab_schools"
-        app:layout_constraintEnd_toStartOf="@+id/btnEffects"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/btnSpells"
         app:layout_constraintTop_toBottomOf="@+id/title"
-        app:layout_constraintWidth_percent="0.34" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnEffects"
-        style="@style/Widget.Material3.Button.OutlinedButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginTop="12dp"
-        android:text="@string/tab_effects"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/btnSchools"
-        app:layout_constraintTop_toBottomOf="@+id/title"
-        app:layout_constraintWidth_percent="0.33" />
+        app:layout_constraintWidth_percent="0.35" />
 
     <ProgressBar
         android:id="@+id/progress"

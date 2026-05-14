@@ -9,8 +9,7 @@ import java.net.URL
 
 enum class DbKind(val path: String) {
     SPELLS("spells.json"),
-    SCHOOLS("schools.json"),
-    EFFECTS("effects.json")
+    SCHOOLS("schools.json")
 }
 
 class DbRepository {
@@ -58,17 +57,17 @@ class DbRepository {
                 val features = (0 until featuresArr.length()).mapNotNull { featuresArr.optString(it) }
 
                 val body = buildString {
-                    if (date.isNotBlank()) appendLine(date)
+                    if (date.isNotBlank()) append("<font color='#999999'>$date</font><br><br>")
                     if (brief.isNotBlank()) {
-                        if (isNotEmpty()) appendLine()
-                        appendLine(brief)
+                        append("<p>$brief</p>")
                     }
                     if (features.isNotEmpty()) {
-                        if (isNotEmpty()) appendLine()
-                        appendLine("Что нового:")
-                        features.forEach { f -> appendLine("• $f") }
+                        append("<h4><font color='#10b981'>Что нового:</font></h4>")
+                        append("<ul>")
+                        features.forEach { f -> append("<li>$f</li>") }
+                        append("</ul>")
                     }
-                }.trim()
+                }
 
                 SimpleItem(
                     id = id,
@@ -98,12 +97,76 @@ class DbRepository {
                     (0 until props.length()).mapNotNull { props.optString(it) }.joinToString(", ")
                 }?.takeIf { it.isNotBlank() }
             ).joinToString(" • ")
-
-            DbKind.EFFECTS -> obj.optString("actionType", "")
         }
 
         val description = obj.optString("description", "")
-        val body = if (description.isNotBlank()) description else obj.toString(2)
+        
+        val body = buildString {
+            when (kind) {
+                DbKind.SPELLS -> {
+                    // Spell properties block
+                    val actions = obj.optString("actions", "")
+                    val actionType = obj.optString("actionType", "")
+                    val range = obj.optString("range", "")
+                    val target = obj.optString("target", "")
+                    val duration = obj.optString("duration", "")
+                    val damageType = obj.optString("damageType", "")
+                    val concentration = obj.optString("concentration", "")
+                    val school = obj.optString("school", "")
+                    val source = obj.optString("source", "")
+                    
+                    if (actions.isNotBlank() || actionType.isNotBlank()) {
+                         append("<b>Время накладывания:</b> $actions $actionType<br>")
+                    }
+                    if (range.isNotBlank()) append("<b>Дистанция:</b> $range<br>")
+                    if (target.isNotBlank()) append("<b>Цель:</b> $target<br>")
+                    if (duration.isNotBlank()) {
+                        append("<b>Длительность:</b> $duration")
+                        if (concentration.equals("Да", ignoreCase = true)) {
+                             append(" (Концентрация)")
+                        }
+                        append("<br>")
+                    }
+                    if (damageType.isNotBlank()) append("<b>Тип урона:</b> $damageType<br>")
+                    if (school.isNotBlank()) append("<b>Школа:</b> $school<br>")
+                    if (source.isNotBlank()) append("<b>Источник:</b> $source<br>")
+                    
+                    append("<br>") // Separator
+                    append(description.replace("\n", "<br>"))
+                }
+                
+                DbKind.SCHOOLS -> {
+                    append(description.replace("\n", "<br>"))
+                    
+                    val principles = obj.optJSONArray("principles")
+                    if (principles != null && principles.length() > 0) {
+                        append("<br><br><h4><font color='#10b981'>Принципы:</font></h4><ul>")
+                        for (i in 0 until principles.length()) {
+                            append("<li>${principles.getString(i)}</li>")
+                        }
+                        append("</ul>")
+                    }
+                    
+                    val features = obj.optJSONArray("features")
+                    if (features != null && features.length() > 0) {
+                        append("<br><h4><font color='#10b981'>Особенности:</font></h4><ul>")
+                        for (i in 0 until features.length()) {
+                            append("<li>${features.getString(i)}</li>")
+                        }
+                        append("</ul>")
+                    }
+                    
+                    val educational = obj.optJSONArray("educationalSpells")
+                    if (educational != null && educational.length() > 0) {
+                        append("<br><h4><font color='#10b981'>Учебные заклинания:</font></h4><p>")
+                        val list = mutableListOf<String>()
+                        for (i in 0 until educational.length()) list.add(educational.getString(i))
+                        append(list.joinToString(", "))
+                        append("</p>")
+                    }
+                }
+            }
+        }
 
         return SimpleItem(
             id = id,

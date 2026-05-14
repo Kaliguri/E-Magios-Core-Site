@@ -28,7 +28,7 @@ class CharacterListActivity : BaseActivity() {
 
         binding.toolbarInclude.toolbar.title = getString(R.string.title_characters)
         setSupportActionBar(binding.toolbarInclude.toolbar)
-        // Top-level destination: no back arrow (exit app via system back).
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         binding.recycler.layoutManager = LinearLayoutManager(this)
         binding.recycler.adapter = adapter

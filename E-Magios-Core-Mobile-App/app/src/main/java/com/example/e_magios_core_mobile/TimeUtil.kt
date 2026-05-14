@@ -6,12 +6,13 @@ import java.util.Locale
 import java.util.TimeZone
 
 object TimeUtil {
-    private val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
+    // SimpleDateFormat is not thread-safe, so we use a ThreadLocal or create a new instance.
+    // Creating a new instance is safer and cheap enough here.
+    private fun getIsoFormat() = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
         timeZone = TimeZone.getTimeZone("UTC")
     }
 
-    fun nowIsoUtc(): String = isoFormat.format(Date())
+    fun nowIsoUtc(): String = getIsoFormat().format(Date())
 
-    fun formatIsoUtc(date: Date): String = isoFormat.format(date)
+    fun formatIsoUtc(date: Date): String = getIsoFormat().format(date)
 }
-

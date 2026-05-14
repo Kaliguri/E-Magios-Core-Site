@@ -1,11 +1,17 @@
 package com.example.e_magios_core_mobile
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import com.example.e_magios_core_mobile.databinding.ActivityProfileBinding
 
 class ProfileActivity : BaseActivity() {
     private lateinit var binding: ActivityProfileBinding
+
+    private val requestNotifications = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* no-op */ }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -15,6 +21,11 @@ class ProfileActivity : BaseActivity() {
         binding.toolbarInclude.toolbar.title = "Профиль"
         setSupportActionBar(binding.toolbarInclude.toolbar)
         // Launcher/top-level: no back arrow.
+
+        // Ask for notification permission on Android 13+.
+        if (Build.VERSION.SDK_INT >= 33) {
+            requestNotifications.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
 
         render()
 

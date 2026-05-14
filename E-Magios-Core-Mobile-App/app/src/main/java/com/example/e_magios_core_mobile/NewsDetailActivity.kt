@@ -21,7 +21,7 @@ class NewsDetailActivity : BaseActivity() {
         val body = intent.getStringExtra(EXTRA_BODY).orEmpty()
 
         binding.titleText.text = title
-        binding.bodyText.text = body
+        binding.bodyText.text = android.text.Html.fromHtml(body, android.text.Html.FROM_HTML_MODE_COMPACT)
     }
 
     companion object {

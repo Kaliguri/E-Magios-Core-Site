@@ -16,7 +16,8 @@ class DbDetailActivity : BaseActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         binding.titleText.text = intent.getStringExtra(EXTRA_TITLE) ?: ""
-        binding.bodyText.text = intent.getStringExtra(EXTRA_BODY) ?: ""
+        val body = intent.getStringExtra(EXTRA_BODY) ?: ""
+        binding.bodyText.text = android.text.Html.fromHtml(body, android.text.Html.FROM_HTML_MODE_COMPACT)
     }
 
     companion object {

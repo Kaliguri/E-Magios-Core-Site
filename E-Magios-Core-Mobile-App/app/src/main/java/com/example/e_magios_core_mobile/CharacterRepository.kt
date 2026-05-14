@@ -21,9 +21,18 @@ class CharacterRepository(
                     return@addSnapshotListener
                 }
 
-                // Avoid query failures from mixed/missing field types: sort on client.
                 val list = snap?.documents
-                    ?.map { doc -> mapDocToCharacter(doc) }
+                    ?.mapNotNull { doc -> 
+                        try {
+                            mapDocToCharacter(doc)
+                        } catch (e: Exception) {
+                            Character(
+                                id = doc.id,
+                                name = "(Ошибка данных)",
+                                description = "Не удалось прочитать данные: ${e.message}"
+                            )
+                        }
+                    }
                     ?.sortedWith(compareByDescending<Character> { it.lastModified.orEmpty() })
                     ?: emptyList()
 
@@ -47,7 +56,13 @@ class CharacterRepository(
             .addOnSuccessListener { doc ->
                 if (!doc.exists()) onOk(null) else onOk(doc)
             }
-            .addOnFailureListener(onError)
+            .addOnFailureListener { e ->
+                if (id.isBlank()) {
+                     onOk(null)
+                } else {
+                     onError(e)
+                }
+            }
     }
 
     fun createCharacter(uid: String, name: String, description: String, onOk: (String) -> Unit, onError: (Exception) -> Unit) {
@@ -55,7 +70,6 @@ class CharacterRepository(
         val data = hashMapOf(
             "name" to name,
             "description" to description,
-            // Keep in sync with website ordering/sorting (ISO string sorts lexicographically).
             "lastModified" to TimeUtil.nowIsoUtc(),
             "createdAt" to FieldValue.serverTimestamp(),
             "updatedAt" to FieldValue.serverTimestamp()
@@ -65,10 +79,11 @@ class CharacterRepository(
             .addOnFailureListener(onError)
     }
 
-    fun updateDescription(uid: String, id: String, description: String, onOk: () -> Unit, onError: (Exception) -> Unit) {
+    fun updateDescription(uid: String, id: String, name: String, description: Any, onOk: () -> Unit, onError: (Exception) -> Unit) {
         col(uid).document(id)
             .update(
                 mapOf(
+                    "name" to name,
                     "description" to description,
                     "lastModified" to TimeUtil.nowIsoUtc(),
                     "updatedAt" to FieldValue.serverTimestamp()
@@ -105,52 +120,59 @@ class CharacterRepository(
     }
 
     fun extractDescriptionText(doc: DocumentSnapshot): String {
-        // Website stores `description` as a structured object; app-created characters store it as a string.
-        val descString = doc.getString("description")
-        if (!descString.isNullOrBlank()) return descString
-
-        val any = doc.get("description")
-        return when (any) {
-            is Map<*, *> -> formatStructuredDescription(any)
-            is List<*> -> any.filterIsInstance<String>().joinToString("\n").trim().ifBlank { "" }
-            else -> ""
+        try {
+            // Safe checking of type instead of direct getString() which crashes if field is not a String
+            val rawDesc = doc.get("description") ?: return ""
+            
+            return when (rawDesc) {
+                is String -> rawDesc
+                is Map<*, *> -> formatStructuredDescription(rawDesc)
+                is List<*> -> rawDesc.filterIsInstance<String>().joinToString("\n").trim().ifBlank { "" }
+                else -> rawDesc.toString() // Fallback to string representation for numbers etc
+            }
+        } catch (e: Exception) {
+            return "(Ошибка чтения описания)"
         }
     }
 
     fun formatStructuredDescription(desc: Map<*, *>): String {
-        val background = (desc["background"] as? String).orEmpty().trim()
-        val beliefs = (desc["beliefs"] as? String).orEmpty().trim()
-        val misc = (desc["misc"] as? String).orEmpty().trim()
+        return try {
+            val background = (desc["background"] as? String).orEmpty().trim()
+            val beliefs = (desc["beliefs"] as? String).orEmpty().trim()
+            val misc = (desc["misc"] as? String).orEmpty().trim()
 
-        val appearance = desc["appearance"] as? Map<*, *>
-        val race = (appearance?.get("race") as? String).orEmpty().trim()
-        val gender = (appearance?.get("gender") as? String).orEmpty().trim()
-        val notes = (appearance?.get("notes") as? String).orEmpty().trim()
+            val appearance = desc["appearance"] as? Map<*, *>
+            val race = (appearance?.get("race") as? String).orEmpty().trim()
+            val gender = (appearance?.get("gender") as? String).orEmpty().trim()
+            val notes = (appearance?.get("notes") as? String).orEmpty().trim()
 
-        return buildString {
-            if (race.isNotBlank() || gender.isNotBlank() || notes.isNotBlank()) {
-                appendLine("Внешность:")
-                if (race.isNotBlank()) appendLine("- Раса: $race")
-                if (gender.isNotBlank()) appendLine("- Пол: $gender")
-                if (notes.isNotBlank()) appendLine("- Заметки: $notes")
-                appendLine()
-            }
-            if (background.isNotBlank()) {
-                appendLine("Прошлое:")
-                appendLine(background)
-                appendLine()
-            }
-            if (beliefs.isNotBlank()) {
-                appendLine("Убеждения:")
-                appendLine(beliefs)
-                appendLine()
-            }
-            if (misc.isNotBlank()) {
-                appendLine("Прочее:")
-                appendLine(misc)
-                appendLine()
-            }
-        }.trim()
+            buildString {
+                if (race.isNotBlank() || gender.isNotBlank() || notes.isNotBlank()) {
+                    appendLine("Внешность:")
+                    if (race.isNotBlank()) appendLine("- Раса: $race")
+                    if (gender.isNotBlank()) appendLine("- Пол: $gender")
+                    if (notes.isNotBlank()) appendLine("- Заметки: $notes")
+                    appendLine()
+                }
+                if (background.isNotBlank()) {
+                    appendLine("Прошлое:")
+                    appendLine(background)
+                    appendLine()
+                }
+                if (beliefs.isNotBlank()) {
+                    appendLine("Убеждения:")
+                    appendLine(beliefs)
+                    appendLine()
+                }
+                if (misc.isNotBlank()) {
+                    appendLine("Прочее:")
+                    appendLine(misc)
+                    appendLine()
+                }
+            }.trim()
+        } catch (e: Exception) {
+            "(Ошибка форматирования)"
+        }
     }
 
     object CharacterCache {
@@ -158,20 +180,24 @@ class CharacterRepository(
         private const val KEY_LIST = "characters_list_v1"
 
         fun saveList(context: Context, list: List<Character>) {
-            val arr = JSONArray()
-            list.forEach { c ->
-                val obj = JSONObject()
-                obj.put("id", c.id)
-                obj.put("name", c.name)
-                obj.put("description", c.description)
-                if (c.level != null) obj.put("level", c.level)
-                if (!c.lastModified.isNullOrBlank()) obj.put("lastModified", c.lastModified)
-                arr.put(obj)
+            try {
+                val arr = JSONArray()
+                list.forEach { c ->
+                    val obj = JSONObject()
+                    obj.put("id", c.id)
+                    obj.put("name", c.name)
+                    obj.put("description", c.description)
+                    if (c.level != null) obj.put("level", c.level)
+                    if (!c.lastModified.isNullOrBlank()) obj.put("lastModified", c.lastModified)
+                    arr.put(obj)
+                }
+                context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                    .edit()
+                    .putString(KEY_LIST, arr.toString())
+                    .apply()
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .edit()
-                .putString(KEY_LIST, arr.toString())
-                .apply()
         }
 
         fun loadList(context: Context): List<Character> {

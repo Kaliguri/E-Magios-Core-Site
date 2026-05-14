@@ -13,7 +13,11 @@ class NewsActivity : BaseActivity() {
     private val repo = DbRepository()
 
     private val adapter = SimpleItemAdapter { item ->
-        NewsDetailActivity.open(this, item.title, item.body)
+        try {
+            NewsDetailActivity.open(this, item.title, item.body)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,17 +67,17 @@ class NewsActivity : BaseActivity() {
                 val features = (0 until featuresArr.length()).mapNotNull { featuresArr.optString(it) }
 
                 val body = buildString {
-                    if (date.isNotBlank()) appendLine(date)
+                    if (date.isNotBlank()) append("<font color='#999999'>$date</font><br><br>")
                     if (brief.isNotBlank()) {
-                        if (isNotEmpty()) appendLine()
-                        appendLine(brief)
+                        append("<p>$brief</p>")
                     }
                     if (features.isNotEmpty()) {
-                        if (isNotEmpty()) appendLine()
-                        appendLine("Что нового:")
-                        features.forEach { f -> appendLine("• $f") }
+                        append("<h4><font color='#10b981'>Что нового:</font></h4>")
+                        append("<ul>")
+                        features.forEach { f -> append("<li>$f</li>") }
+                        append("</ul>")
                     }
-                }.trim()
+                }
 
                 SimpleItem(
                     id = id,

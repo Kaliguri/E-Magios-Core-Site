@@ -8,7 +8,7 @@ import {
   addResetPasswordButton,
   isBookLocked
 } from './access.js?v=435f5ee0';
-import { initSidebar, toggleBook } from './sidebar.js?v=fe717ada';
+import { initSidebar, toggleBook } from './sidebar.js?v=e501a190';
 import { smoothScrollTo, initScrollToTop } from './scroll.js?v=7df88915';
 
 // E'Magios Core - Common JavaScript Functions
@@ -2635,12 +2635,12 @@ function ensureDbDetailModal() {
 
 function resolveDbScriptUrl() {
   const scripts = Array.from(document.getElementsByTagName('script'));
-  const commonScript = scripts.find((s) => (s.getAttribute('src') || '').indexOf('common.js?v=6bfc8187') !== -1);
+  const commonScript = scripts.find((s) => (s.getAttribute('src') || '').indexOf('common.js?v=4f2957ea') !== -1);
   if (commonScript) {
     const abs = new URL(commonScript.getAttribute('src'), window.location.href).href;
-    return abs.replace(/common\.js.*$/i, 'db.js?v=7d88c8d0');
+    return abs.replace(/common\.js.*$/i, 'db.js?v=e0c86bb5');
   }
-  return new URL('db.js?v=7d88c8d0', window.location.href).href;
+  return new URL('db.js?v=e0c86bb5', window.location.href).href;
 }
 
 function ensureDbModuleLoaded() {
@@ -2656,7 +2656,7 @@ function ensureDbModuleLoaded() {
     script.src = scriptUrl;
     script.defer = true;
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load db.js?v=7d88c8d0'));
+    script.onerror = () => reject(new Error('Failed to load db.js?v=e0c86bb5'));
     document.body.appendChild(script);
   });
   return dbScriptPromise;
@@ -2745,7 +2745,7 @@ function handleDbLinkClick(event) {
 }
 
 function restoreDbDetailOnLoad() {
-  // На самой странице базы восстановления займётся db.js?v=7d88c8d0
+  // На самой странице базы восстановления займётся db.js?v=e0c86bb5
   if (document.body.getAttribute('data-page') === 'db') {
     return;
   }
