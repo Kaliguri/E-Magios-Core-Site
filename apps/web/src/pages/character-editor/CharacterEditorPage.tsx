@@ -7,6 +7,12 @@ import {
 } from '@/features/character-editor/characterCalculations';
 import { CharacterRepository } from '@/shared/repositories/CharacterRepository';
 import { CompendiumRepository } from '@/shared/repositories/CompendiumRepository';
+import {
+  rollDice,
+  recordDiceRoll,
+  type DiceRollResult,
+  type RollContext,
+} from '@/features/character-editor/diceRoller';
 import { Button } from '@/shared/ui/Button';
 import type { Character, CharacterSpell } from '@/entities/character/types';
 import type { School, Spell } from '@/entities/compendium/types';
@@ -143,6 +149,87 @@ function SkillRow({
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+const CORE_ROLLS: { label: string; context: RollContext }[] = [
+  { label: 'Аркана', context: 'arcana' },
+  { label: 'Попадание', context: 'hit' },
+  { label: 'Наложение', context: 'apply' },
+];
+
+function DiceRoller({ uid, characterId }: { uid: string | null; characterId: string | null }) {
+  const [last, setLast] = useState<DiceRollResult | null>(null);
+  const [sides, setSides] = useState(6);
+  const [count, setCount] = useState(1);
+  const [modifier, setModifier] = useState(0);
+
+  function doRoll(rollSides: number, rollCount: number, rollMod: number, context: RollContext) {
+    const result = rollDice(rollSides, rollCount, rollMod, context);
+    recordDiceRoll(result, { uid, characterId });
+    setLast(result);
+  }
+
+  return (
+    <div className={styles.diceRoller}>
+      <h3>Броски кубов</h3>
+      <div className={styles.diceCoreRow}>
+        {CORE_ROLLS.map((roll) => (
+          <Button
+            key={roll.context}
+            variant="secondary"
+            size="sm"
+            onClick={() => doRoll(12, 1, 0, roll.context)}
+          >
+            {roll.label} (d12)
+          </Button>
+        ))}
+      </div>
+      <div className={styles.diceCustomRow}>
+        <label className={styles.diceField}>
+          <span>Кубов</span>
+          <input
+            type="number"
+            min={1}
+            max={20}
+            value={count}
+            onChange={(e) => setCount(Math.max(1, Number(e.target.value)))}
+          />
+        </label>
+        <label className={styles.diceField}>
+          <span>Граней</span>
+          <select value={sides} onChange={(e) => setSides(Number(e.target.value))}>
+            {[2, 4, 6, 8, 10, 12, 20, 100].map((s) => (
+              <option key={s} value={s}>
+                d{s}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={styles.diceField}>
+          <span>Модиф.</span>
+          <input
+            type="number"
+            value={modifier}
+            onChange={(e) => setModifier(Number(e.target.value))}
+          />
+        </label>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => doRoll(sides, count, modifier, 'custom')}
+        >
+          Бросить
+        </Button>
+      </div>
+      {last && (
+        <div className={styles.diceResult}>
+          <span className={styles.diceExpression}>{last.expression}</span>
+          <span className={styles.diceTotal}>{last.total}</span>
+          <span className={styles.diceBreakdown}>[{last.rolls.join(', ')}]</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -441,6 +528,8 @@ export function CharacterEditorPage() {
               </label>
             ))}
           </div>
+
+          <DiceRoller uid={authHook.auth.uid} characterId={character.id} />
         </>
       )}
 

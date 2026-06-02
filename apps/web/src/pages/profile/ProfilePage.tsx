@@ -1,14 +1,8 @@
 import { useEffect, useState } from 'react';
-import {
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signInWithPopup,
-  signOut,
-  updateProfile,
-  type User,
-} from 'firebase/auth';
+import { updateProfile } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '@/shared/firebase/client';
+import { db } from '@/shared/firebase/client';
+import { useAuth } from '@/features/auth';
 import { Button } from '@/shared/ui/Button';
 import styles from './ProfilePage.module.css';
 
@@ -27,50 +21,44 @@ const EMPTY_PROFILE: ProfileData = {
 };
 
 export function ProfilePage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading, signIn: contextSignIn, signOutUser } = useAuth();
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<ProfileData>(EMPTY_PROFILE);
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
-    return onAuthStateChanged(auth, (current) => {
-      setUser(current);
-      setLoading(false);
-      setError('');
-      if (!current) {
-        setProfile(EMPTY_PROFILE);
-        return;
-      }
+    setError('');
+    if (!user) {
+      setProfile(EMPTY_PROFILE);
+      return;
+    }
 
-      const ref = doc(db, 'users', current.uid);
-      getDoc(ref)
-        .then((snapshot) => {
-          const data = snapshot.exists() ? snapshot.data() : {};
-          setProfile({
-            displayName: String(data.displayName ?? current.displayName ?? ''),
-            discordWebhookUrl: String(data.discordWebhookUrl ?? ''),
-            discordDisplayName: String(data.discordDisplayName ?? ''),
-            discordColor: String(data.discordColor ?? '#10B981'),
-          });
-        })
-        .catch(() => {
-          setProfile({
-            ...EMPTY_PROFILE,
-            displayName: current.displayName ?? '',
-          });
-          setError('Не удалось загрузить профиль. Можно продолжить с данными Google.');
+    const ref = doc(db, 'users', user.uid);
+    getDoc(ref)
+      .then((snapshot) => {
+        const data = snapshot.exists() ? snapshot.data() : {};
+        setProfile({
+          displayName: String(data.displayName ?? user.displayName ?? ''),
+          discordWebhookUrl: String(data.discordWebhookUrl ?? ''),
+          discordDisplayName: String(data.discordDisplayName ?? ''),
+          discordColor: String(data.discordColor ?? '#10B981'),
         });
-    });
-  }, []);
+      })
+      .catch(() => {
+        setProfile({
+          ...EMPTY_PROFILE,
+          displayName: user.displayName ?? '',
+        });
+        setError('Не удалось загрузить профиль. Можно продолжить с данными Google.');
+      });
+  }, [user]);
 
   async function signIn() {
     setError('');
     setStatus('');
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      await contextSignIn();
     } catch (err) {
       const code = typeof err === 'object' && err && 'code' in err ? String(err.code) : 'unknown';
       setError(`Ошибка входа Google: ${code}`);
@@ -221,7 +209,7 @@ export function ProfilePage() {
             <Button variant="primary" onClick={save} disabled={saving}>
               {saving ? 'Сохранение...' : 'Сохранить'}
             </Button>
-            <Button variant="secondary" onClick={() => void signOut(auth)}>
+            <Button variant="secondary" onClick={() => void signOutUser()}>
               Выйти из аккаунта
             </Button>
             {status && <span className={styles.status}>{status}</span>}

@@ -1,5 +1,30 @@
 import { NavLink } from 'react-router-dom';
+import { BOOKS, type Book } from '@/shared/nav/books';
 import styles from './HomePage.module.css';
+
+const PRIMARY_CARDS = [
+  {
+    to: '/db',
+    icon: '📚',
+    title: 'База Данных',
+    text: 'Заклинания, школы магии, эффекты и навыки',
+  },
+  {
+    to: '/character-editor',
+    icon: '⚔️',
+    title: 'Редактор Персонажей',
+    text: 'Создай, сохрани и развивай своего персонажа',
+  },
+  { to: '/news', icon: '📰', title: 'Новости', text: 'Последние обновления системы' },
+  {
+    to: '/profile',
+    icon: '👤',
+    title: 'Профиль',
+    text: 'Вход через Google, настройки и интеграции',
+  },
+];
+
+const BOOK_KEYS = Object.keys(BOOKS);
 
 export function HomePage() {
   return (
@@ -9,23 +34,39 @@ export function HomePage() {
         <p>Настольная ролевая система магии и приключений</p>
       </div>
 
-      <div className={styles.cards}>
-        <NavLink to="/news" className={styles.card}>
-          <span className={styles.cardIcon}>📰</span>
-          <h3>Новости</h3>
-          <p>Последние обновления системы</p>
-        </NavLink>
-        <NavLink to="/db" className={styles.card}>
-          <span className={styles.cardIcon}>📚</span>
-          <h3>База Данных</h3>
-          <p>Заклинания, школы магии, эффекты и навыки</p>
-        </NavLink>
-        <NavLink to="/character-editor" className={styles.card}>
-          <span className={styles.cardIcon}>⚔️</span>
-          <h3>Редактор Персонажей</h3>
-          <p>Создай и сохрани своего персонажа</p>
-        </NavLink>
-      </div>
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Разделы</h2>
+        <div className={styles.cards}>
+          {PRIMARY_CARDS.map((card) => (
+            <NavLink key={card.to} to={card.to} className={styles.card}>
+              <span className={styles.cardIcon}>{card.icon}</span>
+              <h3>{card.title}</h3>
+              <p>{card.text}</p>
+            </NavLink>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Книги правил</h2>
+        <div className={styles.cards}>
+          {BOOK_KEYS.map((key) => {
+            const book = BOOKS[key] as Book;
+            const firstChapter = book.chapters[0];
+            if (!firstChapter) return null;
+            return (
+              <NavLink key={key} to={`/${key}/${firstChapter.id}`} className={styles.card}>
+                <span className={styles.cardIcon}>{book.locked ? '🔒' : '📖'}</span>
+                <h3>{book.title}</h3>
+                <p>
+                  {book.chapters.length} {book.chapters.length === 1 ? 'глава' : 'глав'}
+                  {book.locked ? ' · защищено паролем' : ''}
+                </p>
+              </NavLink>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }

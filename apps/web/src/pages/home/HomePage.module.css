@@ -19,6 +19,16 @@
   margin: 0;
 }
 
+.section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.sectionTitle {
+  font-size: 1.3rem;
+  margin: 0 0 var(--spacing-sm);
+  color: var(--text-secondary);
+}
+
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));

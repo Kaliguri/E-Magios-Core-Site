@@ -1,18 +1,31 @@
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { BOOKS, type Book } from '@/shared/nav/books';
+import { useAuth } from '@/features/auth';
 import styles from './Sidebar.module.css';
 
 const BOOK_KEYS: string[] = Object.keys(BOOKS);
 
-const TOOLS = [
-  { id: 'character-editor', label: 'Редактор Персонажей', path: '/character-editor' },
-  { id: 'db', label: 'База Данных', path: '/db' },
-  { id: 'ops', label: 'Ops Метрики', path: '/ops' },
+interface ToolLink {
+  id: string;
+  label: string;
+  path: string;
+  icon: string;
+  /** Minimum access level required to see this entry. */
+  access?: 'editor';
+}
+
+const TOOLS: ToolLink[] = [
+  { id: 'character-editor', label: 'Редактор Персонажей', path: '/character-editor', icon: '⚔️' },
+  { id: 'db', label: 'База Данных', path: '/db', icon: '📚' },
+  { id: 'dashboard', label: 'Дашборд', path: '/dashboard', icon: '📈', access: 'editor' },
+  { id: 'ops', label: 'Ops Метрики', path: '/ops', icon: '📊', access: 'editor' },
 ];
 
 export function Sidebar() {
   const location = useLocation();
+  const { uid, displayName, email, photoURL, role, isEditor, loading, signIn, signOutUser } =
+    useAuth();
   const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
     BOOK_KEYS.forEach((k) => {
@@ -24,6 +37,8 @@ export function Sidebar() {
   function toggle(key: string) {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   }
+
+  const visibleTools = TOOLS.filter((tool) => tool.access !== 'editor' || isEditor);
 
   return (
     <nav className={styles.sidebar}>
@@ -99,16 +114,47 @@ export function Sidebar() {
       })}
 
       <div className={styles.sectionLabel}>Инструменты</div>
-      {TOOLS.map((tool) => (
+      {visibleTools.map((tool) => (
         <NavLink
           key={tool.id}
           to={tool.path}
-          title={tool.id === 'ops' ? 'Operations metrics dashboard' : 'Navigation item'}
           className={({ isActive }) => [styles.navItem, isActive ? styles.active : ''].join(' ')}
         >
-          {tool.id === 'character-editor' ? '⚔️' : tool.id === 'ops' ? '📊' : '📚'} {tool.label}
+          {tool.icon} {tool.label}
         </NavLink>
       ))}
+
+      <div className={styles.account}>
+        {loading ? (
+          <span className={styles.accountHint}>Проверка входа...</span>
+        ) : uid ? (
+          <div className={styles.accountUser}>
+            <div className={styles.accountAvatar}>
+              {photoURL ? <img src={photoURL} alt="" /> : '👤'}
+            </div>
+            <div className={styles.accountInfo}>
+              <span className={styles.accountName}>{displayName ?? email ?? 'Аккаунт'}</span>
+              {role && <span className={styles.accountRole}>{role}</span>}
+            </div>
+            <button
+              type="button"
+              className={styles.accountButton}
+              onClick={() => void signOutUser()}
+              title="Выйти из аккаунта"
+            >
+              Выйти
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className={[styles.accountButton, styles.accountSignIn].join(' ')}
+            onClick={() => void signIn()}
+          >
+            Войти через Google
+          </button>
+        )}
+      </div>
     </nav>
   );
 }

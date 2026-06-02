@@ -8,6 +8,8 @@ import { CharacterEditorPage } from '@/pages/character-editor/CharacterEditorPag
 import { ProfilePage } from '@/pages/profile/ProfilePage';
 import { BookPage } from '@/pages/book/BookPage';
 import { OpsPage } from '@/pages/ops/OpsPage';
+import { DashboardPage } from '@/pages/dashboard/DashboardPage';
+import { AuthProvider, RequireRole } from '@/features/auth';
 import { logTelemetry } from '@/shared/telemetry/clientTelemetry';
 
 function TelemetryTracker() {
@@ -35,20 +37,30 @@ function TelemetryTracker() {
 
 export function App() {
   return (
-    <HashRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
-      <TelemetryTracker />
-      <Routes>
-        <Route element={<Layout />}>
-          <Route index element={<HomePage />} />
-          <Route path="news" element={<NewsPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="ops" element={<OpsPage />} />
-          <Route path="db" element={<DbPage />} />
-          <Route path="character-editor" element={<CharacterEditorPage />} />
-          <Route path=":bookKey/:chapterId" element={<BookPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-      </Routes>
-    </HashRouter>
+    <AuthProvider>
+      <HashRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+        <TelemetryTracker />
+        <Routes>
+          <Route element={<Layout />}>
+            <Route index element={<HomePage />} />
+            <Route path="news" element={<NewsPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="ops" element={<OpsPage />} />
+            <Route path="db" element={<DbPage />} />
+            <Route path="character-editor" element={<CharacterEditorPage />} />
+            <Route
+              path="dashboard"
+              element={
+                <RequireRole require="editor">
+                  <DashboardPage />
+                </RequireRole>
+              }
+            />
+            <Route path=":bookKey/:chapterId" element={<BookPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
+        </Routes>
+      </HashRouter>
+    </AuthProvider>
   );
 }
