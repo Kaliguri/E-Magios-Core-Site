@@ -201,7 +201,14 @@ a), `scripts/import-content/*`, `widgets/sidebar/Sidebar.tsx`.
 
 ---
 
-## Фаза 3 — Character editor (редактор персонажей)
+## Фаза 3 — Character editor (редактор персонажей) — ✅ выполнено
+
+> Итог: расчёты `calculateStats` (таблица 1–20) зафиксированы unit-тестами
+> (`characterCalculations.test.ts`); добавлен `diceRoller` (core-броски d12
+> Аркана/Попадание/Наложение + кастомный), который пишет события в localStorage
+> `diceRollEventsLegacy` в legacy-формате (`buildDiceEventsFromEntry`) — дашборд
+> агрегирует их через локальный путь. Покрыто `diceRoller.test.ts`. Сабспеллы и
+> глубокий реворк UI — отдельной задачей позже.
 
 **Цель:** довести самый логически тяжёлый срез до паритета с `character-editor.js`.
 
@@ -237,7 +244,14 @@ legacy (`spellsData`, `schoolsData`) в новом коде не актуаль�
 
 ---
 
-## Фаза 4 — Auth + Profile
+## Фаза 4 — Auth + Profile — ✅ выполнено
+
+> Итог: единый контекст `features/auth` (`AuthProvider` + `useAuth`) — один слушатель
+> `onAuthStateChanged`, роль читается из custom-claim токена (`token.role`, как в
+> `firestore.rules → userRole()`). Гард маршрутов `RequireRole` (`auth`/`editor`/`admin`).
+> `Sidebar` получил блок аккаунта (вход/выход Google, имя, роль) и роль-гейтинг
+> пунктов `Дашборд`/`Ops`. `ProfilePage` и `useCharacterAuth` переведены на общий
+> контекст (убраны дублирующие слушатели).
 
 **Цель:** ввести аутентификацию Firebase в UI, профиль и роль-зависимую навигацию. Это
 предпосылка для `locked`-книг (Фаза 2) и гейтинга дашборда (Фаза 6).
@@ -272,7 +286,11 @@ legacy (`spellsData`, `schoolsData`) в новом коде не актуаль�
 
 ---
 
-## Фаза 5 — Home + News
+## Фаза 5 — Home + News — ✅ выполнено
+
+> Итог: `HomePage` расширен — секции «Разделы» (DB/редактор/новости/профиль) и
+> «Книги правил» (карточки из `BOOKS` со ссылкой на первую главу, метка `locked`).
+> News уже был подключён к `ContentRepository.getNews()` в Фазе 2 — оставлен как есть.
 
 **Цель:** финальная полировка витрины.
 
@@ -297,7 +315,17 @@ legacy (`spellsData`, `schoolsData`) в новом коде не актуаль�
 
 ---
 
-## Фаза 6 — Dashboard (обязателен)
+## Фаза 6 — Dashboard (обязателен) — ✅ выполнено
+
+> Итог: `dashboard.js` перенесён в `features/dashboard/diceAnalytics.ts` (чистый
+> 1:1 порт `computeDiceFromEvents`/`normalizeDiceReport`/`computeStats`/сигнатуры
+> бросков) + `pages/dashboard/DashboardPage` с блоками Контент/Броски/Качество и
+> модалкой статистики пользователя (на `Card`/`Modal`/`Table`/`EmptyState`).
+> Источник: `reports/data_report.json` как public-ассет (`apps/web/public/reports/`,
+> фетч `${BASE_URL}reports/data_report.json`), с fallback на localStorage-события
+> (`diceRollEventsLegacy`) — как в legacy. Маршрут `#/dashboard` гейтится `RequireRole
+> require="editor"`; ссылка в `Sidebar` видна editor/admin. Метрики покрыты
+> `diceAnalytics.test.ts` (15 кейсов). Хардкод UID→имя оставлен как в legacy.
 
 **Цель:** перенести дашборд данных в React **по функционалу как есть** (реворк — позже).
 Наличие критично для защиты.
@@ -387,5 +415,6 @@ legacy (`spellsData`, `schoolsData`) в новом коде не актуаль�
 | 2026-06-02 | UI-парность | Пожелание, можно улучшать |
 | 2026-06-02 | Dashboard | Обязателен; перенос «как есть», реворк позже |
 | 2026-06-02 | Хранение контента книг (Firestore vs static ассеты) | Оставлено как static-ассеты в `apps/web/public` (уже работает через vite copy); миграция в Firestore не требуется на этом этапе |
-| _TBD_ | Источник dice-событий для дашборда (Firestore vs report fallback) | _открыто; рекомендация — писать в Firestore из редактора_ |
-| _TBD_ | Доступ к `reports/data_report.json` из SPA (public-ассет vs фетч из корня) | _открыто_ |
+| 2026-06-03 | Источник dice-событий для дашборда (Firestore vs report fallback) | Как в legacy: дашборд читает блок `dice` из отчёта, fallback на localStorage `diceRollEventsLegacy`. Редактор персонажа пишет события в тот же localStorage-ключ (legacy-формат). Переход на Firestore-события — отдельной задачей позже |
+| 2026-06-03 | Доступ к `reports/data_report.json` из SPA (public-ассет vs фетч из корня) | Public-ассет: файл скопирован в `apps/web/public/reports/`, фетчится как `${import.meta.env.BASE_URL}reports/data_report.json`; обновляется data-pipeline'ом |
+| 2026-06-03 | Хранилище роли пользователя (Firestore-документ vs custom claims) | Custom claims токена (`request.auth.token.role`) — единый источник для клиента (`useAuth`) и `firestore.rules` |
