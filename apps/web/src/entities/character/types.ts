@@ -12,6 +12,12 @@ export interface CharacterSkill {
   level: number;
 }
 
+export interface CharacterBonus {
+  id: string;
+  name: string;
+  value: number;
+}
+
 export interface CharacterStats {
   level: number;
   arcana: number;
@@ -47,6 +53,20 @@ export interface Character {
   defense?: number;
   equipment?: string;
   notes?: string;
+  // Temporary bonuses (tab "Бонусы")
+  temporaryBonuses?: CharacterBonus[];
+  // Inventory (tab "Инвентарь")
+  inventory?: string;
+  // Crafting (tab "Ремесло")
+  professions?: string;
+  recipes?: string;
+  // Description (tab "Описание")
+  alignment?: string;
+  gender?: string;
+  race?: string;
+  appearance?: string;
+  relationships?: string;
+  misc?: string;
   updatedAt?: string | null;
   version?: number;
 }

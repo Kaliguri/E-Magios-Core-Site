@@ -28,31 +28,33 @@ describe('ContentRepository', () => {
     vi.clearAllMocks();
   });
 
-  it('reads only published news and sorts newest-first by id (no composite index)', async () => {
-    mockCollection.mockReturnValue('news-collection-ref');
-    mockWhere.mockReturnValue('where-status-published');
-    mockQuery.mockReturnValue('news-query');
-    mockGetDocs.mockResolvedValue({
-      docs: [
-        {
-          id: '2025-11-28-old',
-          data: () => ({ title: 'Old', date: '28 ноября 2025', status: 'published' }),
-        },
+  it('reads news from the static bundled asset (no Firestore / index needed)', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [
         {
           id: '2025-12-10-new',
-          data: () => ({ title: 'New', date: '10 декабря 2025', status: 'published' }),
+          date: '10 декабря 2025',
+          title: 'New',
+          brief: 'b',
+          features: ['f'],
         },
+        { id: '2025-11-28-old', date: '28 ноября 2025', title: 'Old', brief: 'b', features: [] },
       ],
     });
+    vi.stubGlobal('fetch', fetchMock);
 
     const result = await ContentRepository.getNews();
 
-    expect(mockWhere).toHaveBeenCalledWith('status', '==', 'published');
-    // No orderBy → no composite index requirement.
-    expect(mockOrderBy).not.toHaveBeenCalled();
-    expect(mockQuery).toHaveBeenCalledWith('news-collection-ref', 'where-status-published');
-    // id-descending puts the newer ISO-prefixed id first.
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('data/news.json'), {
+      cache: 'no-store',
+    });
+    // No Firestore query path is used for news anymore.
+    expect(mockGetDocs).not.toHaveBeenCalled();
     expect(result.map((n) => n.id)).toEqual(['2025-12-10-new', '2025-11-28-old']);
+    expect(result[0].features).toEqual(['f']);
+
+    vi.unstubAllGlobals();
   });
 
   it('returns null manifest when manifest doc is absent', async () => {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { updateProfile } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/shared/firebase/client';
@@ -47,6 +47,7 @@ function normalizeHex(value: string): string {
 
 export function ProfilePage() {
   const { user, loading, signIn: contextSignIn, signOutUser } = useAuth();
+  const colorInputRef = useRef<HTMLInputElement | null>(null);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<ProfileData>(EMPTY_PROFILE);
   const [status, setStatus] = useState('');
@@ -285,10 +286,15 @@ export function ProfilePage() {
               <div className={styles.field}>
                 <label htmlFor="discord-color">Цвет сообщений (HEX)</label>
                 <div className={styles.colorRow}>
-                  <span
-                    className={styles.colorPreview}
-                    style={{ backgroundColor: colorValid ? profile.discordColor : 'transparent' }}
-                    aria-hidden
+                  <button
+                    type="button"
+                    className={[
+                      styles.colorPreview,
+                      colorValid ? '' : styles.colorPreviewEmpty,
+                    ].join(' ')}
+                    style={colorValid ? { backgroundColor: profile.discordColor } : undefined}
+                    aria-label="Выбрать произвольный цвет"
+                    onClick={() => colorInputRef.current?.click()}
                   />
                   <input
                     id="discord-color"
@@ -298,10 +304,12 @@ export function ProfilePage() {
                     placeholder="#10b981"
                   />
                   <input
+                    ref={colorInputRef}
                     type="color"
-                    className={styles.colorPicker}
-                    aria-label="Выбрать произвольный цвет"
-                    value={colorValid ? profile.discordColor : '#10b981'}
+                    className={styles.colorPickerHidden}
+                    aria-hidden
+                    tabIndex={-1}
+                    value={colorValid ? profile.discordColor : '#10B981'}
                     onChange={(event) => setColor(event.target.value.toUpperCase())}
                   />
                 </div>
@@ -320,6 +328,15 @@ export function ProfilePage() {
                       onClick={() => setColor(swatch)}
                     />
                   ))}
+                  <button
+                    type="button"
+                    className={[styles.swatch, styles.swatchRainbow].join(' ')}
+                    title="Выбрать свой цвет"
+                    aria-label="Выбрать свой цвет"
+                    onClick={() => colorInputRef.current?.click()}
+                  >
+                    🎨
+                  </button>
                 </div>
                 <p className={styles.fieldHint}>
                   Необязательный цвет рамки сообщения в формате HEX (например, #10b981).

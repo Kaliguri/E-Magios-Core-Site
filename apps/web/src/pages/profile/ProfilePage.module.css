@@ -103,54 +103,86 @@
 }
 
 .colorPreview {
-  width: 34px;
-  height: 34px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border-color);
+  background: transparent;
   flex-shrink: 0;
-}
-
-.colorHexInput {
-  max-width: 160px;
-}
-
-.colorPicker {
-  width: 40px;
-  height: 34px;
-  padding: 0;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  background: var(--bg-elevated);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.palette {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.5rem;
-}
-
-.swatch {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 2px solid transparent;
   cursor: pointer;
   padding: 0;
   transition:
-    transform 0.12s ease,
-    border-color 0.12s ease;
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    border-color 0.1s ease;
+}
+
+.colorPreview:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.colorPreviewEmpty {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.colorHexInput {
+  flex: 1;
+  max-width: 200px;
+}
+
+/* Native picker is opened via the preview/rainbow swatch; kept off-screen. */
+.colorPickerHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.palette {
+  display: grid;
+  grid-template-columns: repeat(7, 1.75rem);
+  gap: 0.4rem;
+  margin-top: var(--spacing-sm);
+}
+
+.swatch {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-sm);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  cursor: pointer;
+  padding: 0;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    border-color 0.1s ease;
 }
 
 .swatch:hover {
-  transform: scale(1.12);
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
 }
 
 .swatchActive {
-  border-color: var(--text-primary);
+  border-color: #fff;
   box-shadow: 0 0 0 2px var(--bg-secondary);
+}
+
+.swatchRainbow {
+  background: var(--bg-elevated);
+  border: 2px solid rgba(16, 185, 129, 0.55);
+  color: var(--accent-emerald);
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .discordTestRow {
