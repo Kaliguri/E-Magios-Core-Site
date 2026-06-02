@@ -406,3 +406,13 @@ python parse_effects.py
 - Добавить больше заклинаний в Obsidian
 - Полностью заполнить Master's Handbook, Craftbook, Rumors
 - Авторизация Google + облачное хранилище (долгосрочно)
+
+## Документы по архитектуре и диплому
+
+Ключевые документы для архитектуры, обработки данных и подготовки пояснительной записки находятся в подпапке:
+
+- `diploma/plans/data-processing-and-dashboard-plan.md`
+- `diploma/plans/engineering-gaps-implementation-plan.md`
+- `diploma/plans/thesis-architecture-writing-plan.md`
+
+Если пользователь запрашивает архитектурный план, roadmap по улучшениям, контур обработки данных, визуальный дашборд или каркас пояснительной записки, сначала использовать эти документы как основной источник контекста.
