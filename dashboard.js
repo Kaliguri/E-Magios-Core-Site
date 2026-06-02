@@ -94,6 +94,25 @@ function parseSidesFromDiceType(diceType) {
   return Math.trunc(asNumber(match[1], 0));
 }
 
+function normalizeRollExpression(expression) {
+  return String(expression || '')
+    .toLowerCase()
+    .replace(/^\/roll\s+/i, '')
+    .replace(/\s+/g, '');
+}
+
+function extractPrimaryDiceExpression(expression, diceType) {
+  const normalized = normalizeRollExpression(expression);
+  const match = normalized.match(/(\d+d\d+)/i);
+  if (match) {
+    return String(match[1]).toLowerCase();
+  }
+  if (diceType && /^d\d+$/i.test(diceType)) {
+    return `1${String(diceType).toLowerCase()}`;
+  }
+  return normalized || String(diceType || '').toLowerCase();
+}
+
 function normalizeRollContext(event) {
   const direct = String(event.context || '').trim().toLowerCase();
   if (direct) {
@@ -116,21 +135,36 @@ function normalizeRollContext(event) {
   return 'other';
 }
 
-function buildRollTypeLabel(context, diceType, expression) {
-  const contextLabelMap = {
+function buildRollTypeSignature(context, diceType, expression) {
+  const normalizedDiceType = normalizeDiceType(diceType);
+  const primaryExpression = extractPrimaryDiceExpression(expression, normalizedDiceType);
+  const isCustom = String(context || '').startsWith('custom');
+  if (isCustom) {
+    const customExpression = normalizeRollExpression(expression) || primaryExpression || normalizedDiceType;
+    return {
+      rollTypeKey: `custom:${customExpression}`,
+      category: 'custom',
+      label: `Кастомный - (${customExpression})`,
+      expression: customExpression
+    };
+  }
+
+  const isCoreD12 = normalizedDiceType === 'd12' && ['arcana', 'hit', 'apply'].includes(String(context || ''));
+  const categoryMap = {
     arcana: 'Аркана',
     hit: 'Попадание',
-    apply: 'Наложение эффекта',
-    other: 'Другое',
-    custom_attack: 'Кастомный: атака',
-    custom_damage: 'Кастомный: урон',
-    custom_control: 'Кастомный: контроль',
-    custom_support: 'Кастомный: поддержка'
+    apply: 'Наложение эффекта'
   };
-  const contextLabel = contextLabelMap[context] || context || DASHBOARD_LABELS.dice.unknown;
-  const normalizedDiceType = diceType || DASHBOARD_LABELS.dice.unknown;
-  const normalizedExpression = expression || normalizedDiceType;
-  return `${contextLabel} ${normalizedDiceType.toUpperCase()} (${normalizedExpression})`;
+  const category = isCoreD12 ? String(context) : 'damage';
+  const categoryLabel = isCoreD12 ? categoryMap[category] : 'Урон';
+  const cleanedExpression = isCoreD12 ? '1d12' : primaryExpression;
+  const diceLabel = normalizedDiceType ? normalizedDiceType.toUpperCase() : 'D?';
+  return {
+    rollTypeKey: `${category}:${normalizedDiceType}:${cleanedExpression}`,
+    category,
+    label: `${diceLabel} - ${categoryLabel} - (${cleanedExpression})`,
+    expression: cleanedExpression
+  };
 }
 
 function resolveUserDisplayName(userId, row) {
@@ -212,7 +246,8 @@ function computeDiceFromEvents(events) {
     const createdAt = Math.trunc(asNumber(event.createdAt, 0));
     const context = normalizeRollContext(event);
     const expression = String(event.expression || event.displayExpression || diceType || '').trim();
-    const rollTypeKey = String(event.rollTypeKey || `${context}:${diceType}`).trim().toLowerCase();
+    const rollSignature = buildRollTypeSignature(context, diceType, expression);
+    const rollTypeKey = String(rollSignature.rollTypeKey || `${context}:${diceType}`).trim().toLowerCase();
     const userDisplayName = resolveUserDisplayName(userId, event);
 
     if (!diceType || !Number.isFinite(result) || !Number.isFinite(sides) || sides <= 0) {
@@ -233,9 +268,10 @@ function computeDiceFromEvents(events) {
     if (!rollGroups[rollTypeKey]) {
       rollGroups[rollTypeKey] = {
         rollTypeKey,
-        context,
+        context: rollSignature.category,
+        label: rollSignature.label,
         diceType,
-        expression: expression || diceType,
+        expression: rollSignature.expression || extractPrimaryDiceExpression(expression, diceType),
         values: [],
         sides
       };
@@ -248,10 +284,10 @@ function computeDiceFromEvents(events) {
         userId,
         userDisplayName,
         rollTypeKey,
-        label: buildRollTypeLabel(context, diceType, expression || diceType),
-        context,
+        label: rollSignature.label,
+        context: rollSignature.category,
         diceType,
-        expression: expression || diceType,
+        expression: rollSignature.expression || extractPrimaryDiceExpression(expression, diceType),
         sides,
         values: [],
         lastRollAt: createdAt
@@ -346,7 +382,7 @@ function computeDiceFromEvents(events) {
       context: pack.context,
       diceType: pack.diceType,
       expression: pack.expression,
-      label: buildRollTypeLabel(pack.context, pack.diceType, pack.expression),
+      label: pack.label || buildRollTypeSignature(pack.context, pack.diceType, pack.expression).label,
       count: stats.count,
       avg: stats.avg,
       theoreticalAvg: stats.theoretical,
@@ -468,6 +504,86 @@ function normalizeDiceReport(reportDice) {
   };
 }
 
+function parseRuDate(value) {
+  const match = String(value || '').trim().match(/^(\d{2})\.(\d{2})\.(\d{4}),\s*(\d{2}):(\d{2})(?::(\d{2}))?$/);
+  if (!match) {
+    return null;
+  }
+  const day = Number(match[1]);
+  const month = Number(match[2]) - 1;
+  const year = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = Number(match[6] || '0');
+  const time = new Date(year, month, day, hour, minute, second).getTime();
+  return Number.isFinite(time) ? time : null;
+}
+
+function getSortableValue(rawText) {
+  const text = String(rawText || '').replace(/\s+/g, ' ').trim();
+  const dateValue = parseRuDate(text);
+  if (dateValue !== null) {
+    return { type: 'number', value: dateValue };
+  }
+  if (/^-?\d+(?:[.,]\d+)?(?:\s*%|\s*\(.+\))?$/u.test(text)) {
+    const numberMatch = text.match(/-?\d+(?:[.,]\d+)?/);
+    const numeric = Number(String(numberMatch ? numberMatch[0] : '0').replace(',', '.'));
+    return { type: 'number', value: Number.isFinite(numeric) ? numeric : 0 };
+  }
+  return { type: 'string', value: text.toLocaleLowerCase('ru-RU') };
+}
+
+function sortTableByColumn(table, columnIndex, direction) {
+  const tbody = table.tBodies && table.tBodies[0];
+  if (!tbody) {
+    return;
+  }
+  const rows = Array.from(tbody.querySelectorAll('tr')).filter((row) => !row.querySelector('.no-results'));
+  if (rows.length <= 1) {
+    return;
+  }
+  rows.sort((leftRow, rightRow) => {
+    const leftCell = leftRow.cells[columnIndex];
+    const rightCell = rightRow.cells[columnIndex];
+    const left = getSortableValue(leftCell ? leftCell.textContent : '');
+    const right = getSortableValue(rightCell ? rightCell.textContent : '');
+    let result = 0;
+    if (left.type === 'number' && right.type === 'number') {
+      result = left.value - right.value;
+    } else {
+      result = String(left.value).localeCompare(String(right.value), 'ru');
+    }
+    return direction === 'asc' ? result : -result;
+  });
+  rows.forEach((row) => tbody.appendChild(row));
+}
+
+function initSortableTable(table) {
+  if (!table || table.dataset.sortReady === 'true') {
+    return;
+  }
+  const headerCells = Array.from(table.querySelectorAll('thead th'));
+  if (!headerCells.length) {
+    return;
+  }
+  headerCells.forEach((th, index) => {
+    th.classList.add('sortable');
+    th.addEventListener('click', () => {
+      const currentColumn = Number(table.dataset.sortColumn || '-1');
+      const currentDirection = table.dataset.sortDirection || 'desc';
+      const direction = currentColumn === index && currentDirection === 'asc' ? 'desc' : 'asc';
+      table.dataset.sortColumn = String(index);
+      table.dataset.sortDirection = direction;
+      sortTableByColumn(table, index, direction);
+    });
+  });
+  table.dataset.sortReady = 'true';
+}
+
+function initDashboardTableSorting(root = document) {
+  root.querySelectorAll('.results-table table').forEach((table) => initSortableTable(table));
+}
+
 function createMetricCard(title, value, hint) {
   const article = document.createElement('article');
   article.className = 'dashboard-card';
@@ -559,6 +675,7 @@ function openUserStatsModal(summary, diceData) {
       </table>
     </div>
   `;
+  initDashboardTableSorting(content);
   modal.classList.remove('hidden');
   modal.setAttribute('aria-hidden', 'false');
   document.body.classList.add('modal-open');
@@ -780,6 +897,7 @@ function renderDice(report) {
       users.appendChild(tr);
     });
   }
+  initDashboardTableSorting(document);
 }
 
 async function loadReport() {
@@ -799,6 +917,7 @@ async function initDashboard() {
     renderContent(report);
     renderDice(report);
     renderQuality(report);
+    initDashboardTableSorting(document);
     status.textContent = `Отчет обновлен: ${new Date(report.generatedAt || Date.now()).toLocaleString('ru-RU')}`;
   } catch (error) {
     status.textContent = `Ошибка загрузки отчета: ${error.message}`;
