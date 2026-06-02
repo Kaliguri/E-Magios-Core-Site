@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-06-02T14:29:36.353280+00:00",
+  "quality": {
+    "totals": {
+      "error": 0,
+      "warning": 0,
+      "info": 0
+    },
+    "issuesByCollection": {},
+    "topRules": []
+  },
+  "content": {
+    "totals": {
+      "spells": 160,
+      "schools": 40
+    },
+    "spellsBySchool": [
+      {
+        "school": "Магические приспособления",
+        "count": 52
+      },
+      {
+        "school": "Природа",
+        "count": 29
+      },
+      {
+        "school": "Яды",
+        "count": 20
+      },
+      {
+        "school": "Огонь",
+        "count": 18
+      },
+      {
+        "school": "Разум",
+        "count": 14
+      },
+      {
+        "school": "Вода",
+        "count": 11
+      },
+      {
+        "school": "Базовая Аркана",
+        "count": 10
+      },
+      {
+        "school": "Физические усиления",
+        "count": 10
+      },
+      {
+        "school": "Земля",
+        "count": 9
+      },
+      {
+        "school": "Воздух",
+        "count": 8
+      },
+      {
+        "school": "Душа",
+        "count": 1
+      }
+    ],
+    "concentrationShare": 11.25,
+    "subspellShare": 0.0,
+    "incompleteObjects": 4,
+    "schoolsWithoutSpells": 30,
+    "relationDensityAvg": 1.25
+  },
+  "dice": {
+    "status": "insufficient_data",
+    "reason": "dice_roll_events.json exists but has no valid events.",
+    "rollsCountByDiceType": {},
+    "avgResultByDiceType": {},
+    "theoreticalAvgByDiceType": {},
+    "avgDeltaFromTheoretical": {},
+    "critFailRate": {},
+    "critSuccessRate": {},
+    "userAvgVsGlobal": []
+  }
+}

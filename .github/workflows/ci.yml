@@ -26,6 +26,11 @@ jobs:
             apps/web/package-lock.json
             scripts/import-content/package-lock.json
 
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
       - name: Install web dependencies
         working-directory: apps/web
         run: npm ci
@@ -45,4 +50,14 @@ jobs:
       - name: Run import smoke checks
         working-directory: scripts/import-content
         run: npm run check
+
+      - name: Run data-processing pipeline
+        run: python scripts/data-pipeline/process_data.py --no-fail-on-errors
+
+      - name: Validate report artifacts
+        shell: bash
+        run: |
+          test -f reports/validation_report.json
+          test -f reports/data_report.json
+          test -f reports/data_report.html
 

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-06-02T14:29:36.349268+00:00",
+  "sourceDataDir": "C:\\Gamedev\\E-Magios-Core-Site\\data",
+  "totals": {
+    "error": 0,
+    "warning": 0,
+    "info": 0
+  },
+  "issues": [],
+  "validationSummary": {
+    "action_types": {
+      "items": 14
+    },
+    "actions": {
+      "items": 22
+    },
+    "archetypes": {
+      "items": 13
+    },
+    "basics": {
+      "items": 18
+    },
+    "combat_components": {
+      "items": 21
+    },
+    "craft_components": {
+      "items": 11
+    },
+    "craft_professions": {
+      "items": 6
+    },
+    "craft_specializations": {
+      "items": 21
+    },
+    "dice_roll_events": {
+      "items": 0
+    },
+    "effects": {
+      "items": 18
+    },
+    "news": {
+      "items": 4
+    },
+    "recipe_types": {
+      "items": 3
+    },
+    "recipes": {
+      "items": 1
+    },
+    "schools": {
+      "items": 40
+    },
+    "skills": {
+      "items": 10
+    },
+    "spells": {
+      "items": 160
+    }
+  },
+  "relationSummary": {
+    "checkedEntities": 218,
+    "failedChecks": 0
+  }
+}

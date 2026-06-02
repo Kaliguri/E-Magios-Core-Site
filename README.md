@@ -34,7 +34,11 @@ flowchart TD
 E-Magios-Core-Site/
 ├── apps/web/                    # React + TypeScript + Vite
 ├── scripts/import-content/      # import + workflow + smoke checks
+├── scripts/data-pipeline/       # normalize/validate/relations/report
 ├── data/                        # source JSON for import scripts
+├── reports/                     # generated validation/data reports
+├── dashboard.html               # legacy dashboard page
+├── dashboard.js                 # legacy dashboard logic
 ├── .github/workflows/           # CI and deploy workflows
 ├── firestore.rules              # access model and roles
 ├── firestore.indexes.json       # firestore indexes
@@ -57,6 +61,12 @@ E-Magios-Core-Site/
 - `npm run smoke`
 - `npm run check` (агрегатор)
 
+`scripts/data-pipeline`:
+
+- `python scripts/data-pipeline/process_data.py`
+- `python scripts/data-pipeline/process_data.py --include-normalize`
+- `python scripts/data-pipeline/process_data.py --strict`
+
 ## CI/CD
 
 ### CI (`.github/workflows/ci.yml`)
@@ -66,7 +76,8 @@ E-Magios-Core-Site/
 1. Установка зависимостей `apps/web` и `scripts/import-content`.
 2. `apps/web`: `npm run check`, `npm run build`.
 3. `scripts/import-content`: `npm run check`.
-4. Публикация build-артефакта.
+4. `scripts/data-pipeline`: генерация `reports/validation_report.json` и `reports/data_report.json`.
+5. Проверка существования report-артефактов.
 
 ### CD (`.github/workflows/deploy.yml`)
 
@@ -123,6 +134,49 @@ npx tsx content-workflow.ts --from=draft --to=review --role=author --actorId=<id
 IMPORT_STATUS=published npm run import:compendium
 ```
 
+## Legacy data-processing и dashboard
+
+Data-processing pipeline:
+
+```bash
+python scripts/data-pipeline/process_data.py
+```
+
+Pipeline создает:
+
+- `reports/validation_report.json`
+- `reports/data_report.json`
+- `reports/data_report.html`
+
+Схема отчета зафиксирована в `scripts/data-pipeline/report_schema.md` (`schemaVersion: 1.0.0`).
+
+Legacy dashboard:
+
+- страница: `dashboard.html`
+- источник метрик качества/контента: `reports/data_report.json`
+- источник метрик бросков:
+  - при наличии localStorage событий: `diceRollEventsLegacy`
+  - иначе fallback на блок `dice` в `reports/data_report.json`
+
+Формат локального dice-события:
+
+```json
+{
+  "eventId": "uuid",
+  "userId": "uid_or_anonymous",
+  "characterId": "optional",
+  "diceType": "d12",
+  "sides": 12,
+  "result": 9,
+  "modifier": 0,
+  "total": 11,
+  "context": "arcana|hit|apply|other",
+  "sessionId": "session-id",
+  "createdAt": 1717330000000,
+  "appVersion": "legacy-site"
+}
+```
+
 ## Observability MVP
 
 Бесплатный контур наблюдаемости:
@@ -167,6 +221,23 @@ cd scripts/import-content
 npm install
 npm run check
 ```
+
+Data processing:
+
+```bash
+python scripts/data-pipeline/process_data.py --no-fail-on-errors
+```
+
+Legacy static preview:
+
+```bash
+python -m http.server 8000
+```
+
+Открыть:
+
+- `http://localhost:8000/dashboard.html`
+- `http://localhost:8000/reports/data_report.html`
 
 Для импорта в Firestore нужен `scripts/import-content/service-account.json`.
 
