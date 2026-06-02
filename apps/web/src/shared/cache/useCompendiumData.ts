@@ -10,6 +10,19 @@ interface UseCompendiumDataResult<T> {
   reload: () => void;
 }
 
+/**
+ * Treats an empty payload (empty array / empty object) as a cache miss so a
+ * stale empty entry — e.g. cached while the source data was still in `draft` —
+ * can never short-circuit the network refetch and strand the UI on "nothing
+ * found" after the data is published.
+ */
+function isEmptyData(data: unknown): boolean {
+  if (data == null) return true;
+  if (Array.isArray(data)) return data.length === 0;
+  if (typeof data === 'object') return Object.keys(data as object).length === 0;
+  return false;
+}
+
 export function useCompendiumData<T>(
   cacheKey: string,
   fetcher: () => Promise<T>,
@@ -30,9 +43,10 @@ export function useCompendiumData<T>(
       setLoading(true);
       setError(null);
 
-      // 1. Serve from IndexedDB immediately
+      // 1. Serve from IndexedDB immediately (skip empty payloads so we show a
+      //    spinner rather than a premature "nothing found" while we refetch)
       const cached = await getCached<T>(cacheKey);
-      if (cached && !cancelled) {
+      if (cached && !isEmptyData(cached.data) && !cancelled) {
         setData(cached.data);
         setLoading(false);
       }
@@ -52,9 +66,12 @@ export function useCompendiumData<T>(
 
       const cachedVersion = await getCachedVersion(cacheKey);
 
-      // 3. If cached version matches manifest, skip network fetch
+      // 3. If cached version matches manifest, skip network fetch.
+      //    Empty cached payloads are never trusted (see isEmptyData) — they
+      //    always fall through to a fresh fetch.
       if (
         cached &&
+        !isEmptyData(cached.data) &&
         manifestVersion !== null &&
         cachedVersion !== null &&
         cachedVersion >= manifestVersion
