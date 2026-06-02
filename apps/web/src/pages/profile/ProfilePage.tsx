@@ -20,12 +20,39 @@ const EMPTY_PROFILE: ProfileData = {
   discordColor: '#10B981',
 };
 
+// Palette carried over from the legacy profile color picker.
+const COLOR_SWATCHES = [
+  '#EF4444',
+  '#F97316',
+  '#FACC15',
+  '#22C55E',
+  '#10B981',
+  '#14B8A6',
+  '#0EA5E9',
+  '#6366F1',
+  '#A855F7',
+  '#EC4899',
+  '#64748B',
+  '#9CA3AF',
+  '#FFFFFF',
+];
+
+const HEX_RE = /^#?[0-9a-fA-F]{6}$/;
+
+function normalizeHex(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  return trimmed.startsWith('#') ? trimmed : `#${trimmed}`;
+}
+
 export function ProfilePage() {
   const { user, loading, signIn: contextSignIn, signOutUser } = useAuth();
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<ProfileData>(EMPTY_PROFILE);
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
+  const [discordStatus, setDiscordStatus] = useState('');
+  const [discordError, setDiscordError] = useState(false);
 
   useEffect(() => {
     setError('');
@@ -65,6 +92,10 @@ export function ProfilePage() {
     }
   }
 
+  function setColor(value: string) {
+    setProfile((prev) => ({ ...prev, discordColor: value }));
+  }
+
   async function save() {
     if (!user) return;
     if (
@@ -74,7 +105,7 @@ export function ProfilePage() {
       setError('Похоже, это не ссылка вебхука Discord. Проверьте URL.');
       return;
     }
-    if (profile.discordColor && !/^#?[0-9a-fA-F]{6}$/.test(profile.discordColor)) {
+    if (profile.discordColor && !HEX_RE.test(profile.discordColor)) {
       setError('Цвет должен быть в формате HEX, например #10b981.');
       return;
     }
@@ -83,10 +114,7 @@ export function ProfilePage() {
     setError('');
     setStatus('Сохранение профиля...');
     try {
-      const normalizedColor = profile.discordColor.startsWith('#')
-        ? profile.discordColor
-        : `#${profile.discordColor}`;
-      const next = { ...profile, discordColor: normalizedColor };
+      const next = { ...profile, discordColor: normalizeHex(profile.discordColor) };
       await setDoc(
         doc(db, 'users', user.uid),
         {
@@ -106,6 +134,66 @@ export function ProfilePage() {
       setSaving(false);
     }
   }
+
+  async function sendDiscordTest() {
+    if (!user) {
+      setDiscordError(true);
+      setDiscordStatus('Сначала войдите через Google, чтобы настроить Discord.');
+      return;
+    }
+    const webhookUrl = profile.discordWebhookUrl.trim();
+    if (!webhookUrl) {
+      setDiscordError(true);
+      setDiscordStatus('Укажите URL вебхука Discord, чтобы отправить тестовое сообщение.');
+      return;
+    }
+    if (!/^https:\/\/discord\.com\/api\/webhooks\//.test(webhookUrl)) {
+      setDiscordError(true);
+      setDiscordStatus('Похоже, это не ссылка вебхука Discord. Проверьте URL.');
+      return;
+    }
+    let colorInt = 0x10b981;
+    if (profile.discordColor) {
+      if (!HEX_RE.test(profile.discordColor)) {
+        setDiscordError(true);
+        setDiscordStatus('Цвет должен быть в формате HEX, например #10b981.');
+        return;
+      }
+      colorInt = parseInt(profile.discordColor.replace('#', ''), 16);
+    }
+
+    const username =
+      profile.discordDisplayName || profile.displayName || user.displayName || "E'Magios Dice";
+    const payload = {
+      username,
+      embeds: [
+        {
+          title: "Тестовое сообщение E'Magios Core",
+          description: 'Если вы видите это сообщение, интеграция Discord настроена корректно.',
+          color: colorInt,
+          footer: { text: 'Настройки Discord можно изменить на странице профиля.' },
+        },
+      ],
+    };
+
+    setDiscordError(false);
+    setDiscordStatus('Отправка тестового сообщения...');
+    try {
+      const res = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setDiscordError(false);
+      setDiscordStatus('Тестовое сообщение отправлено. Проверьте канал в Discord.');
+    } catch {
+      setDiscordError(true);
+      setDiscordStatus('Не удалось отправить сообщение в Discord.');
+    }
+  }
+
+  const colorValid = HEX_RE.test(profile.discordColor);
 
   return (
     <div className={styles.page}>
@@ -143,7 +231,7 @@ export function ProfilePage() {
                 <p className={styles.hint}>{user.email}</p>
               </div>
             </div>
-            <div className={styles.grid}>
+            <div className={styles.fields}>
               <div className={styles.field}>
                 <label htmlFor="profile-name">Отображаемое имя</label>
                 <input
@@ -168,7 +256,7 @@ export function ProfilePage() {
               Здесь вы можете настроить отправку ваших бросков кубов в Discord через вебхук.
               Настройки сохраняются для вашего аккаунта и используются на всех страницах.
             </p>
-            <div className={styles.grid}>
+            <div className={styles.fields}>
               <div className={styles.field}>
                 <label htmlFor="discord-webhook-url">URL вебхука Discord</label>
                 <input
@@ -179,6 +267,9 @@ export function ProfilePage() {
                   }
                   placeholder="https://discord.com/api/webhooks/..."
                 />
+                <p className={styles.fieldHint}>
+                  Получите ссылку вебхука в настройках Discord-сервера (Интеграции → Вебхуки).
+                </p>
               </div>
               <div className={styles.field}>
                 <label htmlFor="discord-display-name">Имя в Discord для бросков</label>
@@ -193,15 +284,56 @@ export function ProfilePage() {
               </div>
               <div className={styles.field}>
                 <label htmlFor="discord-color">Цвет сообщений (HEX)</label>
-                <input
-                  id="discord-color"
-                  value={profile.discordColor}
-                  onChange={(event) =>
-                    setProfile((prev) => ({ ...prev, discordColor: event.target.value }))
-                  }
-                  placeholder="#10b981"
-                />
+                <div className={styles.colorRow}>
+                  <span
+                    className={styles.colorPreview}
+                    style={{ backgroundColor: colorValid ? profile.discordColor : 'transparent' }}
+                    aria-hidden
+                  />
+                  <input
+                    id="discord-color"
+                    className={styles.colorHexInput}
+                    value={profile.discordColor}
+                    onChange={(event) => setColor(event.target.value)}
+                    placeholder="#10b981"
+                  />
+                  <input
+                    type="color"
+                    className={styles.colorPicker}
+                    aria-label="Выбрать произвольный цвет"
+                    value={colorValid ? profile.discordColor : '#10b981'}
+                    onChange={(event) => setColor(event.target.value.toUpperCase())}
+                  />
+                </div>
+                <div className={styles.palette}>
+                  {COLOR_SWATCHES.map((swatch) => (
+                    <button
+                      key={swatch}
+                      type="button"
+                      className={[
+                        styles.swatch,
+                        profile.discordColor.toUpperCase() === swatch ? styles.swatchActive : '',
+                      ].join(' ')}
+                      style={{ backgroundColor: swatch }}
+                      title={swatch}
+                      aria-label={swatch}
+                      onClick={() => setColor(swatch)}
+                    />
+                  ))}
+                </div>
+                <p className={styles.fieldHint}>
+                  Необязательный цвет рамки сообщения в формате HEX (например, #10b981).
+                </p>
               </div>
+            </div>
+
+            <div className={styles.discordTestRow}>
+              <Button variant="secondary" onClick={() => void sendDiscordTest()}>
+                Отправить тест в Discord
+              </Button>
+              {discordStatus && (
+                <span className={discordError ? styles.error : styles.status}>{discordStatus}</span>
+              )}
             </div>
           </section>
 

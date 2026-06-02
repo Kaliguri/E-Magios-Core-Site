@@ -34,6 +34,49 @@ function makeEmptyCharacter(): Character {
   };
 }
 
+function asSkillArray(
+  raw: unknown,
+  defaults: ReadonlyArray<{ id: string; name: string }>,
+): CharacterSkill[] {
+  const list = Array.isArray(raw) ? (raw as CharacterSkill[]) : [];
+  return defaults.map((d) => {
+    const found = list.find((s) => s && s.id === d.id);
+    return { id: d.id, name: d.name, level: Math.max(0, Math.min(3, Number(found?.level ?? 0))) };
+  });
+}
+
+/**
+ * Reconciles a loaded/legacy character against the current schema: stats are
+ * always recomputed from level (they are derived), skills/spell arrays default,
+ * and resource pools fall back to the stat block. Guards the editor against
+ * documents saved before a field existed (e.g. missing `stats`).
+ */
+function normalizeCharacter(raw: Character): Character {
+  const level = Math.max(1, Math.min(20, Number(raw.level) || 1));
+  const stats = calculateStats(level);
+  const toSpells = (v: unknown): CharacterSpell[] =>
+    Array.isArray(v) ? (v as CharacterSpell[]) : [];
+  return {
+    ...makeEmptyCharacter(),
+    ...raw,
+    id: raw.id || generateId(),
+    level,
+    stats,
+    magicSkills: asSkillArray(raw.magicSkills, MAGIC_SKILLS),
+    personalitySkills: asSkillArray(raw.personalitySkills, PERSONALITY_SKILLS),
+    studySpells: toSpells(raw.studySpells),
+    signatureSpells: toSpells(raw.signatureSpells),
+    spontaneousSpells: toSpells(raw.spontaneousSpells),
+    schools: Array.isArray(raw.schools) ? raw.schools : [],
+    archetypes: Array.isArray(raw.archetypes) ? raw.archetypes : [],
+    currentHealth: raw.currentHealth ?? stats.health,
+    maxHealth: raw.maxHealth ?? stats.health,
+    currentWill: raw.currentWill ?? stats.will,
+    maxWill: raw.maxWill ?? stats.will,
+    defense: raw.defense ?? stats.evasion,
+  };
+}
+
 interface UseCharacterStateResult {
   character: Character;
   isDirty: boolean;
@@ -189,7 +232,7 @@ export function useCharacterState(
 
   const loadCharacter = useCallback((c: Character) => {
     if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
-    setCharacter(c);
+    setCharacter(normalizeCharacter(c));
     setIsDirty(false);
   }, []);
 

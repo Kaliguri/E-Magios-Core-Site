@@ -9,7 +9,7 @@ import { ProfilePage } from '@/pages/profile/ProfilePage';
 import { BookPage } from '@/pages/book/BookPage';
 import { OpsPage } from '@/pages/ops/OpsPage';
 import { DashboardPage } from '@/pages/dashboard/DashboardPage';
-import { AuthProvider, RequireRole } from '@/features/auth';
+import { AuthProvider } from '@/features/auth';
 import { logTelemetry } from '@/shared/telemetry/clientTelemetry';
 
 function TelemetryTracker() {
@@ -48,14 +48,7 @@ export function App() {
             <Route path="ops" element={<OpsPage />} />
             <Route path="db" element={<DbPage />} />
             <Route path="character-editor" element={<CharacterEditorPage />} />
-            <Route
-              path="dashboard"
-              element={
-                <RequireRole require="editor">
-                  <DashboardPage />
-                </RequireRole>
-              }
-            />
+            <Route path="dashboard" element={<DashboardPage />} />
             <Route path=":bookKey/:chapterId" element={<BookPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

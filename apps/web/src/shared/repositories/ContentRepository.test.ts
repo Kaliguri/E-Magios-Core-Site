@@ -28,22 +28,19 @@ describe('ContentRepository', () => {
     vi.clearAllMocks();
   });
 
-  it('reads only published news sorted by date', async () => {
+  it('reads only published news and sorts newest-first by id (no composite index)', async () => {
     mockCollection.mockReturnValue('news-collection-ref');
     mockWhere.mockReturnValue('where-status-published');
-    mockOrderBy.mockReturnValue('order-by-date-desc');
     mockQuery.mockReturnValue('news-query');
     mockGetDocs.mockResolvedValue({
       docs: [
         {
-          id: 'n1',
-          data: () => ({
-            title: 'News',
-            date: '2026-06-02',
-            brief: 'Brief',
-            features: ['Feature'],
-            status: 'published',
-          }),
+          id: '2025-11-28-old',
+          data: () => ({ title: 'Old', date: '28 ноября 2025', status: 'published' }),
+        },
+        {
+          id: '2025-12-10-new',
+          data: () => ({ title: 'New', date: '10 декабря 2025', status: 'published' }),
         },
       ],
     });
@@ -51,13 +48,11 @@ describe('ContentRepository', () => {
     const result = await ContentRepository.getNews();
 
     expect(mockWhere).toHaveBeenCalledWith('status', '==', 'published');
-    expect(mockOrderBy).toHaveBeenCalledWith('date', 'desc');
-    expect(mockQuery).toHaveBeenCalledWith(
-      'news-collection-ref',
-      'where-status-published',
-      'order-by-date-desc',
-    );
-    expect(result[0]?.id).toBe('n1');
+    // No orderBy → no composite index requirement.
+    expect(mockOrderBy).not.toHaveBeenCalled();
+    expect(mockQuery).toHaveBeenCalledWith('news-collection-ref', 'where-status-published');
+    // id-descending puts the newer ISO-prefixed id first.
+    expect(result.map((n) => n.id)).toEqual(['2025-12-10-new', '2025-11-28-old']);
   });
 
   it('returns null manifest when manifest doc is absent', async () => {
