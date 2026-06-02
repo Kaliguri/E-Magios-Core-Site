@@ -493,6 +493,8 @@ function closeUserStatsModal() {
   }
   modal.classList.add('hidden');
   modal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+  document.documentElement.classList.remove('modal-open');
   userModalContext = null;
 }
 
@@ -559,6 +561,8 @@ function openUserStatsModal(summary, diceData) {
   `;
   modal.classList.remove('hidden');
   modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+  document.documentElement.classList.add('modal-open');
 }
 
 function setupUserStatsModal() {
@@ -568,6 +572,11 @@ function setupUserStatsModal() {
   }
   modal.querySelectorAll('[data-close-user-modal]').forEach((el) => {
     el.addEventListener('click', closeUserStatsModal);
+  });
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) {
+      closeUserStatsModal();
+    }
   });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && userModalContext) {
