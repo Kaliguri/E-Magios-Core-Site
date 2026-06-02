@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { updateProfile } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/shared/firebase/client';
@@ -47,7 +47,6 @@ function normalizeHex(value: string): string {
 
 export function ProfilePage() {
   const { user, loading, signIn: contextSignIn, signOutUser } = useAuth();
-  const colorInputRef = useRef<HTMLInputElement | null>(null);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<ProfileData>(EMPTY_PROFILE);
   const [status, setStatus] = useState('');
@@ -199,13 +198,13 @@ export function ProfilePage() {
   return (
     <div className={styles.page}>
       <h1>Профиль</h1>
-      <div className={styles.authStatus}>
-        {loading
-          ? 'Проверка статуса авторизации...'
-          : user
-            ? `Вы вошли как ${user.displayName ?? user.email ?? 'пользователь'}`
+      {!user && (
+        <div className={styles.authStatus}>
+          {loading
+            ? 'Проверка статуса авторизации...'
             : 'Вы не вошли в аккаунт. Используйте форму ниже, чтобы войти через Google.'}
-      </div>
+        </div>
+      )}
 
       {!user && !loading && (
         <section className={styles.section}>
@@ -286,15 +285,18 @@ export function ProfilePage() {
               <div className={styles.field}>
                 <label htmlFor="discord-color">Цвет сообщений (HEX)</label>
                 <div className={styles.colorRow}>
-                  <button
-                    type="button"
+                  {/* Native picker anchored directly to the swatch so its popup
+                      opens next to the control, not at the bottom of the page. */}
+                  <input
+                    id="discord-color-picker"
+                    type="color"
                     className={[
                       styles.colorPreview,
                       colorValid ? '' : styles.colorPreviewEmpty,
                     ].join(' ')}
-                    style={colorValid ? { backgroundColor: profile.discordColor } : undefined}
                     aria-label="Выбрать произвольный цвет"
-                    onClick={() => colorInputRef.current?.click()}
+                    value={colorValid ? profile.discordColor : '#10B981'}
+                    onChange={(event) => setColor(event.target.value.toUpperCase())}
                   />
                   <input
                     id="discord-color"
@@ -302,15 +304,6 @@ export function ProfilePage() {
                     value={profile.discordColor}
                     onChange={(event) => setColor(event.target.value)}
                     placeholder="#10b981"
-                  />
-                  <input
-                    ref={colorInputRef}
-                    type="color"
-                    className={styles.colorPickerHidden}
-                    aria-hidden
-                    tabIndex={-1}
-                    value={colorValid ? profile.discordColor : '#10B981'}
-                    onChange={(event) => setColor(event.target.value.toUpperCase())}
                   />
                 </div>
                 <div className={styles.palette}>
@@ -328,15 +321,13 @@ export function ProfilePage() {
                       onClick={() => setColor(swatch)}
                     />
                   ))}
-                  <button
-                    type="button"
+                  <label
+                    htmlFor="discord-color-picker"
                     className={[styles.swatch, styles.swatchRainbow].join(' ')}
                     title="Выбрать свой цвет"
-                    aria-label="Выбрать свой цвет"
-                    onClick={() => colorInputRef.current?.click()}
                   >
                     🎨
-                  </button>
+                  </label>
                 </div>
                 <p className={styles.fieldHint}>
                   Необязательный цвет рамки сообщения в формате HEX (например, #10b981).

@@ -1,16 +1,22 @@
 import { useEffect, type ReactNode } from 'react';
 import styles from './Modal.module.css';
 
+type ModalSize = 'md' | 'lg' | 'xl';
+
 interface ModalProps {
   open: boolean;
   onClose: () => void;
   title?: string;
   children: ReactNode;
   footer?: ReactNode;
+  /** md = 600px, lg = 900px, xl = 1040px (legacy spell-popup width). */
+  size?: ModalSize;
+  /** @deprecated use size="lg" */
   wide?: boolean;
 }
 
-export function Modal({ open, onClose, title, children, footer, wide = false }: ModalProps) {
+export function Modal({ open, onClose, title, children, footer, size, wide = false }: ModalProps) {
+  const resolvedSize: ModalSize = size ?? (wide ? 'lg' : 'md');
   useEffect(() => {
     if (open) {
       document.body.classList.add('modal-open');
@@ -34,7 +40,7 @@ export function Modal({ open, onClose, title, children, footer, wide = false }: 
   return (
     <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal>
       <div
-        className={[styles.dialog, wide ? styles.wide : ''].filter(Boolean).join(' ')}
+        className={[styles.dialog, styles[resolvedSize]].filter(Boolean).join(' ')}
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
