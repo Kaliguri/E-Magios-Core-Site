@@ -1,12 +1,14 @@
 .root {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .main {
   flex: 1;
   overflow-y: auto;
   min-width: 0;
+  min-height: 0;
 }
 
 .resetAccessHover {
@@ -50,5 +52,12 @@
 @media (max-width: 768px) {
   .root {
     flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .main {
+    overflow-y: visible;
   }
 }
