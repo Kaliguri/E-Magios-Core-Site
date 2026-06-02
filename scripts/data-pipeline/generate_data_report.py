@@ -36,6 +36,56 @@ def _iter_values(value: Any) -> Iterable[str]:
         yield value.strip()
 
 
+def _normalize_dice_type(raw: Any) -> str:
+    text = str(raw or "").strip().lower()
+    if not text:
+        return ""
+    if text.startswith("d"):
+        return text
+    if text.isdigit():
+        return f"d{text}"
+    return text
+
+
+def _parse_sides(dice_type: str, sides_value: Any) -> int:
+    if isinstance(sides_value, int) and sides_value > 0:
+        return sides_value
+    if dice_type.startswith("d") and dice_type[1:].isdigit():
+        return int(dice_type[1:])
+    return 0
+
+
+def _normalize_context(event: Dict[str, Any]) -> str:
+    context = str(event.get("context", "")).strip().lower()
+    if context:
+        return context
+    roll_type = str(event.get("contextRollType", "")).strip().lower()
+    if roll_type:
+        return roll_type
+    source = str(event.get("contextSource", "")).strip().lower()
+    if "arcana" in source:
+        return "arcana"
+    if "hit" in source:
+        return "hit"
+    if "apply" in source:
+        return "apply"
+    return "other"
+
+
+def _context_label(context: str) -> str:
+    mapping = {
+        "arcana": "Аркана",
+        "hit": "Попадание",
+        "apply": "Наложение эффекта",
+        "other": "Другое",
+        "custom_attack": "Кастомный: атака",
+        "custom_damage": "Кастомный: урон",
+        "custom_control": "Кастомный: контроль",
+        "custom_support": "Кастомный: поддержка",
+    }
+    return mapping.get(context, context or "Не указан")
+
+
 def _build_quality_block(validation_report: Dict[str, Any]) -> Dict[str, Any]:
     issues = validation_report.get("issues", [])
     totals = validation_report.get("totals", {"error": 0, "warning": 0, "info": 0})
@@ -118,20 +168,26 @@ def _build_content_block(data_dir: Path) -> Dict[str, Any]:
     }
 
 
+def _build_empty_dice_block(reason: str) -> Dict[str, Any]:
+    return {
+        "status": "insufficient_data",
+        "reason": reason,
+        "rollsCountByDiceType": {},
+        "avgResultByDiceType": {},
+        "theoreticalAvgByDiceType": {},
+        "avgDeltaFromTheoretical": {},
+        "critFailRate": {},
+        "critSuccessRate": {},
+        "userAvgVsGlobal": [],
+        "rollTypeStats": [],
+        "topRollType": None,
+    }
+
+
 def _build_dice_block(data_dir: Path) -> Dict[str, Any]:
     events_path = data_dir / "dice_roll_events.json"
     if not events_path.exists():
-        return {
-            "status": "insufficient_data",
-            "reason": "No dice_roll_events.json source found.",
-            "rollsCountByDiceType": {},
-            "avgResultByDiceType": {},
-            "theoreticalAvgByDiceType": {},
-            "avgDeltaFromTheoretical": {},
-            "critFailRate": {},
-            "critSuccessRate": {},
-            "userAvgVsGlobal": [],
-        }
+        return _build_empty_dice_block("Источник dice_roll_events.json не найден.")
 
     try:
         events = json.loads(events_path.read_text(encoding="utf-8"))
@@ -139,36 +195,43 @@ def _build_dice_block(data_dir: Path) -> Dict[str, Any]:
         events = []
 
     if not isinstance(events, list) or not events:
-        return {
-            "status": "insufficient_data",
-            "reason": "dice_roll_events.json exists but has no valid events.",
-            "rollsCountByDiceType": {},
-            "avgResultByDiceType": {},
-            "theoreticalAvgByDiceType": {},
-            "avgDeltaFromTheoretical": {},
-            "critFailRate": {},
-            "critSuccessRate": {},
-            "userAvgVsGlobal": [],
-        }
+        return _build_empty_dice_block("dice_roll_events.json пуст или содержит некорректные события.")
 
     dice_values: Dict[str, List[int]] = defaultdict(list)
     user_dice_values: Dict[tuple[str, str], List[int]] = defaultdict(list)
+    roll_type_values: Dict[str, List[int]] = defaultdict(list)
+    roll_type_meta: Dict[str, Dict[str, Any]] = {}
 
     for event in events:
         if not isinstance(event, dict):
             continue
-        dice_type = event.get("diceType")
-        result = event.get("result")
-        sides = event.get("sides")
-        user_id = event.get("userId", "anonymous")
 
-        if not isinstance(dice_type, str) or not isinstance(result, int) or not isinstance(sides, int):
+        dice_type = _normalize_dice_type(event.get("diceType"))
+        result = event.get("result")
+        sides = _parse_sides(dice_type, event.get("sides"))
+        user_id = str(event.get("userId", "anonymous"))
+
+        if not isinstance(result, int) or not dice_type or sides <= 0:
             continue
-        if sides <= 0:
-            continue
+
+        context = _normalize_context(event)
+        expression = str(event.get("expression") or event.get("displayExpression") or dice_type).strip()
+        roll_type_key = str(event.get("rollTypeKey") or f"{context}:{dice_type}").strip().lower()
 
         dice_values[dice_type].append(result)
-        user_dice_values[(str(user_id), dice_type)].append(result)
+        user_dice_values[(user_id, dice_type)].append(result)
+        roll_type_values[roll_type_key].append(result)
+        if roll_type_key not in roll_type_meta:
+            roll_type_meta[roll_type_key] = {
+                "context": context,
+                "diceType": dice_type,
+                "expression": expression,
+                "sides": sides,
+                "label": f"{_context_label(context)} {dice_type.upper()} ({expression})",
+            }
+
+    if not dice_values:
+        return _build_empty_dice_block("В событиях нет валидных данных по броскам.")
 
     rolls_count = {dice: len(values) for dice, values in dice_values.items()}
     avg_by_dice = {dice: round(mean(values), 4) for dice, values in dice_values.items() if values}
@@ -178,8 +241,8 @@ def _build_dice_block(data_dir: Path) -> Dict[str, Any]:
     crit_success = {}
 
     for dice, values in dice_values.items():
-        sides = int(dice.lower().replace("d", "")) if dice.lower().startswith("d") else None
-        if not sides or sides <= 0:
+        sides = _parse_sides(dice, None)
+        if sides <= 0:
             continue
         theor = (sides + 1) / 2
         theoretical_avg[dice] = round(theor, 4)
@@ -206,6 +269,36 @@ def _build_dice_block(data_dir: Path) -> Dict[str, Any]:
                 "rollsCount": len(values),
             }
         )
+    user_avg_vs_global.sort(key=lambda row: row["rollsCount"], reverse=True)
+
+    roll_type_stats = []
+    total_rolls = sum(rolls_count.values())
+    for roll_type_key, values in roll_type_values.items():
+        meta = roll_type_meta.get(roll_type_key, {})
+        sides = int(meta.get("sides", 0))
+        if not values or sides <= 0:
+            continue
+        actual_avg = round(mean(values), 4)
+        theor_avg = round((sides + 1) / 2, 4)
+        roll_type_stats.append(
+            {
+                "rollTypeKey": roll_type_key,
+                "label": meta.get("label"),
+                "context": meta.get("context"),
+                "diceType": meta.get("diceType"),
+                "expression": meta.get("expression"),
+                "count": len(values),
+                "share": round((len(values) / total_rolls), 4) if total_rolls > 0 else 0.0,
+                "avg": actual_avg,
+                "theoreticalAvg": theor_avg,
+                "delta": round(actual_avg - theor_avg, 4),
+                "critFailRate": round(sum(1 for v in values if v == 1) / len(values), 4),
+                "critSuccessRate": round(sum(1 for v in values if v == sides) / len(values), 4),
+            }
+        )
+
+    roll_type_stats.sort(key=lambda row: (-row["count"], row["rollTypeKey"]))
+    top_roll_type = roll_type_stats[0] if roll_type_stats else None
 
     return {
         "status": "ok",
@@ -217,6 +310,8 @@ def _build_dice_block(data_dir: Path) -> Dict[str, Any]:
         "critFailRate": crit_fail,
         "critSuccessRate": crit_success,
         "userAvgVsGlobal": user_avg_vs_global,
+        "rollTypeStats": roll_type_stats,
+        "topRollType": top_roll_type,
     }
 
 
@@ -235,13 +330,14 @@ def build_data_report_html(data_report: Dict[str, Any]) -> str:
     totals = quality.get("totals", {})
     content = data_report.get("content", {})
     dice = data_report.get("dice", {})
+    top_roll = dice.get("topRollType") or {}
 
     return f"""<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Data Report</title>
+  <title>Отчет обработки данных</title>
   <style>
     body {{ font-family: Arial, sans-serif; background: #1a1a1a; color: #e0e0e0; margin: 0; padding: 24px; }}
     h1, h2 {{ color: #10b981; }}
@@ -252,27 +348,29 @@ def build_data_report_html(data_report: Dict[str, Any]) -> str:
   </style>
 </head>
 <body>
-  <h1>Data Processing Report</h1>
-  <p class="muted">Generated at: {data_report.get("generatedAt", "")}</p>
+  <h1>Отчет обработки данных</h1>
+  <p class="muted">Сформирован: {data_report.get("generatedAt", "")}</p>
 
-  <h2>Quality</h2>
+  <h2>Качество</h2>
   <div class="cards">
-    <div class="card"><strong>Errors</strong><div>{totals.get("error", 0)}</div></div>
-    <div class="card"><strong>Warnings</strong><div>{totals.get("warning", 0)}</div></div>
-    <div class="card"><strong>Info</strong><div>{totals.get("info", 0)}</div></div>
+    <div class="card"><strong>Ошибки</strong><div>{totals.get("error", 0)}</div></div>
+    <div class="card"><strong>Предупреждения</strong><div>{totals.get("warning", 0)}</div></div>
+    <div class="card"><strong>Инфо</strong><div>{totals.get("info", 0)}</div></div>
   </div>
 
-  <h2>Content</h2>
+  <h2>Контент</h2>
   <div class="cards">
-    <div class="card"><strong>Spells</strong><div>{content.get("totals", {}).get("spells", 0)}</div></div>
-    <div class="card"><strong>Schools</strong><div>{content.get("totals", {}).get("schools", 0)}</div></div>
-    <div class="card"><strong>Concentration %</strong><div>{content.get("concentrationShare", 0)}</div></div>
-    <div class="card"><strong>Subspell %</strong><div>{content.get("subspellShare", 0)}</div></div>
+    <div class="card"><strong>Заклинания</strong><div>{content.get("totals", {}).get("spells", 0)}</div></div>
+    <div class="card"><strong>Школы</strong><div>{content.get("totals", {}).get("schools", 0)}</div></div>
+    <div class="card"><strong>Концентрация %</strong><div>{content.get("concentrationShare", 0)}</div></div>
+    <div class="card"><strong>Подзаклинания %</strong><div>{content.get("subspellShare", 0)}</div></div>
   </div>
 
-  <h2>Dice</h2>
-  <p>Status: {dice.get("status", "unknown")}</p>
+  <h2>Броски</h2>
+  <p>Статус: {dice.get("status", "unknown")}</p>
   <p class="muted">{dice.get("reason", "") or ""}</p>
+  <p>Самый популярный бросок: {top_roll.get("label", "Нет данных")}</p>
+  <p>Количество: {top_roll.get("count", 0)}</p>
 </body>
 </html>
 """

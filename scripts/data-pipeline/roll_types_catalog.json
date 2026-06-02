@@ -1,0 +1,289 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-06-02T15:04:13.479276+00:00",
+  "summary": {
+    "totalEntries": 38,
+    "byRollType": {
+      "apply": 5,
+      "arcana": 1,
+      "custom": 2,
+      "damage": 7,
+      "hit": 23
+    },
+    "byDiceType": {
+      "d12": 6,
+      "d4": 10,
+      "d6": 12,
+      "d10": 5,
+      "d8": 5
+    }
+  },
+  "entries": [
+    {
+      "rollType": "apply",
+      "diceExpression": "1d12",
+      "diceType": "d12",
+      "sides": 12,
+      "source": "system:base-roll-type"
+    },
+    {
+      "rollType": "apply",
+      "diceExpression": "1d4",
+      "diceType": "d4",
+      "sides": 4,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "apply",
+      "diceExpression": "2d4",
+      "diceType": "d4",
+      "sides": 4,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "apply",
+      "diceExpression": "2d6",
+      "diceType": "d6",
+      "sides": 6,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "apply",
+      "diceExpression": "3d6",
+      "diceType": "d6",
+      "sides": 6,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "arcana",
+      "diceExpression": "1d12",
+      "diceType": "d12",
+      "sides": 12,
+      "source": "system:base-roll-type"
+    },
+    {
+      "rollType": "custom",
+      "diceExpression": "1d4+1",
+      "diceType": "d4",
+      "sides": 4,
+      "source": "data:actions.json"
+    },
+    {
+      "rollType": "custom",
+      "diceExpression": "2d6",
+      "diceType": "d6",
+      "sides": 6,
+      "source": "data:basics.json"
+    },
+    {
+      "rollType": "damage",
+      "diceExpression": "1d10",
+      "diceType": "d10",
+      "sides": 10,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "damage",
+      "diceExpression": "1d10+1",
+      "diceType": "d10",
+      "sides": 10,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "damage",
+      "diceExpression": "1d12",
+      "diceType": "d12",
+      "sides": 12,
+      "source": "data:basics.json"
+    },
+    {
+      "rollType": "damage",
+      "diceExpression": "1d12+1",
+      "diceType": "d12",
+      "sides": 12,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "damage",
+      "diceExpression": "1d12+2",
+      "diceType": "d12",
+      "sides": 12,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "damage",
+      "diceExpression": "1d4",
+      "diceType": "d4",
+      "sides": 4,
+      "source": "data:actions.json"
+    },
+    {
+      "rollType": "damage",
+      "diceExpression": "2d6",
+      "diceType": "d6",
+      "sides": 6,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "1d10",
+      "diceType": "d10",
+      "sides": 10,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "2d10",
+      "diceType": "d10",
+      "sides": 10,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "3d10",
+      "diceType": "d10",
+      "sides": 10,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "1d12",
+      "diceType": "d12",
+      "sides": 12,
+      "source": "system:base-roll-type"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "1d4",
+      "diceType": "d4",
+      "sides": 4,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "1d4+1",
+      "diceType": "d4",
+      "sides": 4,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "2d4",
+      "diceType": "d4",
+      "sides": 4,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "3d4",
+      "diceType": "d4",
+      "sides": 4,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "4d4",
+      "diceType": "d4",
+      "sides": 4,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "5d4",
+      "diceType": "d4",
+      "sides": 4,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "1d6",
+      "diceType": "d6",
+      "sides": 6,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "1d6+1",
+      "diceType": "d6",
+      "sides": 6,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "1d6+2",
+      "diceType": "d6",
+      "sides": 6,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "2d6",
+      "diceType": "d6",
+      "sides": 6,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "2d6+2",
+      "diceType": "d6",
+      "sides": 6,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "3d6",
+      "diceType": "d6",
+      "sides": 6,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "4d6",
+      "diceType": "d6",
+      "sides": 6,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "6d6",
+      "diceType": "d6",
+      "sides": 6,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "1d8",
+      "diceType": "d8",
+      "sides": 8,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "1d8+1",
+      "diceType": "d8",
+      "sides": 8,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "1d8+2",
+      "diceType": "d8",
+      "sides": 8,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "2d8",
+      "diceType": "d8",
+      "sides": 8,
+      "source": "data:spells.json"
+    },
+    {
+      "rollType": "hit",
+      "diceExpression": "3d8",
+      "diceType": "d8",
+      "sides": 8,
+      "source": "data:spells.json"
+    }
+  ]
+}

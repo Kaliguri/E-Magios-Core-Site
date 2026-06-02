@@ -26,3 +26,5 @@
   - `critFailRate`: map `<diceType, number>`
   - `critSuccessRate`: map `<diceType, number>`
   - `userAvgVsGlobal`: array of `{ userId, diceType, userAvg, globalAvg, delta, rollsCount }`
+  - `rollTypeStats`: array of `{ rollTypeKey, label, context, diceType, expression, count, share, avg, theoreticalAvg, delta, critFailRate, critSuccessRate }`
+  - `topRollType`: nullable object c полями как у элемента `rollTypeStats`
