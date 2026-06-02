@@ -1,0 +1,56 @@
+.page {
+  padding: var(--spacing-lg);
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.content {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  line-height: 1.7;
+}
+
+.content :global(h1),
+.content :global(h2),
+.content :global(h3),
+.content :global(h4) {
+  color: var(--text-primary);
+}
+
+.content :global(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--spacing-sm) 0;
+}
+
+.content :global(th),
+.content :global(td) {
+  border: 1px solid var(--border-color);
+  padding: 0.5rem;
+  vertical-align: top;
+}
+
+.content :global(th) {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.error {
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: #f87171;
+}
+
+.passwordInput {
+  margin-top: var(--spacing-xs);
+}
+
+.passwordError {
+  margin-top: var(--spacing-xs);
+  color: #f87171;
+}

@@ -1,0 +1,131 @@
+.page {
+  padding: var(--spacing-lg);
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.loader,
+.error {
+  padding: var(--spacing-md);
+  color: var(--text-muted);
+}
+
+.error {
+  color: #f87171;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 0;
+  overflow: hidden;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    transform 0.15s;
+}
+
+.item:hover {
+  border-color: var(--accent-emerald);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.12);
+}
+
+.details {
+  border-radius: var(--radius-lg);
+}
+
+.summary {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  cursor: pointer;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--bg-secondary);
+}
+
+.summary::marker,
+.summary::-webkit-details-marker {
+  display: none;
+  content: '';
+}
+
+.summaryTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.title {
+  flex: 1;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--accent-emerald);
+}
+
+.date {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.toggle {
+  color: var(--accent-emerald);
+  transition: transform 0.2s ease;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.details[open] .toggle {
+  transform: rotate(-180deg);
+}
+
+.brief {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.body {
+  padding: var(--spacing-lg);
+}
+
+.section {
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-left: 4px solid rgba(255, 255, 255, 0.125);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.09);
+}
+
+.section h3 {
+  margin-top: 0;
+  margin-bottom: var(--spacing-sm);
+  font-size: 1.12rem;
+  color: var(--accent-emerald);
+}
+
+.features {
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.features li {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}

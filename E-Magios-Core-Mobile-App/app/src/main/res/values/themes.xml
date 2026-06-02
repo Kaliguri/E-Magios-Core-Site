@@ -1,0 +1,34 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.EMagiosCoreMobile" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Website-inspired dark styling -->
+        <item name="android:statusBarColor">@color/em_bg_primary</item>
+        <item name="android:navigationBarColor">@color/em_bg_primary</item>
+        <item name="android:windowBackground">@color/em_bg_primary</item>
+        <item name="android:windowLightStatusBar">false</item>
+
+        <item name="colorPrimary">@color/em_accent_emerald</item>
+        <item name="colorOnPrimary">@color/em_text_primary</item>
+        <item name="colorSecondary">@color/em_accent_emerald_dark</item>
+        <item name="colorOnSecondary">@color/em_text_primary</item>
+
+        <item name="colorSurface">@color/em_bg_secondary</item>
+        <item name="colorOnSurface">@color/em_text_secondary</item>
+    </style>
+
+    <style name="Theme.EMagiosCoreMobile" parent="Base.Theme.EMagiosCoreMobile" />
+
+    <!-- Toolbar & overflow menu styling -->
+    <style name="ThemeOverlay.EMagios.Toolbar" parent="">
+        <item name="colorControlNormal">@color/em_accent_emerald</item>
+        <item name="colorControlHighlight">@color/em_accent_emerald_dark</item>
+    </style>
+
+    <style name="ThemeOverlay.EMagios.Popup" parent="ThemeOverlay.Material3.Dark">
+        <item name="android:popupBackground">@color/em_bg_elevated</item>
+        <item name="colorSurface">@color/em_bg_elevated</item>
+        <item name="colorOnSurface">@color/em_text_secondary</item>
+        <item name="colorPrimary">@color/em_accent_emerald</item>
+        <item name="colorControlNormal">@color/em_accent_emerald</item>
+    </style>
+</resources>

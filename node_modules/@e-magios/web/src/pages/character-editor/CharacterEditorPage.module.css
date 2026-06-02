@@ -1,0 +1,417 @@
+.page {
+  padding: var(--spacing-lg);
+  max-width: 1400px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.page h1 {
+  margin: 0;
+}
+
+.authBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+}
+
+.authHint {
+  color: var(--text-muted);
+}
+
+.listHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.listHeader h2 {
+  margin: 0;
+}
+
+.listActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.characterList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.characterCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  gap: var(--spacing-sm);
+}
+
+.characterCardInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.characterName {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.characterLevel {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.characterCardActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.hint {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.editorHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.editorTitle {
+  flex: 1;
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.editorActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dirtyBadge {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.savingBadge {
+  font-size: 0.8rem;
+  color: var(--accent-emerald);
+}
+
+.nameRow {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.nameInput {
+  flex: 1;
+  padding: 0.6rem var(--spacing-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  transition: border-color 0.15s;
+}
+
+.nameInput:focus {
+  outline: none;
+  border-color: var(--accent-emerald);
+}
+
+.textInput {
+  width: 100%;
+  padding: 0.6rem var(--spacing-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  transition: border-color 0.15s;
+}
+
+.textInput:focus {
+  outline: none;
+  border-color: var(--accent-emerald);
+}
+
+.levelControl {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.levelLabel {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.levelInput {
+  width: 60px;
+  padding: 0.6rem 0.5rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.levelInput:focus {
+  outline: none;
+  border-color: var(--accent-emerald);
+}
+
+.tabs {
+  display: flex;
+  gap: 0.3rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.tab {
+  padding: 0.4rem 0.75rem;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.tab:hover {
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+}
+
+.tabActive {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+  border-bottom-color: var(--bg-elevated);
+  font-weight: 600;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  text-align: center;
+  gap: 0.25rem;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-emerald);
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.resourceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.resourceField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: var(--spacing-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.resourceField input,
+.select {
+  padding: 0.55rem 0.7rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+}
+
+.resourceField input:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--accent-emerald);
+}
+
+.skillsSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+}
+
+.skillGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.skillGroup h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.skillRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.skillName {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.skillDots {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.skillDot {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.skillDotFilled {
+  color: var(--accent-emerald);
+}
+
+.skillDot:hover {
+  color: var(--accent-emerald-dark);
+}
+
+.spellsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.pickerRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.select {
+  min-width: 260px;
+  flex: 1;
+}
+
+.spellGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.spellGroup h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.spellRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.emptyHint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.notesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.notesSection h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.textarea {
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  resize: vertical;
+  transition: border-color 0.15s;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--accent-emerald);
+}
+
+@media (max-width: 600px) {
+  .skillsSection {
+    grid-template-columns: 1fr;
+  }
+}

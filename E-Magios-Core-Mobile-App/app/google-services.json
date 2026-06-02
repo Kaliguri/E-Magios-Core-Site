@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "682279052886",
+    "project_id": "e-magios-core-site",
+    "storage_bucket": "e-magios-core-site.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:682279052886:android:4266f61651a5a69b917df7",
+        "android_client_info": {
+          "package_name": "com.example.e_magios_core_mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "682279052886-7dc7e0pqcesb27r8qifapp1hqm1g4il9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBd5FMmALEIAp2TbvxHH5YmsJajyR3gYoc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "682279052886-7dc7e0pqcesb27r8qifapp1hqm1g4il9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -19,3 +19,21 @@ styles.*.css
 *.????????.js
 *.????????.css
 
+# Node dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+dist-react/
+**/dist/
+
+# Vite cache
+.vite/
+**/.vite/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+

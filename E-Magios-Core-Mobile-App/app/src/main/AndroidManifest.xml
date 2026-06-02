@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Required on Android 13+ for showing notifications -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@drawable/icon"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/icon"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.EMagiosCoreMobile">
+        <activity
+            android:name=".MainActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ProfileActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".NewsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".NewsDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".CharacterListActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".CharacterCreateActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".CharacterDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".DbActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".DbDetailActivity"
+            android:exported="false" />
+    </application>
+
+</manifest>

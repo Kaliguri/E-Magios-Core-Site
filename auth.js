@@ -1,10 +1,26 @@
 // E'Magios Core - Firebase Authentication (Google)
 
+// #region agent log
+function agentAuthDebugLog(hypothesisId, location, message, data) {
+  fetch('http://127.0.0.1:7505/ingest/6fe2bbd0-0b0b-4dd2-93c9-a900d2b0a38b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'787a5f'},body:JSON.stringify({sessionId:'787a5f',runId:'auth-popup',hypothesisId:hypothesisId,location:location,message:message,data:data,timestamp:Date.now()})}).catch(function () {});
+}
+// #endregion
+
 /**
  * Инициализация Firebase приложения.
  * Ожидает, что глобально определён объект window.FIREBASE_CONFIG.
  */
 function initFirebaseApp() {
+  // #region agent log
+  agentAuthDebugLog('H3', 'auth.js:14', 'Firebase init requested', {
+    hasFirebase: typeof firebase !== 'undefined',
+    hasConfig: Boolean(window.FIREBASE_CONFIG),
+    origin: window.location.origin,
+    protocol: window.location.protocol,
+    host: window.location.host
+  });
+  // #endregion
+
   if (typeof firebase === 'undefined') {
     console.error('Firebase SDK is not loaded.');
     return null;
@@ -17,13 +33,31 @@ function initFirebaseApp() {
 
   // Переиспользуем уже инициализированное приложение, если оно есть
   if (firebase.apps && firebase.apps.length > 0) {
+    // #region agent log
+    agentAuthDebugLog('H3', 'auth.js:34', 'Firebase app reused', {
+      appCount: firebase.apps.length,
+      authDomain: window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.authDomain
+    });
+    // #endregion
     return firebase.apps[0];
   }
 
   try {
     const app = firebase.initializeApp(window.FIREBASE_CONFIG);
+    // #region agent log
+    agentAuthDebugLog('H3', 'auth.js:43', 'Firebase app initialized', {
+      appCount: firebase.apps ? firebase.apps.length : null,
+      authDomain: window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.authDomain
+    });
+    // #endregion
     return app;
   } catch (e) {
+    // #region agent log
+    agentAuthDebugLog('H3', 'auth.js:51', 'Firebase app initialization failed', {
+      code: e && e.code,
+      message: e && e.message
+    });
+    // #endregion
     console.error('Failed to initialize Firebase app:', e);
     return null;
   }
@@ -148,6 +182,15 @@ function initCharacterEditorAuth() {
   }
 
   auth.onAuthStateChanged(function (user) {
+    // #region agent log
+    agentAuthDebugLog('H4', 'auth.js:183', 'Auth state changed', {
+      page: page,
+      hasUser: Boolean(user),
+      uidPresent: Boolean(user && user.uid),
+      providerCount: user && user.providerData ? user.providerData.length : 0
+    });
+    // #endregion
+
     if (user) {
       hideAuthModal();
       if (isEditorPage) {
