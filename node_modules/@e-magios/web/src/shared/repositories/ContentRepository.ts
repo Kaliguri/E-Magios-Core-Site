@@ -1,12 +1,4 @@
-import {
-  collection,
-  doc,
-  getDocs,
-  getDoc,
-  query,
-  where,
-  orderBy,
-} from 'firebase/firestore';
+import { collection, doc, getDocs, getDoc, query, where, orderBy } from 'firebase/firestore';
 import { db } from '@/shared/firebase/client';
 import type { NewsItem, ContentManifest } from '@/entities/content/types';
 import { newsItemFromDto, manifestFromDto } from '@/entities/content/mappers';
@@ -16,7 +8,7 @@ export const ContentRepository = {
     const col = collection(db, 'news');
     const q = query(col, where('status', '==', 'published'), orderBy('date', 'desc'));
     const snap = await getDocs(q);
-    return snap.docs.map(d => newsItemFromDto(d.id, d.data()));
+    return snap.docs.map((d) => newsItemFromDto(d.id, d.data()));
   },
 
   async getManifest(environment = 'production'): Promise<ContentManifest | null> {

@@ -30,7 +30,10 @@
   color: var(--text-muted);
   cursor: pointer;
   font-size: 0.85rem;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
   white-space: nowrap;
 }
 

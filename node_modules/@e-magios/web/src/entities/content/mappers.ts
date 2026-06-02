@@ -18,17 +18,28 @@ export function newsItemFromDto(id: string, data: DocumentData): NewsItem {
 export function newsItemFromJson(raw: Record<string, unknown>): NewsItem {
   return {
     id: raw['id'] as string,
-    date: raw['date'] as string ?? '',
-    title: raw['title'] as string ?? '',
-    brief: raw['brief'] as string ?? '',
-    features: raw['features'] as string[] ?? [],
+    date: (raw['date'] as string) ?? '',
+    title: (raw['title'] as string) ?? '',
+    brief: (raw['brief'] as string) ?? '',
+    features: (raw['features'] as string[]) ?? [],
   };
 }
 
 export function manifestFromDto(id: string, data: DocumentData): ContentManifest {
+  const release = data['release'];
   return {
     environment: id,
+    contentRevision: data['contentRevision'] ?? undefined,
     publishedAt: data['publishedAt']?.toDate?.()?.toISOString() ?? null,
+    release: release
+      ? {
+          version: Number(release['version'] ?? 0),
+          tag: String(release['tag'] ?? ''),
+          changedCollections: Number(release['changedCollections'] ?? 0),
+          changedDocs: Number(release['changedDocs'] ?? 0),
+          updatedAt: release['updatedAt']?.toDate?.()?.toISOString() ?? null,
+        }
+      : null,
     collections: data['collections'] ?? {},
   };
 }

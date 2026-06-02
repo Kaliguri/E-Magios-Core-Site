@@ -14,7 +14,7 @@ function filtersEqual(a: FilterState, b: FilterState): boolean {
     const av = a[key] ?? [];
     const bv = b[key] ?? [];
     if (av.length !== bv.length) return false;
-    if (av.some(value => !bv.includes(value))) return false;
+    if (av.some((value) => !bv.includes(value))) return false;
   }
   return true;
 }
@@ -22,7 +22,10 @@ function filtersEqual(a: FilterState, b: FilterState): boolean {
 function splitToArray(val: unknown): string[] {
   if (Array.isArray(val)) return val.map(String);
   if (typeof val === 'string' && val.includes(',')) {
-    return val.split(',').map(s => s.trim()).filter(Boolean);
+    return val
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
   if (val != null && val !== '') return [String(val)];
   return [];
@@ -30,10 +33,14 @@ function splitToArray(val: unknown): string[] {
 
 function hasAny(arr: string[], filter: string[]): boolean {
   if (!filter.length) return true;
-  return filter.some(f => arr.includes(f));
+  return filter.some((f) => arr.includes(f));
 }
 
-function matchesFilters(item: CompendiumEntity, filters: FilterState, filterDefs: FilterDescriptor[]): boolean {
+function matchesFilters(
+  item: CompendiumEntity,
+  filters: FilterState,
+  filterDefs: FilterDescriptor[],
+): boolean {
   const itemRecord = item as unknown as Record<string, unknown>;
   for (const fd of filterDefs) {
     const selected = filters[fd.key];
@@ -79,17 +86,14 @@ function matchesFilters(item: CompendiumEntity, filters: FilterState, filterDefs
   return true;
 }
 
-function collectOptions(
-  items: CompendiumEntity[],
-  fd: FilterDescriptor,
-): string[] {
+function collectOptions(items: CompendiumEntity[], fd: FilterDescriptor): string[] {
   if (fd.options) return fd.options;
   const field = fd.sourceField ?? fd.key;
   const set = new Set<string>();
   for (const item of items) {
     const val = (item as unknown as Record<string, unknown>)[field];
     const arr = splitToArray(val);
-    arr.forEach(v => set.add(v));
+    arr.forEach((v) => set.add(v));
   }
   return Array.from(set).sort((a, b) => {
     if (fd.numeric) return Number(a) - Number(b);
@@ -130,13 +134,18 @@ function saveStoredFilters(storageKey: string | undefined, filters: FilterState)
   }
 }
 
-export function useCompendiumFilters(initialFilters?: FilterState, storageKey?: string): UseCompendiumFiltersResult {
+export function useCompendiumFilters(
+  initialFilters?: FilterState,
+  storageKey?: string,
+): UseCompendiumFiltersResult {
   const initial = initialFilters ?? {};
   const [filters, setFilters] = useState<FilterState>(() => loadStoredFilters(storageKey, initial));
-  const [tempFilters, setTempFiltersState] = useState<FilterState>(() => loadStoredFilters(storageKey, initial));
+  const [tempFilters, setTempFiltersState] = useState<FilterState>(() =>
+    loadStoredFilters(storageKey, initial),
+  );
 
   const setTempFilter = useCallback((key: string, values: string[]) => {
-    setTempFiltersState(prev => ({ ...prev, [key]: values }));
+    setTempFiltersState((prev) => ({ ...prev, [key]: values }));
   }, []);
 
   const applyFilters = useCallback(() => {
@@ -154,12 +163,12 @@ export function useCompendiumFilters(initialFilters?: FilterState, storageKey?: 
     setFilters(cloneFilters(initial));
   }, [initial, storageKey]);
 
-  const filterItems = useCallback(<T extends CompendiumEntity>(
-    items: T[],
-    filterDefs: FilterDescriptor[],
-  ): T[] => {
-    return items.filter(item => matchesFilters(item, filters, filterDefs));
-  }, [filters]);
+  const filterItems = useCallback(
+    <T extends CompendiumEntity>(items: T[], filterDefs: FilterDescriptor[]): T[] => {
+      return items.filter((item) => matchesFilters(item, filters, filterDefs));
+    },
+    [filters],
+  );
 
   const getOptions = useCallback((items: CompendiumEntity[], fd: FilterDescriptor) => {
     return collectOptions(items, fd);

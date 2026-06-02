@@ -8,18 +8,21 @@ const BOOK_KEYS: string[] = Object.keys(BOOKS);
 const TOOLS = [
   { id: 'character-editor', label: 'Редактор Персонажей', path: '/character-editor' },
   { id: 'db', label: 'База Данных', path: '/db' },
+  { id: 'ops', label: 'Ops Метрики', path: '/ops' },
 ];
 
 export function Sidebar() {
   const location = useLocation();
   const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
-    BOOK_KEYS.forEach(k => { init[k] = false; });
+    BOOK_KEYS.forEach((k) => {
+      init[k] = false;
+    });
     return init;
   });
 
   function toggle(key: string) {
-    setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
+    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
   return (
@@ -54,23 +57,29 @@ export function Sidebar() {
       </div>
 
       <div className={styles.sectionLabel}>Книги</div>
-      {BOOK_KEYS.map(key => {
+      {BOOK_KEYS.map((key) => {
         const book = BOOKS[key] as Book;
         const isCurrentBook = location.pathname.startsWith(`/${key}/`);
         const isOpen = isCurrentBook || (expanded[key] ?? false);
         return (
-          <div key={key} className={[styles.bookGroup, isCurrentBook ? styles.bookActive : ''].join(' ')}>
+          <div
+            key={key}
+            className={[styles.bookGroup, isCurrentBook ? styles.bookActive : ''].join(' ')}
+          >
             <button
               className={styles.bookToggle}
               onClick={() => toggle(key)}
               aria-expanded={isOpen}
             >
-              <span className={styles.bookTitle}>{book.title}{book.locked ? ' 🔒' : ''}</span>
+              <span className={styles.bookTitle}>
+                {book.title}
+                {book.locked ? ' 🔒' : ''}
+              </span>
               <span className={[styles.arrow, isOpen ? styles.arrowOpen : ''].join(' ')}>▶</span>
             </button>
             {isOpen && (
               <div className={styles.chapters}>
-                {book.chapters.map(ch => {
+                {book.chapters.map((ch) => {
                   const path = `/${key}/${ch.id}`;
                   const isActive = location.pathname === path;
                   return (
@@ -90,13 +99,14 @@ export function Sidebar() {
       })}
 
       <div className={styles.sectionLabel}>Инструменты</div>
-      {TOOLS.map(tool => (
+      {TOOLS.map((tool) => (
         <NavLink
           key={tool.id}
           to={tool.path}
+          title={tool.id === 'ops' ? 'Operations metrics dashboard' : 'Navigation item'}
           className={({ isActive }) => [styles.navItem, isActive ? styles.active : ''].join(' ')}
         >
-          {tool.id === 'character-editor' ? '⚔️' : '📚'} {tool.label}
+          {tool.id === 'character-editor' ? '⚔️' : tool.id === 'ops' ? '📊' : '📚'} {tool.label}
         </NavLink>
       ))}
     </nav>

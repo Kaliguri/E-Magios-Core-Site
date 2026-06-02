@@ -21,7 +21,13 @@ interface CompendiumTableProps {
   onRowClick: (item: CompendiumEntity) => void;
 }
 
-export function CompendiumTable({ items, columns, sort, onSort, onRowClick }: CompendiumTableProps) {
+export function CompendiumTable({
+  items,
+  columns,
+  sort,
+  onSort,
+  onRowClick,
+}: CompendiumTableProps) {
   if (!items.length) {
     return <div className={styles.empty}>Ничего не найдено</div>;
   }
@@ -31,13 +37,15 @@ export function CompendiumTable({ items, columns, sort, onSort, onRowClick }: Co
       <table className={styles.table}>
         <thead>
           <tr>
-            {columns.map(col => (
+            {columns.map((col) => (
               <th
                 key={col.key}
                 className={styles.th}
                 onClick={() => onSort(col.key)}
                 role="button"
-                aria-sort={sort.field === col.key ? (sort.ascending ? 'ascending' : 'descending') : 'none'}
+                aria-sort={
+                  sort.field === col.key ? (sort.ascending ? 'ascending' : 'descending') : 'none'
+                }
               >
                 <span className={styles.thContent}>
                   {col.label}
@@ -50,13 +58,9 @@ export function CompendiumTable({ items, columns, sort, onSort, onRowClick }: Co
           </tr>
         </thead>
         <tbody>
-          {items.map(item => (
-            <tr
-              key={item.id}
-              className={styles.row}
-              onClick={() => onRowClick(item)}
-            >
-              {columns.map(col => (
+          {items.map((item) => (
+            <tr key={item.id} className={styles.row} onClick={() => onRowClick(item)}>
+              {columns.map((col) => (
                 <td key={col.key} className={styles.td}>
                   {renderCellValue(item, col.key)}
                 </td>

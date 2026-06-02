@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useCompendiumData } from '@/shared/cache/useCompendiumData';
-import { COMPENDIUM_CONFIGS, COMPENDIUM_CONFIG_BY_KEY, isCompendiumKey, type CompendiumConfig } from '@/entities/compendium/config';
+import {
+  COMPENDIUM_CONFIGS,
+  COMPENDIUM_CONFIG_BY_KEY,
+  isCompendiumKey,
+  type CompendiumConfig,
+} from '@/entities/compendium/config';
 import { useCompendiumFilters } from '@/features/db/useCompendiumFilters';
 import { useCompendiumSort } from '@/features/db/useCompendiumSort';
 import { useDetailModal } from '@/features/db/useDetailModal';
@@ -38,7 +43,11 @@ function TabContent({
   onForward: () => void;
 }) {
   const stableFetcher = useCallback(config.fetcher, [config]);
-  const { data: items, loading, error } = useCompendiumData<CompendiumEntity[]>(
+  const {
+    data: items,
+    loading,
+    error,
+  } = useCompendiumData<CompendiumEntity[]>(
     `compendium:${config.key}`,
     stableFetcher,
     config.manifestKey,
@@ -63,7 +72,7 @@ function TabContent({
       return '';
     }
   });
-  const datasets = useMemo(() => items ? { [config.key]: items } : {}, [config.key, items]);
+  const datasets = useMemo(() => (items ? { [config.key]: items } : {}), [config.key, items]);
   const compendiumIndex = useCompendiumIndex(datasets);
 
   useEffect(() => {
@@ -85,14 +94,19 @@ function TabContent({
   const filtered = filterItems(items, config.schema.filters);
   const normalizedSearch = search.trim().toLocaleLowerCase('ru');
   const searched = normalizedSearch
-    ? filtered.filter(item => {
-      const record = item as unknown as Record<string, unknown>;
-      return ['name', 'description', 'type', 'school', 'profession', 'specialization']
-        .some(field => String(record[field] ?? '').toLocaleLowerCase('ru').includes(normalizedSearch));
-    })
+    ? filtered.filter((item) => {
+        const record = item as unknown as Record<string, unknown>;
+        return ['name', 'description', 'type', 'school', 'profession', 'specialization'].some(
+          (field) =>
+            String(record[field] ?? '')
+              .toLocaleLowerCase('ru')
+              .includes(normalizedSearch),
+        );
+      })
     : filtered;
   const sorted = sortItems(searched);
-  const detailEntity = detailRef?.entityType === config.key ? compendiumIndex.resolve(detailRef) : null;
+  const detailEntity =
+    detailRef?.entityType === config.key ? compendiumIndex.resolve(detailRef) : null;
 
   return (
     <div className={styles.tabContent}>
@@ -103,7 +117,7 @@ function TabContent({
           type="search"
           placeholder="Поиск..."
           value={search}
-          onChange={event => setSearch(event.target.value)}
+          onChange={(event) => setSearch(event.target.value)}
         />
         {config.schema.filters.length > 0 && (
           <Button
@@ -121,7 +135,7 @@ function TabContent({
         columns={config.schema.columns}
         sort={sort}
         onSort={toggleSort}
-        onRowClick={item => onOpenDetail({ entityType: config.key, id: item.id })}
+        onRowClick={(item) => onOpenDetail({ entityType: config.key, id: item.id })}
       />
 
       {config.schema.filters.length > 0 && (
@@ -162,29 +176,41 @@ function getInitialTab(searchParams: URLSearchParams): CompendiumEntityKey {
 
 export function DbPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTabState] = useState<CompendiumEntityKey>(() => getInitialTab(searchParams));
+  const [activeTab, setActiveTabState] = useState<CompendiumEntityKey>(() =>
+    getInitialTab(searchParams),
+  );
   const detailModal = useDetailModal();
   const activeConfig = COMPENDIUM_CONFIG_BY_KEY[activeTab];
   const urlDetailId = searchParams.get('detail');
-  const visibleDetailRef = detailModal.current ?? (urlDetailId ? { entityType: activeTab, id: urlDetailId } : null);
+  const visibleDetailRef =
+    detailModal.current ?? (urlDetailId ? { entityType: activeTab, id: urlDetailId } : null);
 
-  const setDbUrlState = useCallback((tab: CompendiumEntityKey, detail?: string | null) => {
-    const next = new URLSearchParams();
-    next.set('tab', tab);
-    if (detail) next.set('detail', detail);
-    setSearchParams(next, { replace: false });
-  }, [setSearchParams]);
+  const setDbUrlState = useCallback(
+    (tab: CompendiumEntityKey, detail?: string | null) => {
+      const next = new URLSearchParams();
+      next.set('tab', tab);
+      if (detail) next.set('detail', detail);
+      setSearchParams(next, { replace: false });
+    },
+    [setSearchParams],
+  );
 
-  const setActiveTab = useCallback((tab: CompendiumEntityKey) => {
-    setActiveTabState(tab);
-    setDbUrlState(tab, null);
-  }, [setDbUrlState]);
+  const setActiveTab = useCallback(
+    (tab: CompendiumEntityKey) => {
+      setActiveTabState(tab);
+      setDbUrlState(tab, null);
+    },
+    [setDbUrlState],
+  );
 
-  const openDetail = useCallback((ref: EntityRef) => {
-    setActiveTabState(ref.entityType);
-    detailModal.open(ref);
-    setDbUrlState(ref.entityType, ref.id);
-  }, [detailModal, setDbUrlState]);
+  const openDetail = useCallback(
+    (ref: EntityRef) => {
+      setActiveTabState(ref.entityType);
+      detailModal.open(ref);
+      setDbUrlState(ref.entityType, ref.id);
+    },
+    [detailModal, setDbUrlState],
+  );
 
   const closeDetail = useCallback(() => {
     detailModal.close();
@@ -195,10 +221,10 @@ export function DbPage() {
     const tab = getInitialTab(searchParams);
     const detailId = searchParams.get('detail');
     setActiveTabState(tab);
-    if (detailId && (
-      detailModal.current?.entityType !== tab ||
-      detailModal.current.id !== detailId
-    )) {
+    if (
+      detailId &&
+      (detailModal.current?.entityType !== tab || detailModal.current.id !== detailId)
+    ) {
       detailModal.open({ entityType: tab, id: detailId });
     }
   }, [searchParams]);
@@ -207,10 +233,7 @@ export function DbPage() {
     if (!detailModal.isOpen || !detailModal.current) return;
     const { entityType, id } = detailModal.current;
     setActiveTabState(entityType);
-    if (
-      searchParams.get('tab') !== entityType ||
-      searchParams.get('detail') !== id
-    ) {
+    if (searchParams.get('tab') !== entityType || searchParams.get('detail') !== id) {
       setDbUrlState(entityType, id);
     }
   }, [detailModal.current?.entityType, detailModal.current?.id, detailModal.isOpen]);
@@ -220,7 +243,7 @@ export function DbPage() {
       <h1>База Данных</h1>
 
       <div className={styles.tabs}>
-        {COMPENDIUM_CONFIGS.map(tab => (
+        {COMPENDIUM_CONFIGS.map((tab) => (
           <button
             key={tab.key}
             className={[styles.tab, activeTab === tab.key ? styles.tabActive : ''].join(' ')}

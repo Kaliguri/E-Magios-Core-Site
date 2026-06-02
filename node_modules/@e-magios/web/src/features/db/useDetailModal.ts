@@ -54,36 +54,39 @@ export function useDetailModal(): UseDetailModalResult {
     }
   }, [history, index, isOpen]);
 
-  const open = useCallback((ref: EntityRef) => {
-    setHistory(prev => {
-      const next = prev.slice(0, index + 1);
-      const latest = next[next.length - 1];
-      if (latest?.entityType === ref.entityType && latest.id === ref.id) {
-        return next;
-      }
-      return [...next, ref];
-    });
-    setIndex(prev => {
-      const latest = history[Math.max(0, prev)];
-      if (latest?.entityType === ref.entityType && latest.id === ref.id) {
-        return prev;
-      }
-      return prev + 1;
-    });
-    setIsOpen(true);
-  }, [history, index]);
+  const open = useCallback(
+    (ref: EntityRef) => {
+      setHistory((prev) => {
+        const next = prev.slice(0, index + 1);
+        const latest = next[next.length - 1];
+        if (latest?.entityType === ref.entityType && latest.id === ref.id) {
+          return next;
+        }
+        return [...next, ref];
+      });
+      setIndex((prev) => {
+        const latest = history[Math.max(0, prev)];
+        if (latest?.entityType === ref.entityType && latest.id === ref.id) {
+          return prev;
+        }
+        return prev + 1;
+      });
+      setIsOpen(true);
+    },
+    [history, index],
+  );
 
   const close = useCallback(() => {
     setIsOpen(false);
   }, []);
 
   const goBack = useCallback(() => {
-    setIndex(prev => Math.max(0, prev - 1));
+    setIndex((prev) => Math.max(0, prev - 1));
   }, []);
 
   const goForward = useCallback(() => {
-    setHistory(prev => {
-      setIndex(i => Math.min(prev.length - 1, i + 1));
+    setHistory((prev) => {
+      setIndex((i) => Math.min(prev.length - 1, i + 1));
       return prev;
     });
   }, []);

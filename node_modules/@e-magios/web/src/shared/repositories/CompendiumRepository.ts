@@ -1,22 +1,36 @@
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-} from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/shared/firebase/client';
 import type {
-  Spell, School, Effect, Action, Skill,
-  Archetype, Basic, ActionType, CombatComponent,
-  CraftComponent, CraftProfession, CraftSpecialization,
-  RecipeType, Recipe,
+  Spell,
+  School,
+  Effect,
+  Action,
+  Skill,
+  Archetype,
+  Basic,
+  ActionType,
+  CombatComponent,
+  CraftComponent,
+  CraftProfession,
+  CraftSpecialization,
+  RecipeType,
+  Recipe,
 } from '@/entities/compendium/types';
 import {
-  spellFromJson, schoolFromJson, effectFromJson,
-  actionFromJson, skillFromJson, archetypeFromJson,
-  basicFromJson, actionTypeFromJson, combatComponentFromJson,
-  craftComponentFromJson, craftProfessionFromJson,
-  craftSpecializationFromJson, recipeTypeFromJson, recipeFromJson,
+  spellFromJson,
+  schoolFromJson,
+  effectFromJson,
+  actionFromJson,
+  skillFromJson,
+  archetypeFromJson,
+  basicFromJson,
+  actionTypeFromJson,
+  combatComponentFromJson,
+  craftComponentFromJson,
+  craftProfessionFromJson,
+  craftSpecializationFromJson,
+  recipeTypeFromJson,
+  recipeFromJson,
 } from '@/entities/compendium/mappers';
 
 async function fetchPublished<T>(
@@ -26,7 +40,7 @@ async function fetchPublished<T>(
   const col = collection(db, collectionName);
   const q = query(col, where('status', '==', 'published'));
   const snap = await getDocs(q);
-  return snap.docs.map(d => mapper({ id: d.id, ...d.data() } as Record<string, unknown>));
+  return snap.docs.map((d) => mapper({ id: d.id, ...d.data() } as Record<string, unknown>));
 }
 
 export const CompendiumRepository = {

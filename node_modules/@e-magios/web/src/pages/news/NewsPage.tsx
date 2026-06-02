@@ -7,11 +7,7 @@ import styles from './NewsPage.module.css';
 
 export function NewsPage() {
   const fetcher = useCallback(() => ContentRepository.getNews(), []);
-  const { data: news, loading, error } = useCompendiumData<NewsItem[]>(
-    'news',
-    fetcher,
-    'news',
-  );
+  const { data: news, loading, error } = useCompendiumData<NewsItem[]>('news', fetcher, 'news');
 
   if (loading && !news) {
     return (
@@ -50,7 +46,9 @@ export function NewsPage() {
                     <h3>Что изменилось</h3>
                     <ul className={styles.features}>
                       {item.features.map((f, i) => (
-                        <li key={i}><LegacyText text={f} /></li>
+                        <li key={i}>
+                          <LegacyText text={f} />
+                        </li>
                       ))}
                     </ul>
                   </section>

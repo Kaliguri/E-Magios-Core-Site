@@ -19,7 +19,7 @@ export function Layout() {
         <button
           className={styles.resetAccessButton}
           type="button"
-          title="Сбросить пароль"
+          title="Reset protected content access"
           onClick={resetBookAccess}
         >
           🔓

@@ -119,7 +119,10 @@
 .tagButton {
   cursor: pointer;
   color: var(--accent-emerald);
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
 }
 
 .tagButton:hover {
