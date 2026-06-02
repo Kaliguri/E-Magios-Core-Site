@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -60,6 +61,51 @@ def _parse_sides(dice_type: str, sides_value: Any) -> int:
     if dice_type.startswith("d") and dice_type[1:].isdigit():
         return int(dice_type[1:])
     return 0
+
+
+def _normalize_roll_expression(expression: str) -> str:
+    return re.sub(r"\s+", "", str(expression or "").lower().removeprefix("/roll"))
+
+
+def _extract_primary_dice_expression(expression: str, dice_type: str) -> str:
+    normalized = _normalize_roll_expression(expression)
+    match = re.search(r"(\d+d\d+)", normalized)
+    if match:
+        return str(match.group(1)).lower()
+    if dice_type and dice_type.startswith("d") and dice_type[1:].isdigit():
+        return f"1{dice_type}"
+    return normalized or dice_type
+
+
+def _build_roll_type_signature(context: str, dice_type: str, expression: str) -> Dict[str, str]:
+    normalized_dice_type = _normalize_dice_type(dice_type)
+    primary_expression = _extract_primary_dice_expression(expression, normalized_dice_type)
+    is_custom = str(context or "").startswith("custom")
+    if is_custom:
+        custom_expression = _normalize_roll_expression(expression) or primary_expression or normalized_dice_type
+        return {
+            "rollTypeKey": f"custom:{custom_expression}",
+            "category": "custom",
+            "label": f"Кастомный - ({custom_expression})",
+            "expression": custom_expression,
+        }
+
+    is_core_d12 = normalized_dice_type == "d12" and context in ("arcana", "hit", "apply")
+    category_map = {
+        "arcana": "Аркана",
+        "hit": "Попадание",
+        "apply": "Наложение эффекта",
+    }
+    category = context if is_core_d12 else "damage"
+    category_label = category_map.get(category, "Урон")
+    cleaned_expression = "1d12" if is_core_d12 else primary_expression
+    dice_label = normalized_dice_type.upper() if normalized_dice_type else "D?"
+    return {
+        "rollTypeKey": f"{category}:{normalized_dice_type}:{cleaned_expression}",
+        "category": category,
+        "label": f"{dice_label} - {category_label} - ({cleaned_expression})",
+        "expression": cleaned_expression,
+    }
 
 
 def _normalize_context(event: Dict[str, Any]) -> str:
@@ -239,7 +285,8 @@ def _build_dice_block(data_dir: Path) -> Dict[str, Any]:
 
         context = _normalize_context(event)
         expression = str(event.get("expression") or event.get("displayExpression") or dice_type).strip()
-        roll_type_key = str(event.get("rollTypeKey") or f"{context}:{dice_type}").strip().lower()
+        roll_signature = _build_roll_type_signature(context, dice_type, expression)
+        roll_type_key = str(roll_signature.get("rollTypeKey") or f"{context}:{dice_type}").strip().lower()
 
         dice_values[dice_type].append(result)
         user_dice_values[(user_id, dice_type)].append(result)
@@ -274,10 +321,10 @@ def _build_dice_block(data_dir: Path) -> Dict[str, Any]:
                 "userId": user_id,
                 "userDisplayName": user_display_name,
                 "rollTypeKey": roll_type_key,
-                "label": f"{_context_label(context)} {dice_type.upper()} ({expression})",
-                "context": context,
+                "label": roll_signature.get("label"),
+                "context": roll_signature.get("category"),
                 "diceType": dice_type,
-                "expression": expression,
+                "expression": roll_signature.get("expression"),
                 "sides": sides,
                 "lastRollAt": created_at,
             }
@@ -288,11 +335,11 @@ def _build_dice_block(data_dir: Path) -> Dict[str, Any]:
         roll_type_values[roll_type_key].append(result)
         if roll_type_key not in roll_type_meta:
             roll_type_meta[roll_type_key] = {
-                "context": context,
+                "context": roll_signature.get("category"),
                 "diceType": dice_type,
-                "expression": expression,
+                "expression": roll_signature.get("expression"),
                 "sides": sides,
-                "label": f"{_context_label(context)} {dice_type.upper()} ({expression})",
+                "label": roll_signature.get("label"),
             }
 
     if not dice_values:
