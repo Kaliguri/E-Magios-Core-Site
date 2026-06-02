@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, updateProfile, type User } from 'firebase/auth';
+import {
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithPopup,
+  signOut,
+  updateProfile,
+  type User,
+} from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/shared/firebase/client';
 import { Button } from '@/shared/ui/Button';
@@ -28,7 +35,7 @@ export function ProfilePage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    return onAuthStateChanged(auth, current => {
+    return onAuthStateChanged(auth, (current) => {
       setUser(current);
       setLoading(false);
       setError('');
@@ -39,7 +46,7 @@ export function ProfilePage() {
 
       const ref = doc(db, 'users', current.uid);
       getDoc(ref)
-        .then(snapshot => {
+        .then((snapshot) => {
           const data = snapshot.exists() ? snapshot.data() : {};
           setProfile({
             displayName: String(data.displayName ?? current.displayName ?? ''),
@@ -72,7 +79,10 @@ export function ProfilePage() {
 
   async function save() {
     if (!user) return;
-    if (profile.discordWebhookUrl && !/^https:\/\/discord\.com\/api\/webhooks\//.test(profile.discordWebhookUrl)) {
+    if (
+      profile.discordWebhookUrl &&
+      !/^https:\/\/discord\.com\/api\/webhooks\//.test(profile.discordWebhookUrl)
+    ) {
       setError('Похоже, это не ссылка вебхука Discord. Проверьте URL.');
       return;
     }
@@ -85,14 +95,20 @@ export function ProfilePage() {
     setError('');
     setStatus('Сохранение профиля...');
     try {
-      const normalizedColor = profile.discordColor.startsWith('#') ? profile.discordColor : `#${profile.discordColor}`;
+      const normalizedColor = profile.discordColor.startsWith('#')
+        ? profile.discordColor
+        : `#${profile.discordColor}`;
       const next = { ...profile, discordColor: normalizedColor };
-      await setDoc(doc(db, 'users', user.uid), {
-        displayName: next.displayName || null,
-        discordWebhookUrl: next.discordWebhookUrl || null,
-        discordDisplayName: next.discordDisplayName || null,
-        discordColor: next.discordColor || null,
-      }, { merge: true });
+      await setDoc(
+        doc(db, 'users', user.uid),
+        {
+          displayName: next.displayName || null,
+          discordWebhookUrl: next.discordWebhookUrl || null,
+          discordDisplayName: next.discordDisplayName || null,
+          discordColor: next.discordColor || null,
+        },
+        { merge: true },
+      );
       await updateProfile(user, { displayName: next.displayName || null });
       setProfile(next);
       setStatus('Профиль сохранён');
@@ -118,10 +134,12 @@ export function ProfilePage() {
         <section className={styles.section}>
           <h2>Требуется авторизация</h2>
           <p className={styles.hint}>
-            Для доступа ко всем возможностям сайта, включая сохранение персонажей,
-            историю бросков и интеграцию с Discord, требуется вход через Google.
+            Для доступа ко всем возможностям сайта, включая сохранение персонажей, историю бросков и
+            интеграцию с Discord, требуется вход через Google.
           </p>
-          <Button variant="primary" onClick={signIn}>Войти через Google</Button>
+          <Button variant="primary" onClick={signIn}>
+            Войти через Google
+          </Button>
         </section>
       )}
 
@@ -143,7 +161,9 @@ export function ProfilePage() {
                 <input
                   id="profile-name"
                   value={profile.displayName}
-                  onChange={event => setProfile(prev => ({ ...prev, displayName: event.target.value }))}
+                  onChange={(event) =>
+                    setProfile((prev) => ({ ...prev, displayName: event.target.value }))
+                  }
                   placeholder="Имя, которое будет видно в интерфейсе"
                 />
               </div>
@@ -166,7 +186,9 @@ export function ProfilePage() {
                 <input
                   id="discord-webhook-url"
                   value={profile.discordWebhookUrl}
-                  onChange={event => setProfile(prev => ({ ...prev, discordWebhookUrl: event.target.value }))}
+                  onChange={(event) =>
+                    setProfile((prev) => ({ ...prev, discordWebhookUrl: event.target.value }))
+                  }
                   placeholder="https://discord.com/api/webhooks/..."
                 />
               </div>
@@ -175,7 +197,9 @@ export function ProfilePage() {
                 <input
                   id="discord-display-name"
                   value={profile.discordDisplayName}
-                  onChange={event => setProfile(prev => ({ ...prev, discordDisplayName: event.target.value }))}
+                  onChange={(event) =>
+                    setProfile((prev) => ({ ...prev, discordDisplayName: event.target.value }))
+                  }
                   placeholder="Например: Эльдриан, маг 5 уровня"
                 />
               </div>
@@ -184,7 +208,9 @@ export function ProfilePage() {
                 <input
                   id="discord-color"
                   value={profile.discordColor}
-                  onChange={event => setProfile(prev => ({ ...prev, discordColor: event.target.value }))}
+                  onChange={(event) =>
+                    setProfile((prev) => ({ ...prev, discordColor: event.target.value }))
+                  }
                   placeholder="#10b981"
                 />
               </div>
@@ -195,7 +221,9 @@ export function ProfilePage() {
             <Button variant="primary" onClick={save} disabled={saving}>
               {saving ? 'Сохранение...' : 'Сохранить'}
             </Button>
-            <Button variant="secondary" onClick={() => void signOut(auth)}>Выйти из аккаунта</Button>
+            <Button variant="secondary" onClick={() => void signOut(auth)}>
+              Выйти из аккаунта
+            </Button>
             {status && <span className={styles.status}>{status}</span>}
             {error && <span className={styles.error}>{error}</span>}
           </div>
@@ -206,4 +234,3 @@ export function ProfilePage() {
     </div>
   );
 }
-

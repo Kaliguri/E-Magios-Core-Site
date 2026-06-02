@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useCharacterAuth } from '@/features/character-editor/useCharacterAuth';
 import { useCharacterState } from '@/features/character-editor/useCharacterState';
-import { MAGIC_SKILLS, PERSONALITY_SKILLS } from '@/features/character-editor/characterCalculations';
+import {
+  MAGIC_SKILLS,
+  PERSONALITY_SKILLS,
+} from '@/features/character-editor/characterCalculations';
 import { CharacterRepository } from '@/shared/repositories/CharacterRepository';
 import { CompendiumRepository } from '@/shared/repositories/CompendiumRepository';
 import { Button } from '@/shared/ui/Button';
@@ -63,15 +66,21 @@ function AuthBanner({
   if (!auth.uid) {
     return (
       <div className={styles.authBanner}>
-        <span className={styles.authHint}>Войдите через Google, чтобы создавать и сохранять персонажей</span>
-        <Button variant="outline" size="sm" onClick={onSignIn}>Войти через Google</Button>
+        <span className={styles.authHint}>
+          Войдите через Google, чтобы создавать и сохранять персонажей
+        </span>
+        <Button variant="outline" size="sm" onClick={onSignIn}>
+          Войти через Google
+        </Button>
       </div>
     );
   }
   return (
     <div className={styles.authBanner}>
       <span>{auth.displayName ?? auth.email}</span>
-      <Button variant="ghost" size="sm" onClick={onSignOut}>Выйти</Button>
+      <Button variant="ghost" size="sm" onClick={onSignOut}>
+        Выйти
+      </Button>
     </div>
   );
 }
@@ -94,9 +103,15 @@ function CharacterCard({
         <span className={styles.characterLevel}>Уровень {character.level}</span>
       </div>
       <div className={styles.characterCardActions}>
-        <Button variant="outline" size="sm" onClick={onLoad}>Загрузить</Button>
-        <Button variant="ghost" size="sm" onClick={onExport}>Экспорт</Button>
-        <Button variant="ghost" size="sm" onClick={onDelete}>Удалить</Button>
+        <Button variant="outline" size="sm" onClick={onLoad}>
+          Загрузить
+        </Button>
+        <Button variant="ghost" size="sm" onClick={onExport}>
+          Экспорт
+        </Button>
+        <Button variant="ghost" size="sm" onClick={onDelete}>
+          Удалить
+        </Button>
       </div>
     </div>
   );
@@ -115,10 +130,12 @@ function SkillRow({
     <div className={styles.skillRow}>
       <span className={styles.skillName}>{name}</span>
       <div className={styles.skillDots}>
-        {[0, 1, 2, 3].map(n => (
+        {[0, 1, 2, 3].map((n) => (
           <button
             key={n}
-            className={[styles.skillDot, level >= n && n > 0 ? styles.skillDotFilled : ''].join(' ')}
+            className={[styles.skillDot, level >= n && n > 0 ? styles.skillDotFilled : ''].join(
+              ' ',
+            )}
             onClick={() => onChange(level === n ? n - 1 : n)}
             title={`Уровень ${n}`}
           >
@@ -154,24 +171,29 @@ export function CharacterEditorPage() {
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const isCloudMode = Boolean(authHook.auth.uid);
   const canEditCharacters = isCloudMode || guestTestMode;
-  const visibleCharacters = isCloudMode ? authHook.characters : guestTestMode ? localCharacters : [];
+  const visibleCharacters = isCloudMode
+    ? authHook.characters
+    : guestTestMode
+      ? localCharacters
+      : [];
 
   useEffect(() => {
     if (!canEditCharacters || view !== 'editor') return;
     let cancelled = false;
-    Promise.all([
-      CompendiumRepository.getSpells(),
-      CompendiumRepository.getSchools(),
-    ]).then(([spellItems, schoolItems]) => {
-      if (cancelled) return;
-      setSpells(spellItems as Spell[]);
-      setSchools(schoolItems as School[]);
-    }).catch(() => {
-      if (cancelled) return;
-      setSpells([]);
-      setSchools([]);
-    });
-    return () => { cancelled = true; };
+    Promise.all([CompendiumRepository.getSpells(), CompendiumRepository.getSchools()])
+      .then(([spellItems, schoolItems]) => {
+        if (cancelled) return;
+        setSpells(spellItems as Spell[]);
+        setSchools(schoolItems as School[]);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setSpells([]);
+        setSchools([]);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [canEditCharacters, view]);
 
   function handleNew() {
@@ -193,7 +215,7 @@ export function CharacterEditorPage() {
       return;
     }
     if (!guestTestMode) return;
-    const next = localCharacters.filter(c => c.id !== character.id);
+    const next = localCharacters.filter((c) => c.id !== character.id);
     setLocalCharacters(next);
     writeLocalCharacters(next);
   }
@@ -210,9 +232,9 @@ export function CharacterEditorPage() {
       updatedAt: new Date().toISOString(),
       version: (state.character.version ?? 0) + 1,
     };
-    const exists = localCharacters.some(c => c.id === nextCharacter.id);
+    const exists = localCharacters.some((c) => c.id === nextCharacter.id);
     const next = exists
-      ? localCharacters.map(c => c.id === nextCharacter.id ? nextCharacter : c)
+      ? localCharacters.map((c) => (c.id === nextCharacter.id ? nextCharacter : c))
       : [nextCharacter, ...localCharacters];
     setLocalCharacters(next);
     writeLocalCharacters(next);
@@ -230,9 +252,9 @@ export function CharacterEditorPage() {
       ...parsed,
       updatedAt: new Date().toISOString(),
     };
-    const exists = localCharacters.some(c => c.id === imported.id);
+    const exists = localCharacters.some((c) => c.id === imported.id);
     const next = exists
-      ? localCharacters.map(c => c.id === imported.id ? imported : c)
+      ? localCharacters.map((c) => (c.id === imported.id ? imported : c))
       : [imported, ...localCharacters];
     setLocalCharacters(next);
     writeLocalCharacters(next);
@@ -259,9 +281,13 @@ export function CharacterEditorPage() {
           {canEditCharacters && (
             <div className={styles.listActions}>
               {guestTestMode && (
-                <Button variant="secondary" onClick={() => importInputRef.current?.click()}>Импорт JSON</Button>
+                <Button variant="secondary" onClick={() => importInputRef.current?.click()}>
+                  Импорт JSON
+                </Button>
               )}
-              <Button variant="primary" onClick={handleNew}>+ Создать персонажа</Button>
+              <Button variant="primary" onClick={handleNew}>
+                + Создать персонажа
+              </Button>
             </div>
           )}
         </div>
@@ -272,7 +298,7 @@ export function CharacterEditorPage() {
             type="file"
             accept="application/json,.json"
             className={styles.hiddenInput}
-            onChange={event => {
+            onChange={(event) => {
               const file = event.target.files?.[0];
               event.target.value = '';
               if (file) {
@@ -296,7 +322,7 @@ export function CharacterEditorPage() {
 
         {visibleCharacters.length > 0 && (
           <div className={styles.characterList}>
-            {visibleCharacters.map(c => (
+            {visibleCharacters.map((c) => (
               <CharacterCard
                 key={c.id}
                 character={c}
@@ -312,7 +338,9 @@ export function CharacterEditorPage() {
           <div className={styles.hint}>Персонажей пока нет. Создайте первого!</div>
         )}
         {guestTestMode && visibleCharacters.length === 0 && (
-          <div className={styles.hint}>Нет локально сохранённых персонажей. Создайте нового или импортируйте JSON.</div>
+          <div className={styles.hint}>
+            Нет локально сохранённых персонажей. Создайте нового или импортируйте JSON.
+          </div>
         )}
       </div>
     );
@@ -321,7 +349,9 @@ export function CharacterEditorPage() {
   return (
     <div className={styles.page}>
       <div className={styles.editorHeader}>
-        <Button variant="ghost" size="sm" onClick={() => setView('list')}>← Назад</Button>
+        <Button variant="ghost" size="sm" onClick={() => setView('list')}>
+          ← Назад
+        </Button>
         <h1 className={styles.editorTitle}>{character.name || 'Новый персонаж'}</h1>
         <div className={styles.editorActions}>
           {isDirty && <span className={styles.dirtyBadge}>Несохранённые изменения</span>}
@@ -341,7 +371,7 @@ export function CharacterEditorPage() {
           type="text"
           placeholder="Имя персонажа"
           value={character.name}
-          onChange={e => updateField('name', e.target.value)}
+          onChange={(e) => updateField('name', e.target.value)}
         />
         <div className={styles.levelControl}>
           <label className={styles.levelLabel}>Уровень</label>
@@ -351,13 +381,13 @@ export function CharacterEditorPage() {
             min={1}
             max={20}
             value={character.level}
-            onChange={e => updateLevel(Number(e.target.value))}
+            onChange={(e) => updateLevel(Number(e.target.value))}
           />
         </div>
       </div>
 
       <div className={styles.tabs}>
-        {(['stats', 'skills', 'spells'] as const).map(tab => (
+        {(['stats', 'skills', 'spells'] as const).map((tab) => (
           <button
             key={tab}
             className={[styles.tab, activeTab === tab ? styles.tabActive : ''].join(' ')}
@@ -383,7 +413,7 @@ export function CharacterEditorPage() {
               { label: 'Стойкость', value: stats.fortitude },
               { label: 'Действия', value: stats.actions },
               { label: 'Реакции', value: stats.reactions },
-            ].map(s => (
+            ].map((s) => (
               <div key={s.label} className={styles.statCard}>
                 <span className={styles.statValue}>{s.value}</span>
                 <span className={styles.statLabel}>{s.label}</span>
@@ -404,7 +434,9 @@ export function CharacterEditorPage() {
                 <input
                   type="number"
                   value={Number(value)}
-                  onChange={event => updateField(key as keyof Character, Number(event.target.value) as never)}
+                  onChange={(event) =>
+                    updateField(key as keyof Character, Number(event.target.value) as never)
+                  }
                 />
               </label>
             ))}
@@ -416,28 +448,28 @@ export function CharacterEditorPage() {
         <div className={styles.skillsSection}>
           <div className={styles.skillGroup}>
             <h3>Навыки Магии</h3>
-            {MAGIC_SKILLS.map(skill => {
-              const sk = character.magicSkills.find(s => s.id === skill.id);
+            {MAGIC_SKILLS.map((skill) => {
+              const sk = character.magicSkills.find((s) => s.id === skill.id);
               return (
                 <SkillRow
                   key={skill.id}
                   name={skill.name}
                   level={sk?.level ?? 0}
-                  onChange={level => updateSkillLevel('magic', skill.id, level)}
+                  onChange={(level) => updateSkillLevel('magic', skill.id, level)}
                 />
               );
             })}
           </div>
           <div className={styles.skillGroup}>
             <h3>Навыки Личности</h3>
-            {PERSONALITY_SKILLS.map(skill => {
-              const sk = character.personalitySkills.find(s => s.id === skill.id);
+            {PERSONALITY_SKILLS.map((skill) => {
+              const sk = character.personalitySkills.find((s) => s.id === skill.id);
               return (
                 <SkillRow
                   key={skill.id}
                   name={skill.name}
                   level={sk?.level ?? 0}
-                  onChange={level => updateSkillLevel('personality', skill.id, level)}
+                  onChange={(level) => updateSkillLevel('personality', skill.id, level)}
                 />
               );
             })}
@@ -451,49 +483,60 @@ export function CharacterEditorPage() {
             <select
               className={styles.select}
               value={selectedSpellId}
-              onChange={event => setSelectedSpellId(event.target.value)}
+              onChange={(event) => setSelectedSpellId(event.target.value)}
             >
               <option value="">Выберите заклинание из БД</option>
-              {spells.map(spell => (
+              {spells.map((spell) => (
                 <option key={spell.id} value={spell.id}>
                   {spell.name}
                 </option>
               ))}
             </select>
-            {(['study', 'signature', 'spontaneous'] as const).map(type => (
+            {(['study', 'signature', 'spontaneous'] as const).map((type) => (
               <Button
                 key={type}
                 variant="secondary"
                 size="sm"
                 disabled={!selectedSpellId}
                 onClick={() => {
-                  const spell = spells.find(item => item.id === selectedSpellId);
+                  const spell = spells.find((item) => item.id === selectedSpellId);
                   if (spell) state.addSpell(type, spellToCharacterSpell(spell));
                 }}
               >
-                {type === 'study' ? 'В учебные' : type === 'signature' ? 'В фирменные' : 'В спонтанные'}
+                {type === 'study'
+                  ? 'В учебные'
+                  : type === 'signature'
+                    ? 'В фирменные'
+                    : 'В спонтанные'}
               </Button>
             ))}
           </div>
 
-          {([
-            { key: 'studySpells' as const, label: 'Учебные Заклинания' },
-            { key: 'signatureSpells' as const, label: 'Фирменные Заклинания' },
-            { key: 'spontaneousSpells' as const, label: 'Спонтанные Заклинания' },
-          ] as const).map(({ key, label }) => (
+          {(
+            [
+              { key: 'studySpells' as const, label: 'Учебные Заклинания' },
+              { key: 'signatureSpells' as const, label: 'Фирменные Заклинания' },
+              { key: 'spontaneousSpells' as const, label: 'Спонтанные Заклинания' },
+            ] as const
+          ).map(({ key, label }) => (
             <div key={key} className={styles.spellGroup}>
               <h3>{label}</h3>
               {character[key].length === 0 && (
                 <span className={styles.emptyHint}>Нет заклинаний</span>
               )}
-              {character[key].map(spell => (
+              {character[key].map((spell) => (
                 <div key={spell.id} className={styles.spellRow}>
                   <span>{spell.name}</span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      const type = key === 'studySpells' ? 'study' : key === 'signatureSpells' ? 'signature' : 'spontaneous';
+                      const type =
+                        key === 'studySpells'
+                          ? 'study'
+                          : key === 'signatureSpells'
+                            ? 'signature'
+                            : 'spontaneous';
                       state.removeSpell(type, spell.id);
                     }}
                   >
@@ -515,10 +558,10 @@ export function CharacterEditorPage() {
           <select
             className={styles.select}
             value={selectedSchool}
-            onChange={event => setSelectedSchool(event.target.value)}
+            onChange={(event) => setSelectedSchool(event.target.value)}
           >
             <option value="">Выберите школу из БД</option>
-            {schools.map(school => (
+            {schools.map((school) => (
               <option key={school.id} value={school.name}>
                 {school.name}
               </option>
@@ -540,21 +583,37 @@ export function CharacterEditorPage() {
           className={styles.textInput}
           placeholder="Например: Базовая Аркана, Огонь"
           value={character.schools.join(', ')}
-          onChange={e => updateField('schools', e.target.value.split(',').map(v => v.trim()).filter(Boolean))}
+          onChange={(e) =>
+            updateField(
+              'schools',
+              e.target.value
+                .split(',')
+                .map((v) => v.trim())
+                .filter(Boolean),
+            )
+          }
         />
         <h3>Архетипы</h3>
         <input
           className={styles.textInput}
           placeholder="Архетипы персонажа"
           value={character.archetypes.join(', ')}
-          onChange={e => updateField('archetypes', e.target.value.split(',').map(v => v.trim()).filter(Boolean))}
+          onChange={(e) =>
+            updateField(
+              'archetypes',
+              e.target.value
+                .split(',')
+                .map((v) => v.trim())
+                .filter(Boolean),
+            )
+          }
         />
         <h3>Экипировка</h3>
         <textarea
           className={styles.textarea}
           placeholder="Экипировка..."
           value={character.equipment ?? ''}
-          onChange={e => updateField('equipment', e.target.value)}
+          onChange={(e) => updateField('equipment', e.target.value)}
           rows={3}
         />
         <h3>Описание</h3>
@@ -562,7 +621,7 @@ export function CharacterEditorPage() {
           className={styles.textarea}
           placeholder="Описание персонажа..."
           value={character.description ?? ''}
-          onChange={e => updateField('description', e.target.value)}
+          onChange={(e) => updateField('description', e.target.value)}
           rows={4}
         />
         <h3>Заметки</h3>
@@ -570,7 +629,7 @@ export function CharacterEditorPage() {
           className={styles.textarea}
           placeholder="Заметки..."
           value={character.notes ?? ''}
-          onChange={e => updateField('notes', e.target.value)}
+          onChange={(e) => updateField('notes', e.target.value)}
           rows={4}
         />
       </div>

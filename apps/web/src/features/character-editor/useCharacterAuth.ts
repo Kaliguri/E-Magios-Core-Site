@@ -34,7 +34,7 @@ export function useCharacterAuth(): UseCharacterAuthResult {
   const [refreshTick, setRefreshTick] = useState(0);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, user => {
+    const unsub = onAuthStateChanged(auth, (user) => {
       setAuthState({
         uid: user?.uid ?? null,
         displayName: user?.displayName ?? null,
@@ -53,12 +53,14 @@ export function useCharacterAuth(): UseCharacterAuthResult {
     }
     setCharactersLoading(true);
     CharacterRepository.getUserCharacters(authState.uid)
-      .then(chars => {
-        setCharacters(chars.sort((a, b) => {
-          const aTime = a.updatedAt ?? '';
-          const bTime = b.updatedAt ?? '';
-          return bTime.localeCompare(aTime);
-        }));
+      .then((chars) => {
+        setCharacters(
+          chars.sort((a, b) => {
+            const aTime = a.updatedAt ?? '';
+            const bTime = b.updatedAt ?? '';
+            return bTime.localeCompare(aTime);
+          }),
+        );
       })
       .catch(() => {
         setCharacters([]);
@@ -76,7 +78,7 @@ export function useCharacterAuth(): UseCharacterAuthResult {
   }
 
   function refreshCharacters() {
-    setRefreshTick(t => t + 1);
+    setRefreshTick((t) => t + 1);
   }
 
   return {

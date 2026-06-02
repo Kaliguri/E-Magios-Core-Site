@@ -17,9 +17,9 @@ export function renderLegacyTextHtml(text: string, block = false): string {
 
   return normalized
     .split(/\n{2,}/)
-    .map(part => part.trim())
+    .map((part) => part.trim())
     .filter(Boolean)
-    .map(part => `<p>${part.replace(/\n/g, '<br>')}</p>`)
+    .map((part) => `<p>${part.replace(/\n/g, '<br>')}</p>`)
     .join('');
 }
 

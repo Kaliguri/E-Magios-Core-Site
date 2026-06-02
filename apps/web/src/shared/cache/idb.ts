@@ -38,7 +38,7 @@ function getDb(): Promise<IDBPDatabase> {
 export async function getCached<T>(key: string): Promise<CacheEntry<T> | null> {
   try {
     const database = await getDb();
-    const entry = await database.get(STORE_DATA, key) as CacheEntry<T> | undefined;
+    const entry = (await database.get(STORE_DATA, key)) as CacheEntry<T> | undefined;
     return entry ?? null;
   } catch {
     return null;
@@ -62,7 +62,7 @@ export async function setCached<T>(key: string, data: T, version: number): Promi
 export async function getCachedVersion(key: string): Promise<number | null> {
   try {
     const database = await getDb();
-    const meta = await database.get(STORE_META, key) as MetaEntry | undefined;
+    const meta = (await database.get(STORE_META, key)) as MetaEntry | undefined;
     return meta?.version ?? null;
   } catch {
     return null;

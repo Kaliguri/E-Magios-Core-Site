@@ -46,7 +46,7 @@ function FilterCategory({
     <div className={styles.category}>
       <button
         className={styles.categoryHeader}
-        onClick={() => setCollapsed(c => !c)}
+        onClick={() => setCollapsed((c) => !c)}
         type="button"
       >
         <span>{fd.label}</span>
@@ -55,11 +55,15 @@ function FilterCategory({
       {!collapsed && (
         <div className={styles.categoryBody}>
           <div className={styles.categoryActions}>
-            <button type="button" className={styles.textBtn} onClick={onSelectAll}>Выбрать все</button>
-            <button type="button" className={styles.textBtn} onClick={onClearAll}>Снять все</button>
+            <button type="button" className={styles.textBtn} onClick={onSelectAll}>
+              Выбрать все
+            </button>
+            <button type="button" className={styles.textBtn} onClick={onClearAll}>
+              Снять все
+            </button>
           </div>
           <div className={styles.tags}>
-            {options.map(opt => (
+            {options.map((opt) => (
               <button
                 key={opt}
                 type="button"
@@ -100,16 +104,22 @@ export function FilterPanel({
 
   const footer = (
     <>
-      <Button variant="ghost" size="sm" onClick={onClear}>Очистить фильтры</Button>
-      <Button variant="secondary" size="sm" onClick={handleCancel}>Отменить изменения</Button>
-      <Button variant="primary" size="sm" onClick={handleApply}>Применить изменения</Button>
+      <Button variant="ghost" size="sm" onClick={onClear}>
+        Очистить фильтры
+      </Button>
+      <Button variant="secondary" size="sm" onClick={handleCancel}>
+        Отменить изменения
+      </Button>
+      <Button variant="primary" size="sm" onClick={handleApply}>
+        Применить изменения
+      </Button>
     </>
   );
 
   return (
     <Modal open={open} onClose={handleCancel} title="Фильтры" footer={footer} wide>
       <div className={styles.content}>
-        {filterDefs.map(fd => {
+        {filterDefs.map((fd) => {
           const options = getOptions(allItems, fd);
           if (!options.length) return null;
           const selected = tempFilters[fd.key] ?? [];
@@ -119,9 +129,9 @@ export function FilterPanel({
               fd={fd}
               options={options}
               selected={selected}
-              onToggle={val => {
+              onToggle={(val) => {
                 const next = selected.includes(val)
-                  ? selected.filter(v => v !== val)
+                  ? selected.filter((v) => v !== val)
                   : [...selected, val];
                 onSetFilter(fd.key, next);
               }}

@@ -131,7 +131,7 @@ export const COMPENDIUM_CONFIGS: CompendiumConfig[] = [
 ];
 
 export const COMPENDIUM_CONFIG_BY_KEY = Object.fromEntries(
-  COMPENDIUM_CONFIGS.map(config => [config.key, config]),
+  COMPENDIUM_CONFIGS.map((config) => [config.key, config]),
 ) as Record<CompendiumEntityKey, CompendiumConfig>;
 
 export function isCompendiumKey(value: string | null): value is CompendiumEntityKey {

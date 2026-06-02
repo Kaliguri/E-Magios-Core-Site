@@ -58,7 +58,9 @@
   color: var(--text-secondary);
   text-decoration: none;
   font-size: 0.9rem;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .navItem:hover {
@@ -93,7 +95,9 @@
   color: var(--text-secondary);
   font-size: 0.9rem;
   text-align: left;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .bookToggle:hover {
@@ -127,7 +131,9 @@
   color: var(--text-muted);
   text-decoration: none;
   font-size: 0.85rem;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .chapterLink:hover {

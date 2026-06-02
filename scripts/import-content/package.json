@@ -4,6 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "typecheck": "tsc --noEmit",
+    "smoke": "npx tsx smoke-check.ts",
+    "check": "npm run typecheck && npm run smoke",
+    "workflow:submit-review": "npx tsx content-workflow.ts --from=draft --to=review --role=author",
+    "workflow:publish": "npx tsx content-workflow.ts --from=review --to=published --role=editor",
+    "workflow:archive": "npx tsx content-workflow.ts --from=published --to=archived --role=editor",
     "import:compendium": "npx tsx import-compendium.ts",
     "import:news": "npx tsx import-news.ts"
   },

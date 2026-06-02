@@ -18,7 +18,10 @@ export function useCompendiumIndex(datasets: CompendiumDatasets) {
     const byTypeAndName = new Map<string, EntityRef>();
     const byTypeAndLookup = new Map<string, EntityRef>();
 
-    for (const [entityType, items] of Object.entries(datasets) as [CompendiumEntityKey, CompendiumEntity[]][]) {
+    for (const [entityType, items] of Object.entries(datasets) as [
+      CompendiumEntityKey,
+      CompendiumEntity[],
+    ][]) {
       for (const item of items ?? []) {
         byTypeAndId.set(`${entityType}:${item.id}`, item);
         byTypeAndLookup.set(`${entityType}:${normalize(item.id)}`, { entityType, id: item.id });
@@ -37,7 +40,9 @@ export function useCompendiumIndex(datasets: CompendiumDatasets) {
         const direct = byTypeAndId.get(`${ref.entityType}:${ref.id}`);
         if (direct) return direct;
         const resolvedRef = byTypeAndLookup.get(`${ref.entityType}:${normalize(ref.id)}`);
-        return resolvedRef ? byTypeAndId.get(`${resolvedRef.entityType}:${resolvedRef.id}`) ?? null : null;
+        return resolvedRef
+          ? (byTypeAndId.get(`${resolvedRef.entityType}:${resolvedRef.id}`) ?? null)
+          : null;
       },
       resolveByName(name: string, entityType: CompendiumEntityKey): EntityRef | null {
         return byTypeAndName.get(`${entityType}:${normalize(name)}`) ?? null;

@@ -121,12 +121,17 @@ function SpellRollFooter({ spell }: { spell: Spell }) {
   const rolls = [
     { key: 'arcana', label: 'Бросок на Аркану', bonus: 0, enabled: true },
     { key: 'hit', label: 'Бросок на Попадание', bonus: hitBonus ?? 0, enabled: hitBonus !== null },
-    { key: 'apply', label: 'Бросок на Наложение', bonus: applyBonus ?? 0, enabled: applyBonus !== null },
+    {
+      key: 'apply',
+      label: 'Бросок на Наложение',
+      bonus: applyBonus ?? 0,
+      enabled: applyBonus !== null,
+    },
   ];
 
   return (
     <div className={styles.rollFooter}>
-      {rolls.map(roll => (
+      {rolls.map((roll) => (
         <button
           key={roll.key}
           type="button"
@@ -193,7 +198,7 @@ function SpellDetail({
         <div className={styles.section}>
           <h4>Подзаклинания</h4>
           <ul className={styles.list}>
-            {spell.subSpells.map(sub => (
+            {spell.subSpells.map((sub) => (
               <li key={sub.id}>
                 {onNavigateTo ? (
                   <button
@@ -206,7 +211,9 @@ function SpellDetail({
                 ) : (
                   <strong>{sub.name}</strong>
                 )}
-                {sub.description ? ` — ${sub.description.replace(/<[^>]+>/g, '').slice(0, 180)}${sub.description.length > 180 ? '...' : ''}` : ''}
+                {sub.description
+                  ? ` — ${sub.description.replace(/<[^>]+>/g, '').slice(0, 180)}${sub.description.length > 180 ? '...' : ''}`
+                  : ''}
               </li>
             ))}
           </ul>
@@ -231,9 +238,14 @@ function SchoolDetail({
       <h2 className={styles.entityName}>{school.name}</h2>
       <div className={styles.params}>
         <Row label="Редкость" value={school.rarity} />
-        <Row label="Сложность" value={typeof school.difficulty === 'number'
-          ? '★'.repeat(school.difficulty) + '☆'.repeat(Math.max(0, 3 - school.difficulty))
-          : school.difficulty} />
+        <Row
+          label="Сложность"
+          value={
+            typeof school.difficulty === 'number'
+              ? '★'.repeat(school.difficulty) + '☆'.repeat(Math.max(0, 3 - school.difficulty))
+              : school.difficulty
+          }
+        />
         <Row label="Свойства" value={school.properties} />
       </div>
       {school.description && (
@@ -245,7 +257,11 @@ function SchoolDetail({
         <div className={styles.section}>
           <h4>Принципы</h4>
           <ul className={styles.list}>
-            {school.principles.map((p, i) => <li key={i}><LegacyText text={p} /></li>)}
+            {school.principles.map((p, i) => (
+              <li key={i}>
+                <LegacyText text={p} />
+              </li>
+            ))}
           </ul>
         </div>
       )}
@@ -253,7 +269,11 @@ function SchoolDetail({
         <div className={styles.section}>
           <h4>Особенности</h4>
           <ul className={styles.list}>
-            {school.features.map((f, i) => <li key={i}><LegacyText text={f} /></li>)}
+            {school.features.map((f, i) => (
+              <li key={i}>
+                <LegacyText text={f} />
+              </li>
+            ))}
           </ul>
         </div>
       )}
@@ -261,7 +281,11 @@ function SchoolDetail({
         <div className={styles.section}>
           <h4>Учебные заклинания</h4>
           <ul className={styles.list}>
-            {school.educationalSpells.map((s, i) => <li key={i}><LegacyText text={s} /></li>)}
+            {school.educationalSpells.map((s, i) => (
+              <li key={i}>
+                <LegacyText text={s} />
+              </li>
+            ))}
           </ul>
         </div>
       )}
@@ -354,7 +378,9 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
           <h4>Этапы</h4>
           <ul className={styles.list}>
             {recipe.steps.map((step, i) => (
-              <li key={i}><LegacyText text={`${step.name} — прогресс: ${step.progress}`} /></li>
+              <li key={i}>
+                <LegacyText text={`${step.name} — прогресс: ${step.progress}`} />
+              </li>
             ))}
           </ul>
         </div>
@@ -395,19 +421,26 @@ function EntityDetail({
   onNavigateTo?: (ref: EntityRef) => void;
 }) {
   switch (entityType) {
-    case 'spells': return <SpellDetail spell={entity as Spell} onNavigateTo={onNavigateTo} />;
-    case 'schools': return (
-      <SchoolDetail
-        school={entity as School}
-        resolveEntityByName={resolveEntityByName}
-        onNavigateTo={onNavigateTo}
-      />
-    );
-    case 'effects': return <EffectDetail effect={entity as Effect} />;
-    case 'actions': return <ActionDetail action={entity as Action} />;
-    case 'skills': return <SkillDetail skill={entity as Skill} />;
-    case 'recipes': return <RecipeDetail recipe={entity as Recipe} />;
-    default: return <GenericDetail entity={entity} />;
+    case 'spells':
+      return <SpellDetail spell={entity as Spell} onNavigateTo={onNavigateTo} />;
+    case 'schools':
+      return (
+        <SchoolDetail
+          school={entity as School}
+          resolveEntityByName={resolveEntityByName}
+          onNavigateTo={onNavigateTo}
+        />
+      );
+    case 'effects':
+      return <EffectDetail effect={entity as Effect} />;
+    case 'actions':
+      return <ActionDetail action={entity as Action} />;
+    case 'skills':
+      return <SkillDetail skill={entity as Skill} />;
+    case 'recipes':
+      return <RecipeDetail recipe={entity as Recipe} />;
+    default:
+      return <GenericDetail entity={entity} />;
   }
 }
 
@@ -425,9 +458,15 @@ export function DetailModal({
 }: DetailModalProps) {
   const footer = (
     <>
-      <Button variant="ghost" size="sm" onClick={onBack} disabled={!canGoBack}>← Назад</Button>
-      <Button variant="ghost" size="sm" onClick={onForward} disabled={!canGoForward}>Вперёд →</Button>
-      <Button variant="secondary" size="sm" onClick={onClose}>Закрыть</Button>
+      <Button variant="ghost" size="sm" onClick={onBack} disabled={!canGoBack}>
+        ← Назад
+      </Button>
+      <Button variant="ghost" size="sm" onClick={onForward} disabled={!canGoForward}>
+        Вперёд →
+      </Button>
+      <Button variant="secondary" size="sm" onClick={onClose}>
+        Закрыть
+      </Button>
     </>
   );
 

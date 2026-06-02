@@ -7,7 +7,10 @@
   border-radius: var(--radius-md);
   cursor: pointer;
   font-weight: 500;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
   white-space: nowrap;
 }
 

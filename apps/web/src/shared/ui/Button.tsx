@@ -9,7 +9,13 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: Size;
 }
 
-export function Button({ variant = 'secondary', size = 'md', className = '', children, ...props }: ButtonProps) {
+export function Button({
+  variant = 'secondary',
+  size = 'md',
+  className = '',
+  children,
+  ...props
+}: ButtonProps) {
   const cls = [styles.btn, styles[variant], styles[size], className].filter(Boolean).join(' ');
   return (
     <button className={cls} {...props}>

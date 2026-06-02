@@ -11,7 +11,9 @@ function extractMainHtml(raw: string): string {
   const main = doc.querySelector('main');
   const content = main?.querySelector('.container, .wide-container') ?? main ?? doc.body;
 
-  content.querySelectorAll('script, style, .sidebar, .page-loader, .scroll-to-top').forEach(el => el.remove());
+  content
+    .querySelectorAll('script, style, .sidebar, .page-loader, .scroll-to-top')
+    .forEach((el) => el.remove());
   return content.innerHTML;
 }
 
@@ -19,7 +21,7 @@ export function BookPage() {
   const { bookKey = '', chapterId = '' } = useParams();
   const navigate = useNavigate();
   const book = BOOKS[bookKey];
-  const chapter = book?.chapters.find(item => item.id === chapterId);
+  const chapter = book?.chapters.find((item) => item.id === chapterId);
   const [html, setHtml] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +59,9 @@ export function BookPage() {
     }
 
     void loadChapter();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [chapter, locked]);
 
   if (!book || !chapter) {
@@ -82,12 +86,16 @@ export function BookPage() {
         open={locked}
         onClose={() => navigate('/')}
         title={`Защищенный контент: ${book.title}`}
-        footer={(
+        footer={
           <>
-            <Button variant="secondary" onClick={() => navigate('/')}>Вернуться на главную</Button>
-            <Button variant="primary" onClick={submitPassword}>Войти</Button>
+            <Button variant="secondary" onClick={() => navigate('/')}>
+              Вернуться на главную
+            </Button>
+            <Button variant="primary" onClick={submitPassword}>
+              Войти
+            </Button>
           </>
-        )}
+        }
       >
         <p>Эта страница защищена паролем. Введите пароль для доступа:</p>
         <input
@@ -96,12 +104,14 @@ export function BookPage() {
           placeholder="Введите пароль"
           value={password}
           autoFocus
-          onChange={event => setPassword(event.target.value)}
-          onKeyDown={event => {
+          onChange={(event) => setPassword(event.target.value)}
+          onKeyDown={(event) => {
             if (event.key === 'Enter') submitPassword();
           }}
         />
-        {passwordError && <p className={styles.passwordError}>Неверный пароль. Попробуйте снова.</p>}
+        {passwordError && (
+          <p className={styles.passwordError}>Неверный пароль. Попробуйте снова.</p>
+        )}
       </Modal>
 
       {!locked && (
@@ -117,4 +127,3 @@ export function BookPage() {
     </div>
   );
 }
-

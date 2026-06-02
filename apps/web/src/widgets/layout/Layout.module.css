@@ -30,7 +30,10 @@
   color: var(--text-secondary);
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+  transition:
+    opacity 0.15s,
+    color 0.15s,
+    border-color 0.15s;
 }
 
 .resetAccessHover:hover .resetAccessButton,

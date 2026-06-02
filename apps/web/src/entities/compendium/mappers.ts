@@ -1,4 +1,19 @@
-import type { Spell, School, Effect, Action, Skill, Archetype, Basic, ActionType, CombatComponent, CraftComponent, CraftProfession, CraftSpecialization, RecipeType, Recipe } from './types';
+import type {
+  Spell,
+  School,
+  Effect,
+  Action,
+  Skill,
+  Archetype,
+  Basic,
+  ActionType,
+  CombatComponent,
+  CraftComponent,
+  CraftProfession,
+  CraftSpecialization,
+  RecipeType,
+  Recipe,
+} from './types';
 import type { SpellDto, SchoolDto, EffectDto } from './dto';
 
 export function spellFromDto(dto: SpellDto): Spell {

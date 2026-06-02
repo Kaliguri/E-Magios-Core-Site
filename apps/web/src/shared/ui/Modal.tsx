@@ -35,12 +35,14 @@ export function Modal({ open, onClose, title, children, footer, wide = false }: 
     <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal>
       <div
         className={[styles.dialog, wide ? styles.wide : ''].filter(Boolean).join(' ')}
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
         {title && (
           <div className={styles.header}>
             <h2 className={styles.title}>{title}</h2>
-            <button className={styles.close} onClick={onClose} aria-label="Закрыть">×</button>
+            <button className={styles.close} onClick={onClose} aria-label="Закрыть">
+              ×
+            </button>
           </div>
         )}
         <div className={styles.body}>{children}</div>
