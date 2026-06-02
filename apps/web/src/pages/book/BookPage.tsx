@@ -1,25 +1,63 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Navigate, useNavigate, useParams } from 'react-router-dom';
-import { BOOKS } from '@/shared/nav/books';
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react';
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { BOOKS, resolveBookLink } from '@/shared/nav/books';
 import { MASTER_PASSWORD, PASSWORD_KEY } from '@/shared/config/access';
-import { Button } from '@/shared/ui/Button';
-import { Modal } from '@/shared/ui/Modal';
+import { Button, Input, Modal, Spinner } from '@/shared/ui';
 import styles from './BookPage.module.css';
 
-function extractMainHtml(raw: string): string {
+/**
+ * Extract the readable content out of a legacy chapter HTML document and rewrite
+ * its internal links into SPA targets (data-route / data-anchor) so navigation
+ * stays inside the React app instead of triggering full page loads.
+ */
+function extractMainHtml(raw: string, currentBookKey: string): string {
   const doc = new DOMParser().parseFromString(raw, 'text/html');
   const main = doc.querySelector('main');
   const content = main?.querySelector('.container, .wide-container') ?? main ?? doc.body;
 
   content
-    .querySelectorAll('script, style, .sidebar, .page-loader, .scroll-to-top')
+    .querySelectorAll('script, style, link, .sidebar, .page-loader, .scroll-to-top')
     .forEach((el) => el.remove());
+
+  content.querySelectorAll('a[href]').forEach((el) => {
+    const anchor = el as HTMLAnchorElement;
+    const resolved = resolveBookLink(anchor.getAttribute('href') ?? '', currentBookKey);
+    anchor.removeAttribute('data-route');
+    anchor.removeAttribute('data-anchor');
+    switch (resolved.kind) {
+      case 'external':
+        anchor.setAttribute('target', '_blank');
+        anchor.setAttribute('rel', 'noopener noreferrer');
+        break;
+      case 'anchor':
+        anchor.setAttribute('href', `#${resolved.anchor}`);
+        anchor.setAttribute('data-anchor', resolved.anchor);
+        break;
+      case 'route':
+        anchor.setAttribute('href', `#${resolved.route}`);
+        anchor.setAttribute('data-route', resolved.route);
+        if (resolved.anchor) anchor.setAttribute('data-anchor', resolved.anchor);
+        break;
+      case 'ignore':
+      default:
+        anchor.removeAttribute('href');
+        break;
+    }
+  });
+
   return content.innerHTML;
+}
+
+function scrollToAnchor(id: string) {
+  requestAnimationFrame(() => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
 }
 
 export function BookPage() {
   const { bookKey = '', chapterId = '' } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const book = BOOKS[bookKey];
   const chapter = book?.chapters.find((item) => item.id === chapterId);
   const [html, setHtml] = useState('');
@@ -43,6 +81,7 @@ export function BookPage() {
 
     let cancelled = false;
     const currentChapter = chapter;
+    const currentBookKey = bookKey;
     async function loadChapter() {
       setLoading(true);
       setError(null);
@@ -50,7 +89,7 @@ export function BookPage() {
         const res = await fetch(`${import.meta.env.BASE_URL}${currentChapter.file}`);
         if (!res.ok) throw new Error(`Failed to load ${currentChapter.file}: ${res.status}`);
         const text = await res.text();
-        if (!cancelled) setHtml(extractMainHtml(text));
+        if (!cancelled) setHtml(extractMainHtml(text, currentBookKey));
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Ошибка загрузки главы');
       } finally {
@@ -62,7 +101,34 @@ export function BookPage() {
     return () => {
       cancelled = true;
     };
-  }, [chapter, locked]);
+  }, [chapter, locked, bookKey]);
+
+  // Scroll to a deep-linked section once the chapter content has rendered.
+  useEffect(() => {
+    if (loading || error || !html) return;
+    const at = searchParams.get('at');
+    if (at) scrollToAnchor(at);
+  }, [loading, error, html, searchParams]);
+
+  const handleContentClick = useCallback(
+    (event: MouseEvent<HTMLElement>) => {
+      const link = (event.target as HTMLElement).closest('a');
+      if (!link) return;
+      const route = link.getAttribute('data-route');
+      const anchor = link.getAttribute('data-anchor');
+      if (route) {
+        event.preventDefault();
+        const at = anchor
+          ? `${route.includes('?') ? '&' : '?'}at=${encodeURIComponent(anchor)}`
+          : '';
+        navigate(`${route}${at}`);
+      } else if (anchor) {
+        event.preventDefault();
+        scrollToAnchor(anchor);
+      }
+    },
+    [navigate],
+  );
 
   if (!book || !chapter) {
     return <Navigate to="/" replace />;
@@ -98,11 +164,12 @@ export function BookPage() {
         }
       >
         <p>Эта страница защищена паролем. Введите пароль для доступа:</p>
-        <input
+        <Input
           className={styles.passwordInput}
           type="password"
           placeholder="Введите пароль"
           value={password}
+          invalid={passwordError}
           autoFocus
           onChange={(event) => setPassword(event.target.value)}
           onKeyDown={(event) => {
@@ -117,10 +184,14 @@ export function BookPage() {
       {!locked && (
         <>
           <h1>{title}</h1>
-          {loading && <div className={styles.loader}>Загружаем главу...</div>}
+          {loading && <Spinner label="Загружаем главу..." />}
           {error && <div className={styles.error}>{error}</div>}
           {!loading && !error && (
-            <article className={styles.content} dangerouslySetInnerHTML={{ __html: html }} />
+            <article
+              className={styles.content}
+              onClick={handleContentClick}
+              dangerouslySetInnerHTML={{ __html: html }}
+            />
           )}
         </>
       )}

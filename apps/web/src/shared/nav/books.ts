@@ -10,6 +10,51 @@ export interface Book {
   chapters: BookChapter[];
 }
 
+export type ResolvedBookLink =
+  | { kind: 'external' }
+  | { kind: 'ignore' }
+  | { kind: 'anchor'; anchor: string }
+  | { kind: 'route'; route: string; anchor?: string };
+
+const ASSET_RE = /\.(css|js|png|jpe?g|svg|gif|ico|webp|woff2?)$/i;
+
+/**
+ * Translate a legacy in-book href (e.g. `stats.html#magic-mastery`,
+ * `../db.html`, `../spellbook/schools.html`) into an SPA target relative to the
+ * book currently being viewed. Pure and unit-tested — DOM rewriting lives in BookPage.
+ */
+export function resolveBookLink(rawHref: string, currentBookKey: string): ResolvedBookLink {
+  const href = rawHref.trim();
+  if (!href) return { kind: 'ignore' };
+  if (/^(https?:|mailto:|tel:)/i.test(href)) return { kind: 'external' };
+  if (href.startsWith('#')) return { kind: 'anchor', anchor: href.slice(1) };
+
+  const hashIdx = href.indexOf('#');
+  let path = hashIdx >= 0 ? href.slice(0, hashIdx) : href;
+  const anchor = hashIdx >= 0 ? href.slice(hashIdx + 1) || undefined : undefined;
+
+  const queryIdx = path.indexOf('?');
+  const query = queryIdx >= 0 ? path.slice(queryIdx) : '';
+  if (queryIdx >= 0) path = path.slice(0, queryIdx);
+
+  if (ASSET_RE.test(path)) return { kind: 'ignore' };
+
+  const segments = path.split('/').filter((s) => s && s !== '.' && s !== '..');
+  if (segments.length === 0) {
+    return anchor ? { kind: 'anchor', anchor } : { kind: 'ignore' };
+  }
+
+  const file = segments[segments.length - 1];
+  const name = file.replace(/\.html$/i, '');
+  const dir = segments.length >= 2 ? segments[segments.length - 2] : null;
+
+  if (name === 'db') return { kind: 'route', route: `/db${query}`, anchor };
+  if (name === 'index' && !dir) return { kind: 'route', route: '/', anchor };
+
+  const bookKey = dir && dir in BOOKS ? dir : currentBookKey;
+  return { kind: 'route', route: `/${bookKey}/${name}`, anchor };
+}
+
 export const BOOKS: Record<string, Book> = {
   phb: {
     title: "Player's Handbook",
