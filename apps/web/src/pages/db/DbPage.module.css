@@ -12,43 +12,6 @@
   margin: 0;
 }
 
-.tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  padding: var(--spacing-sm);
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-}
-
-.tab {
-  padding: 0.4rem 0.75rem;
-  background: transparent;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 0.85rem;
-  transition:
-    background 0.15s,
-    color 0.15s,
-    border-color 0.15s;
-  white-space: nowrap;
-}
-
-.tab:hover {
-  background: var(--bg-elevated);
-  color: var(--text-secondary);
-}
-
-.tabActive {
-  background: var(--accent-emerald);
-  color: #fff;
-  border-color: var(--accent-emerald);
-  font-weight: 600;
-}
-
 .tabContent {
   display: flex;
   flex-direction: column;
@@ -77,25 +40,9 @@
   flex: 1;
   min-width: 220px;
   max-width: 420px;
-  height: 2.6rem;
-  padding: 0.45rem 0.75rem;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
 }
 
-.searchInput:focus {
-  outline: none;
-  border-color: var(--accent-emerald);
-}
-
-.loader,
 .error {
   padding: var(--spacing-md);
-  color: var(--text-muted);
-}
-
-.error {
   color: #f87171;
 }

@@ -14,7 +14,7 @@ import { useCompendiumIndex, type EntityRef } from '@/features/db/useCompendiumI
 import { CompendiumTable } from '@/widgets/db-table/CompendiumTable';
 import { FilterPanel } from '@/widgets/db-table/FilterPanel';
 import { DetailModal } from '@/widgets/db-table/DetailModal';
-import { Button } from '@/shared/ui/Button';
+import { Button, Input, Spinner, Tabs } from '@/shared/ui';
 import type { CompendiumEntity } from '@/entities/compendium/types';
 import type { CompendiumEntityKey } from '@/entities/compendium/types';
 import styles from './DbPage.module.css';
@@ -83,7 +83,7 @@ function TabContent({
   }, [config.key, search]);
 
   if (loading && !items) {
-    return <div className={styles.loader}>Загружаем...</div>;
+    return <Spinner label="Загружаем..." />;
   }
   if (error) {
     return <div className={styles.error}>{error}</div>;
@@ -111,7 +111,7 @@ function TabContent({
     <div className={styles.tabContent}>
       <div className={styles.toolbar}>
         <span className={styles.count}>{sorted.length} записей</span>
-        <input
+        <Input
           className={styles.searchInput}
           type="search"
           placeholder="Поиск..."
@@ -248,17 +248,12 @@ export function DbPage() {
     <div className={styles.page}>
       <h1>База Данных</h1>
 
-      <div className={styles.tabs}>
-        {COMPENDIUM_CONFIGS.map((tab) => (
-          <button
-            key={tab.key}
-            className={[styles.tab, activeTab === tab.key ? styles.tabActive : ''].join(' ')}
-            onClick={() => setActiveTab(tab.key)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        variant="pills"
+        items={COMPENDIUM_CONFIGS.map((tab) => ({ key: tab.key, label: tab.label }))}
+        active={activeTab}
+        onChange={setActiveTab}
+      />
 
       <TabContent
         key={activeTab}
