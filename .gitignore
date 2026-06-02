@@ -37,3 +37,8 @@ dist-react/
 .env.local
 .env.*.local
 
+# Firebase service account credentials (secret — never commit)
+service-account.json
+**/service-account.json
+*-firebase-adminsdk-*.json
+
