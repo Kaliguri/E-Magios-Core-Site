@@ -46,8 +46,3 @@ jobs:
         working-directory: scripts/import-content
         run: npm run check
 
-      - name: Upload web build artifact
-        uses: actions/upload-artifact@v5
-        with:
-          name: web-build
-          path: dist-react
