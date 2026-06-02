@@ -87,7 +87,11 @@
 
 ---
 
-## Фаза 0 — Фундамент (дизайн-система + чистка)
+## Фаза 0 — Фундамент (дизайн-система + чистка) — ✅ выполнено (ветка `migration/phases-0-1-2`)
+
+> Итог: добавлены примитивы `shared/ui` (Card, Input, Select, Textarea, Tabs[underline/pills],
+> Badge, Spinner, EmptyState, Tooltip, Table) + barrel `index.ts`; удалены пустые каталоги
+> lobby/audit/news/auth; `DbPage` переведён на Tabs/Input/Spinner; покрыто `ui.test.tsx`.
 
 **Зачем первой:** наибольший рычаг. Раз оценивают продукт/UX, единый набор примитивов делает
 все экраны консистентными и ускоряет все последующие фазы.
@@ -123,7 +127,11 @@ CSS-стратегию.
 
 ---
 
-## Фаза 1 — Compendium / DB (добить хребет)
+## Фаза 1 — Compendium / DB (добить хребет) — ✅ выполнено
+
+> Итог: сверка с legacy `db.html` показала полный паритет — все 14 категорий и 17 групп
+> фильтров уже покрыты `config.ts`/`schema.ts`. `CompendiumTable` переведён на `EmptyState`;
+> добавлены тесты `useCompendiumSort` и `useCompendiumIndex` (резолв кросс-ссылок).
 
 **Цель:** довести самую готовую и витринную фичу до паритета с `db.js`.
 
@@ -153,7 +161,13 @@ detail-модалка с навигацией и deep-link.
 
 ---
 
-## Фаза 2 — Books (книги/правила)
+## Фаза 2 — Books (книги/правила) — ✅ выполнено
+
+> Итог: контент глав уже хранится статически в `apps/web/public/{phb,spellbook,master,craftbook,
+> rumors}` (копируется vite в `dist-react`) — оставлено как есть. Реализованы **кросс-ссылки**:
+> `resolveBookLink()` переводит legacy-href в SPA-хеш-роуты, `BookPage` переписывает `<a>` и
+> перехватывает клики, deep-link к секциям через `?at=anchor`. `locked` (rumors) гейтится паролем.
+> Реском пароля/лоадера на `Input`/`Spinner`. Тесты `books.test.ts` (10 кейсов).
 
 **Цель:** перенести статические книги (phb/spellbook/master/craftbook/rumors, ~40 глав) с
 навигацией и кросс-ссылками.
@@ -372,6 +386,6 @@ legacy (`spellsData`, `schoolsData`) в новом коде не актуаль�
 | 2026-06-02 | Lobby | Вырезать целиком |
 | 2026-06-02 | UI-парность | Пожелание, можно улучшать |
 | 2026-06-02 | Dashboard | Обязателен; перенос «как есть», реворк позже |
-| _TBD_ | Хранение контента книг (Firestore vs static ассеты) | _открыто; рекомендация — Firestore через import-content_ |
+| 2026-06-02 | Хранение контента книг (Firestore vs static ассеты) | Оставлено как static-ассеты в `apps/web/public` (уже работает через vite copy); миграция в Firestore не требуется на этом этапе |
 | _TBD_ | Источник dice-событий для дашборда (Firestore vs report fallback) | _открыто; рекомендация — писать в Firestore из редактора_ |
 | _TBD_ | Доступ к `reports/data_report.json` из SPA (public-ассет vs фетч из корня) | _открыто_ |
