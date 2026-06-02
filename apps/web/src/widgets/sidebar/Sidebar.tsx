@@ -18,7 +18,7 @@ interface ToolLink {
 const TOOLS: ToolLink[] = [
   { id: 'character-editor', label: 'Редактор Персонажей', path: '/character-editor', icon: '⚔️' },
   { id: 'db', label: 'База Данных', path: '/db', icon: '📚' },
-  { id: 'dashboard', label: 'Дашборд', path: '/dashboard', icon: '📈', access: 'editor' },
+  { id: 'dashboard', label: 'Дашборд', path: '/dashboard', icon: '📈' },
   { id: 'ops', label: 'Ops Метрики', path: '/ops', icon: '📊', access: 'editor' },
 ];
 

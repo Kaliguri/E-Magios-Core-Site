@@ -43,37 +43,47 @@ function FilterCategory({
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className={styles.category}>
-      <button
-        className={styles.categoryHeader}
-        onClick={() => setCollapsed((c) => !c)}
-        type="button"
-      >
-        <span>{fd.label}</span>
-        <span className={styles.categoryArrow}>{collapsed ? '▶' : '▼'}</span>
-      </button>
+    <div className={[styles.category, collapsed ? styles.collapsed : ''].join(' ')}>
+      <div className={styles.categoryHeader}>
+        <span
+          className={styles.categoryTitle}
+          onClick={() => setCollapsed((c) => !c)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') setCollapsed((c) => !c);
+          }}
+        >
+          {fd.label}
+        </span>
+        <div className={styles.categoryActions}>
+          <button type="button" className={styles.actionBtn} onClick={onSelectAll}>
+            Выбрать все
+          </button>
+          <button type="button" className={styles.actionBtn} onClick={onClearAll}>
+            Снять все
+          </button>
+          <span
+            className={styles.categoryArrow}
+            onClick={() => setCollapsed((c) => !c)}
+            aria-hidden
+          >
+            ▼
+          </span>
+        </div>
+      </div>
       {!collapsed && (
         <div className={styles.categoryBody}>
-          <div className={styles.categoryActions}>
-            <button type="button" className={styles.textBtn} onClick={onSelectAll}>
-              Выбрать все
+          {options.map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              className={[styles.tag, selected.includes(opt) ? styles.tagActive : ''].join(' ')}
+              onClick={() => onToggle(opt)}
+            >
+              {fd.formatter === 'stars' ? formatStars(opt) : opt}
             </button>
-            <button type="button" className={styles.textBtn} onClick={onClearAll}>
-              Снять все
-            </button>
-          </div>
-          <div className={styles.tags}>
-            {options.map((opt) => (
-              <button
-                key={opt}
-                type="button"
-                className={[styles.tag, selected.includes(opt) ? styles.tagActive : ''].join(' ')}
-                onClick={() => onToggle(opt)}
-              >
-                {fd.formatter === 'stars' ? formatStars(opt) : opt}
-              </button>
-            ))}
-          </div>
+          ))}
         </div>
       )}
     </div>

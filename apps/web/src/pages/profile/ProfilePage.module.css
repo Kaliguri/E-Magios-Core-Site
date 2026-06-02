@@ -50,10 +50,10 @@
   object-fit: cover;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--spacing-sm);
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
 }
 
 .field {
@@ -68,6 +68,7 @@
 }
 
 .field input {
+  width: 100%;
   padding: 0.75rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
@@ -75,8 +76,89 @@
   color: var(--text-primary);
 }
 
+.field input:focus {
+  outline: none;
+  border-color: var(--accent-emerald);
+}
+
+.field input[readonly] {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.fieldHint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
 .hint {
   color: var(--text-muted);
+}
+
+.colorRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.colorPreview {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.colorHexInput {
+  max-width: 160px;
+}
+
+.colorPicker {
+  width: 40px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition:
+    transform 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.swatch:hover {
+  transform: scale(1.12);
+}
+
+.swatchActive {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 2px var(--bg-secondary);
+}
+
+.discordTestRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  margin-top: var(--spacing-md);
 }
 
 .actions {
@@ -92,10 +174,4 @@
 
 .error {
   color: #f87171;
-}
-
-@media (max-width: 720px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
 }
