@@ -20,6 +20,12 @@ DEFAULT_USER_IDS = [
 ]
 
 CUSTOM_KINDS = ["custom_attack", "custom_damage", "custom_control", "custom_support"]
+DEFAULT_USER_DISPLAY_NAMES = {
+    "4BzLAuul5UOkokZiXkvMajzDkgq2": "xGaida",
+    "NgY5bTPvLohTQZsakTLTSozYbWo1": "Vakineti",
+    "fgvej6iwakMQE7hx9rxKpBecxLc2": "Foxl",
+    "hYxVKqLCrSUSyut88VXC1XvBt7t1": "Shieldomirs",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -65,13 +71,15 @@ def create_event(
     roll_type_key = f"{context}:{dice_type}"
     event_id = str(uuid.uuid4())
     event_name = f"{context} {dice_type}".strip()
+    user_display_name = DEFAULT_USER_DISPLAY_NAMES.get(user_id, f"Игрок-{user_id[:6]}")
     return {
         "id": event_id,
         "name": event_name,
         "eventId": event_id,
         "sequence": sequence,
         "userId": user_id,
-        "userLabel": f"uid-{user_id[:6]}",
+        "userLabel": user_display_name,
+        "userDisplayName": user_display_name,
         "characterId": None,
         "diceType": dice_type,
         "sides": sides,

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-06-02T15:04:41.722564+00:00",
+  "generatedAt": "2026-06-02T15:22:11.224456+00:00",
   "quality": {
     "totals": {
       "error": 0,
@@ -115,6 +115,7 @@
     "userAvgVsGlobal": [
       {
         "userId": "4BzLAuul5UOkokZiXkvMajzDkgq2",
+        "userDisplayName": "xGaida",
         "diceType": "d12",
         "userAvg": 6.048,
         "globalAvg": 6.426,
@@ -123,6 +124,7 @@
       },
       {
         "userId": "NgY5bTPvLohTQZsakTLTSozYbWo1",
+        "userDisplayName": "Vakineti",
         "diceType": "d12",
         "userAvg": 6.776,
         "globalAvg": 6.426,
@@ -131,6 +133,7 @@
       },
       {
         "userId": "fgvej6iwakMQE7hx9rxKpBecxLc2",
+        "userDisplayName": "Foxl",
         "diceType": "d12",
         "userAvg": 6.608,
         "globalAvg": 6.426,
@@ -139,6 +142,7 @@
       },
       {
         "userId": "hYxVKqLCrSUSyut88VXC1XvBt7t1",
+        "userDisplayName": "Shieldomirs",
         "diceType": "d12",
         "userAvg": 6.272,
         "globalAvg": 6.426,
@@ -147,6 +151,7 @@
       },
       {
         "userId": "fgvej6iwakMQE7hx9rxKpBecxLc2",
+        "userDisplayName": "Foxl",
         "diceType": "d6",
         "userAvg": 3.3077,
         "globalAvg": 3.6053,
@@ -155,6 +160,7 @@
       },
       {
         "userId": "4BzLAuul5UOkokZiXkvMajzDkgq2",
+        "userDisplayName": "xGaida",
         "diceType": "d6",
         "userAvg": 4.0909,
         "globalAvg": 3.6053,
@@ -163,6 +169,7 @@
       },
       {
         "userId": "hYxVKqLCrSUSyut88VXC1XvBt7t1",
+        "userDisplayName": "Shieldomirs",
         "diceType": "d4",
         "userAvg": 3,
         "globalAvg": 2.7273,
@@ -171,6 +178,7 @@
       },
       {
         "userId": "NgY5bTPvLohTQZsakTLTSozYbWo1",
+        "userDisplayName": "Vakineti",
         "diceType": "d4",
         "userAvg": 2.6,
         "globalAvg": 2.7273,
@@ -179,6 +187,7 @@
       },
       {
         "userId": "NgY5bTPvLohTQZsakTLTSozYbWo1",
+        "userDisplayName": "Vakineti",
         "diceType": "d6",
         "userAvg": 4.125,
         "globalAvg": 3.6053,
@@ -187,6 +196,7 @@
       },
       {
         "userId": "hYxVKqLCrSUSyut88VXC1XvBt7t1",
+        "userDisplayName": "Shieldomirs",
         "diceType": "d6",
         "userAvg": 2.6667,
         "globalAvg": 3.6053,
@@ -195,6 +205,7 @@
       },
       {
         "userId": "4BzLAuul5UOkokZiXkvMajzDkgq2",
+        "userDisplayName": "xGaida",
         "diceType": "d8",
         "userAvg": 5.5,
         "globalAvg": 5.3684,
@@ -203,6 +214,7 @@
       },
       {
         "userId": "fgvej6iwakMQE7hx9rxKpBecxLc2",
+        "userDisplayName": "Foxl",
         "diceType": "d4",
         "userAvg": 2.1667,
         "globalAvg": 2.7273,
@@ -211,6 +223,7 @@
       },
       {
         "userId": "4BzLAuul5UOkokZiXkvMajzDkgq2",
+        "userDisplayName": "xGaida",
         "diceType": "d4",
         "userAvg": 3,
         "globalAvg": 2.7273,
@@ -219,6 +232,7 @@
       },
       {
         "userId": "hYxVKqLCrSUSyut88VXC1XvBt7t1",
+        "userDisplayName": "Shieldomirs",
         "diceType": "d8",
         "userAvg": 6.2,
         "globalAvg": 5.3684,
@@ -227,6 +241,7 @@
       },
       {
         "userId": "NgY5bTPvLohTQZsakTLTSozYbWo1",
+        "userDisplayName": "Vakineti",
         "diceType": "d8",
         "userAvg": 4,
         "globalAvg": 5.3684,
@@ -235,6 +250,7 @@
       },
       {
         "userId": "fgvej6iwakMQE7hx9rxKpBecxLc2",
+        "userDisplayName": "Foxl",
         "diceType": "d8",
         "userAvg": 6,
         "globalAvg": 5.3684,
@@ -243,6 +259,7 @@
       },
       {
         "userId": "fgvej6iwakMQE7hx9rxKpBecxLc2",
+        "userDisplayName": "Foxl",
         "diceType": "d10",
         "userAvg": 5.6667,
         "globalAvg": 6.2,
@@ -251,6 +268,7 @@
       },
       {
         "userId": "hYxVKqLCrSUSyut88VXC1XvBt7t1",
+        "userDisplayName": "Shieldomirs",
         "diceType": "d10",
         "userAvg": 5.6667,
         "globalAvg": 6.2,
@@ -259,6 +277,7 @@
       },
       {
         "userId": "4BzLAuul5UOkokZiXkvMajzDkgq2",
+        "userDisplayName": "xGaida",
         "diceType": "d10",
         "userAvg": 7.5,
         "globalAvg": 6.2,
@@ -267,11 +286,62 @@
       },
       {
         "userId": "NgY5bTPvLohTQZsakTLTSozYbWo1",
+        "userDisplayName": "Vakineti",
         "diceType": "d10",
         "userAvg": 6.5,
         "globalAvg": 6.2,
         "delta": 0.3,
         "rollsCount": 2
+      }
+    ],
+    "userSummaries": [
+      {
+        "userId": "fgvej6iwakMQE7hx9rxKpBecxLc2",
+        "userDisplayName": "Foxl",
+        "rollsCount": 150,
+        "lastRollAt": 1780414317941,
+        "avgResult": 6.1133,
+        "avgDeltaFromTheoretical": 0.0933,
+        "critFailCount": 10,
+        "critSuccessCount": 18,
+        "critFailRate": 0.0667,
+        "critSuccessRate": 0.12
+      },
+      {
+        "userId": "hYxVKqLCrSUSyut88VXC1XvBt7t1",
+        "userDisplayName": "Shieldomirs",
+        "rollsCount": 150,
+        "lastRollAt": 1780414318941,
+        "avgResult": 5.8733,
+        "avgDeltaFromTheoretical": -0.1267,
+        "critFailCount": 13,
+        "critSuccessCount": 14,
+        "critFailRate": 0.0867,
+        "critSuccessRate": 0.0933
+      },
+      {
+        "userId": "NgY5bTPvLohTQZsakTLTSozYbWo1",
+        "userDisplayName": "Vakineti",
+        "rollsCount": 150,
+        "lastRollAt": 1780414316941,
+        "avgResult": 6.26,
+        "avgDeltaFromTheoretical": 0.2667,
+        "critFailCount": 16,
+        "critSuccessCount": 22,
+        "critFailRate": 0.1067,
+        "critSuccessRate": 0.1467
+      },
+      {
+        "userId": "4BzLAuul5UOkokZiXkvMajzDkgq2",
+        "userDisplayName": "xGaida",
+        "rollsCount": 150,
+        "lastRollAt": 1780414315941,
+        "avgResult": 5.78,
+        "avgDeltaFromTheoretical": -0.2467,
+        "critFailCount": 6,
+        "critSuccessCount": 14,
+        "critFailRate": 0.04,
+        "critSuccessRate": 0.0933
       }
     ],
     "rollTypeStats": [

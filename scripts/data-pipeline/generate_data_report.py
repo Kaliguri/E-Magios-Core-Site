@@ -10,6 +10,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from statistics import mean
 from typing import Any, Dict, Iterable, List
+USER_DISPLAY_NAME_BY_UID = {
+    "4BzLAuul5UOkokZiXkvMajzDkgq2": "xGaida",
+    "NgY5bTPvLohTQZsakTLTSozYbWo1": "Vakineti",
+    "fgvej6iwakMQE7hx9rxKpBecxLc2": "Foxl",
+    "hYxVKqLCrSUSyut88VXC1XvBt7t1": "Shieldomirs",
+}
+
 
 
 def _utc_now_iso() -> str:
@@ -84,6 +91,16 @@ def _context_label(context: str) -> str:
         "custom_support": "Кастомный: поддержка",
     }
     return mapping.get(context, context or "Не указан")
+
+
+def _resolve_user_display_name(user_id: str, event: Dict[str, Any]) -> str:
+    from_event = str(event.get("userDisplayName") or event.get("userLabel") or "").strip()
+    if from_event:
+        return from_event
+    from_map = USER_DISPLAY_NAME_BY_UID.get(user_id)
+    if from_map:
+        return from_map
+    return user_id or "anonymous"
 
 
 def _build_quality_block(validation_report: Dict[str, Any]) -> Dict[str, Any]:
@@ -179,6 +196,7 @@ def _build_empty_dice_block(reason: str) -> Dict[str, Any]:
         "critFailRate": {},
         "critSuccessRate": {},
         "userAvgVsGlobal": [],
+        "userSummaries": [],
         "rollTypeStats": [],
         "topRollType": None,
     }
@@ -199,6 +217,7 @@ def _build_dice_block(data_dir: Path) -> Dict[str, Any]:
 
     dice_values: Dict[str, List[int]] = defaultdict(list)
     user_dice_values: Dict[tuple[str, str], List[int]] = defaultdict(list)
+    user_summary_values: Dict[str, Dict[str, Any]] = {}
     roll_type_values: Dict[str, List[int]] = defaultdict(list)
     roll_type_meta: Dict[str, Dict[str, Any]] = {}
 
@@ -210,6 +229,7 @@ def _build_dice_block(data_dir: Path) -> Dict[str, Any]:
         result = event.get("result")
         sides = _parse_sides(dice_type, event.get("sides"))
         user_id = str(event.get("userId", "anonymous"))
+        user_display_name = _resolve_user_display_name(user_id, event)
 
         if not isinstance(result, int) or not dice_type or sides <= 0:
             continue
@@ -220,6 +240,30 @@ def _build_dice_block(data_dir: Path) -> Dict[str, Any]:
 
         dice_values[dice_type].append(result)
         user_dice_values[(user_id, dice_type)].append(result)
+        if user_id not in user_summary_values:
+            user_summary_values[user_id] = {
+                "userId": user_id,
+                "userDisplayName": user_display_name,
+                "rollsCount": 0,
+                "resultSum": 0,
+                "deltaSum": 0,
+                "critFailCount": 0,
+                "critSuccessCount": 0,
+                "lastRollAt": int(event.get("createdAt") or 0),
+            }
+        user_pack = user_summary_values[user_id]
+        user_pack["userDisplayName"] = user_display_name
+        user_pack["rollsCount"] += 1
+        user_pack["resultSum"] += result
+        theoretical = (sides + 1) / 2
+        user_pack["deltaSum"] += result - theoretical
+        if result == 1:
+            user_pack["critFailCount"] += 1
+        if result == sides:
+            user_pack["critSuccessCount"] += 1
+        created_at = int(event.get("createdAt") or 0)
+        if created_at > int(user_pack["lastRollAt"]):
+            user_pack["lastRollAt"] = created_at
         roll_type_values[roll_type_key].append(result)
         if roll_type_key not in roll_type_meta:
             roll_type_meta[roll_type_key] = {
@@ -262,6 +306,7 @@ def _build_dice_block(data_dir: Path) -> Dict[str, Any]:
         user_avg_vs_global.append(
             {
                 "userId": user_id,
+                "userDisplayName": user_summary_values.get(user_id, {}).get("userDisplayName", user_id),
                 "diceType": dice,
                 "userAvg": user_avg,
                 "globalAvg": global_avg,
@@ -270,6 +315,27 @@ def _build_dice_block(data_dir: Path) -> Dict[str, Any]:
             }
         )
     user_avg_vs_global.sort(key=lambda row: row["rollsCount"], reverse=True)
+
+    user_summaries = []
+    for user_pack in user_summary_values.values():
+        user_rolls_count = int(user_pack["rollsCount"])
+        if user_rolls_count <= 0:
+            continue
+        user_summaries.append(
+            {
+                "userId": user_pack["userId"],
+                "userDisplayName": user_pack["userDisplayName"],
+                "rollsCount": user_rolls_count,
+                "lastRollAt": int(user_pack["lastRollAt"]),
+                "avgResult": round(user_pack["resultSum"] / user_rolls_count, 4),
+                "avgDeltaFromTheoretical": round(user_pack["deltaSum"] / user_rolls_count, 4),
+                "critFailCount": int(user_pack["critFailCount"]),
+                "critSuccessCount": int(user_pack["critSuccessCount"]),
+                "critFailRate": round(user_pack["critFailCount"] / user_rolls_count, 4),
+                "critSuccessRate": round(user_pack["critSuccessCount"] / user_rolls_count, 4),
+            }
+        )
+    user_summaries.sort(key=lambda row: (-row["rollsCount"], row["userDisplayName"]))
 
     roll_type_stats = []
     total_rolls = sum(rolls_count.values())
@@ -310,6 +376,7 @@ def _build_dice_block(data_dir: Path) -> Dict[str, Any]:
         "critFailRate": crit_fail,
         "critSuccessRate": crit_success,
         "userAvgVsGlobal": user_avg_vs_global,
+        "userSummaries": user_summaries,
         "rollTypeStats": roll_type_stats,
         "topRollType": top_roll_type,
     }

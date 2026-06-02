@@ -17,36 +17,6 @@
 
         <section class="dashboard-section">
           <div class="dashboard-section-header">
-            <h2>Качество данных</h2>
-          </div>
-          <div class="dashboard-grid-two">
-            <div class="results-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Коллекция</th>
-                    <th>Ошибки</th>
-                    <th>Предупреждения</th>
-                    <th>Инфо</th>
-                  </tr>
-                </thead>
-                <tbody id="quality-by-collection">
-                  <tr><td colspan="4" class="no-results">Загрузка...</td></tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="dashboard-list-panel">
-              <h3>Топ правил</h3>
-              <ul id="quality-top-rules">
-                <li>Загрузка...</li>
-              </ul>
-            </div>
-          </div>
-          <div class="dashboard-card-grid dashboard-quality-summary-grid" id="quality-cards"></div>
-        </section>
-
-        <section class="dashboard-section">
-          <div class="dashboard-section-header">
             <h2>Контент</h2>
           </div>
           <div class="dashboard-card-grid" id="content-cards"></div>
@@ -103,20 +73,59 @@
               <thead>
                 <tr>
                   <th>Пользователь</th>
-                  <th>Куб</th>
-                  <th>Среднее пользователя</th>
-                  <th>Глобальное среднее</th>
-                  <th>Отклонение</th>
+                  <th>Количество бросков</th>
+                  <th>Последний бросок (дата)</th>
                 </tr>
               </thead>
               <tbody id="dice-user-vs-global">
-                <tr><td colspan="5" class="no-results">Загрузка...</td></tr>
+                <tr><td colspan="3" class="no-results">Загрузка...</td></tr>
               </tbody>
             </table>
           </div>
         </section>
+
+        <section class="dashboard-section">
+          <div class="dashboard-section-header">
+            <h2>Качество данных</h2>
+          </div>
+          <div class="dashboard-grid-two">
+            <div class="results-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Коллекция</th>
+                    <th>Ошибки</th>
+                    <th>Предупреждения</th>
+                    <th>Инфо</th>
+                  </tr>
+                </thead>
+                <tbody id="quality-by-collection">
+                  <tr><td colspan="4" class="no-results">Загрузка...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="dashboard-list-panel">
+              <h3>Топ правил</h3>
+              <ul id="quality-top-rules">
+                <li>Загрузка...</li>
+              </ul>
+            </div>
+          </div>
+          <div class="dashboard-card-grid dashboard-quality-summary-grid" id="quality-cards"></div>
+        </section>
       </section>
     </main>
+  </div>
+
+  <div id="user-stats-modal" class="dashboard-modal hidden" aria-hidden="true">
+    <div class="dashboard-modal-backdrop" data-close-user-modal></div>
+    <div class="dashboard-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="user-stats-title">
+      <div class="dashboard-modal-header">
+        <h3 id="user-stats-title">Статистика пользователя</h3>
+        <button type="button" class="btn btn-secondary btn-sm" data-close-user-modal>Закрыть</button>
+      </div>
+      <div class="dashboard-modal-content" id="user-stats-content"></div>
+    </div>
   </div>
 
   <button id="scroll-to-top" class="scroll-to-top" aria-label="Наверх" title="Наверх">↑</button>
