@@ -3947,6 +3947,10 @@ details[open] > .news-section-summary::after {
   padding: 1rem;
 }
 
+.dashboard-modal-section-table {
+  margin-top: 0.75rem;
+}
+
 @media (max-width: 980px) {
   .dashboard-grid-two {
     grid-template-columns: 1fr;

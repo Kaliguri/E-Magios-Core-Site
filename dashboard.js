@@ -188,6 +188,7 @@ function buildEmptyDiceResult(reason) {
     critSuccessRate: {},
     userAvgVsGlobal: [],
     userSummaries: [],
+    userTypeStats: [],
     rollTypeStats: [],
     topRollType: null
   };
@@ -198,6 +199,7 @@ function computeDiceFromEvents(events) {
   const userGroups = {};
   const rollGroups = {};
   const userSummariesMap = {};
+  const userTypeGroups = {};
 
   events.forEach((event) => {
     if (!event || typeof event !== 'object') {
@@ -240,6 +242,27 @@ function computeDiceFromEvents(events) {
     }
     rollGroups[rollTypeKey].values.push(result);
 
+    const userTypeKey = `${userId}::${rollTypeKey}`;
+    if (!userTypeGroups[userTypeKey]) {
+      userTypeGroups[userTypeKey] = {
+        userId,
+        userDisplayName,
+        rollTypeKey,
+        label: buildRollTypeLabel(context, diceType, expression || diceType),
+        context,
+        diceType,
+        expression: expression || diceType,
+        sides,
+        values: [],
+        lastRollAt: createdAt
+      };
+    }
+    const userTypePack = userTypeGroups[userTypeKey];
+    userTypePack.values.push(result);
+    if (createdAt > userTypePack.lastRollAt) {
+      userTypePack.lastRollAt = createdAt;
+    }
+
     if (!userSummariesMap[userId]) {
       userSummariesMap[userId] = {
         userId,
@@ -276,6 +299,7 @@ function computeDiceFromEvents(events) {
   const critFailRate = {};
   const critSuccessRate = {};
   const userAvgVsGlobal = [];
+  const userTypeStats = [];
   const rollTypeStats = [];
 
   Object.keys(groups).forEach((diceType) => {
@@ -332,6 +356,32 @@ function computeDiceFromEvents(events) {
     });
   });
 
+  Object.keys(userTypeGroups).forEach((userTypeKey) => {
+    const pack = userTypeGroups[userTypeKey];
+    const stats = computeStats(pack.values, pack.sides);
+    if (!stats) {
+      return;
+    }
+    userTypeStats.push({
+      userId: pack.userId,
+      userDisplayName: pack.userDisplayName,
+      rollTypeKey: pack.rollTypeKey,
+      label: pack.label,
+      context: pack.context,
+      diceType: pack.diceType,
+      expression: pack.expression,
+      count: stats.count,
+      avg: stats.avg,
+      theoreticalAvg: stats.theoretical,
+      delta: stats.delta,
+      critFailCount: Math.round(stats.failRate * stats.count),
+      critSuccessCount: Math.round(stats.successRate * stats.count),
+      critFailRate: stats.failRate,
+      critSuccessRate: stats.successRate,
+      lastRollAt: pack.lastRollAt
+    });
+  });
+
   const userSummaries = Object.values(userSummariesMap)
     .map((pack) => ({
       userId: pack.userId,
@@ -353,6 +403,15 @@ function computeDiceFromEvents(events) {
     });
 
   rollTypeStats.sort((left, right) => {
+    if (right.count !== left.count) {
+      return right.count - left.count;
+    }
+    return String(left.rollTypeKey).localeCompare(String(right.rollTypeKey), 'ru');
+  });
+  userTypeStats.sort((left, right) => {
+    if (left.userId !== right.userId) {
+      return String(left.userId).localeCompare(String(right.userId), 'ru');
+    }
     if (right.count !== left.count) {
       return right.count - left.count;
     }
@@ -382,6 +441,7 @@ function computeDiceFromEvents(events) {
     critSuccessRate,
     userAvgVsGlobal,
     userSummaries,
+    userTypeStats,
     rollTypeStats,
     topRollType
   };
@@ -403,6 +463,7 @@ function normalizeDiceReport(reportDice) {
     ...dice,
     rollTypeStats: safeArray(dice.rollTypeStats),
     userSummaries: normalizedUserSummaries,
+    userTypeStats: safeArray(dice.userTypeStats),
     topRollType: dice.topRollType || null
   };
 }
@@ -435,7 +496,7 @@ function closeUserStatsModal() {
   userModalContext = null;
 }
 
-function openUserStatsModal(summary) {
+function openUserStatsModal(summary, diceData) {
   const modal = document.getElementById('user-stats-modal');
   const content = document.getElementById('user-stats-content');
   const title = document.getElementById('user-stats-title');
@@ -444,6 +505,27 @@ function openUserStatsModal(summary) {
   }
   userModalContext = summary;
   title.textContent = `Статистика: ${summary.userDisplayName}`;
+  const typeStats = safeArray(diceData.userTypeStats).filter((row) => String(row.userId) === String(summary.userId));
+  const typeRows = typeStats.length
+    ? typeStats
+        .map(
+          (row) => `
+            <tr>
+              <td>${String(row.label || row.rollTypeKey || '-')}</td>
+              <td>${String(row.diceType || '-')}</td>
+              <td>${String(row.expression || '-')}</td>
+              <td>${asNumber(row.count, 0)}</td>
+              <td>${asNumber(row.avg, 0).toFixed(3)}</td>
+              <td>${asNumber(row.theoreticalAvg, 0).toFixed(3)}</td>
+              <td>${asNumber(row.delta, 0).toFixed(3)}</td>
+              <td>${asNumber(row.critFailCount, 0)} (${formatPercent(asNumber(row.critFailRate, 0))})</td>
+              <td>${asNumber(row.critSuccessCount, 0)} (${formatPercent(asNumber(row.critSuccessRate, 0))})</td>
+              <td>${formatDateTime(row.lastRollAt)}</td>
+            </tr>
+          `
+        )
+        .join('')
+    : '<tr><td colspan="10" class="no-results">Нет данных по типам бросков.</td></tr>';
   content.innerHTML = `
     <div class="results-table">
       <table>
@@ -451,12 +533,27 @@ function openUserStatsModal(summary) {
           <tr><th>Пользователь</th><td>${summary.userDisplayName}</td></tr>
           <tr><th>UID</th><td>${summary.userId}</td></tr>
           <tr><th>Количество бросков</th><td>${asNumber(summary.rollsCount, 0)}</td></tr>
-          <tr><th>Среднее значение</th><td>${asNumber(summary.avgResult, 0).toFixed(3)}</td></tr>
-          <tr><th>Отклонение</th><td>${asNumber(summary.avgDeltaFromTheoretical, 0).toFixed(3)}</td></tr>
-          <tr><th>Крит. провалы</th><td>${asNumber(summary.critFailCount, 0)} (${formatPercent(asNumber(summary.critFailRate, 0))})</td></tr>
-          <tr><th>Крит. успехи</th><td>${asNumber(summary.critSuccessCount, 0)} (${formatPercent(asNumber(summary.critSuccessRate, 0))})</td></tr>
           <tr><th>Последний бросок</th><td>${formatDateTime(summary.lastRollAt)}</td></tr>
         </tbody>
+      </table>
+    </div>
+    <div class="results-table dashboard-modal-section-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Тип броска</th>
+            <th>Куб</th>
+            <th>Формула</th>
+            <th>Бросков</th>
+            <th>Среднее</th>
+            <th>Ожидаемое</th>
+            <th>Отклонение</th>
+            <th>Крит. провалы</th>
+            <th>Крит. успехи</th>
+            <th>Последний бросок</th>
+          </tr>
+        </thead>
+        <tbody>${typeRows}</tbody>
       </table>
     </div>
   `;
@@ -587,7 +684,7 @@ function renderDice(report) {
   if (String(dice.status || 'insufficient_data') !== 'ok') {
     cards.appendChild(createMetricCard(DASHBOARD_LABELS.dice.status, 'insufficient_data', String(dice.reason || DASHBOARD_LABELS.dice.noData)));
     table.innerHTML = `<tr><td colspan="7" class="no-results">${DASHBOARD_LABELS.dice.noDiceData}</td></tr>`;
-    rollTypeTable.innerHTML = `<tr><td colspan="7" class="no-results">${DASHBOARD_LABELS.dice.noRollTypeStats}</td></tr>`;
+    rollTypeTable.innerHTML = `<tr><td colspan="9" class="no-results">${DASHBOARD_LABELS.dice.noRollTypeStats}</td></tr>`;
     users.innerHTML = `<tr><td colspan="3" class="no-results">${DASHBOARD_LABELS.dice.noUserMetrics}</td></tr>`;
     return;
   }
@@ -638,7 +735,7 @@ function renderDice(report) {
 
   const rollTypeRows = safeArray(dice.rollTypeStats).slice(0, 40);
   if (!rollTypeRows.length) {
-    rollTypeTable.innerHTML = `<tr><td colspan="7" class="no-results">${DASHBOARD_LABELS.dice.noRollTypeStats}</td></tr>`;
+    rollTypeTable.innerHTML = `<tr><td colspan="9" class="no-results">${DASHBOARD_LABELS.dice.noRollTypeStats}</td></tr>`;
   } else {
     rollTypeRows.forEach((row) => {
       const tr = document.createElement('tr');
@@ -648,6 +745,8 @@ function renderDice(report) {
         <td>${String(row.expression || '-')}</td>
         <td>${asNumber(row.count, 0)}</td>
         <td>${asNumber(row.avg, 0).toFixed(3)}</td>
+        <td>${asNumber(row.theoreticalAvg, 0).toFixed(3)}</td>
+        <td>${asNumber(row.delta, 0).toFixed(3)}</td>
         <td>${formatPercent(asNumber(row.critFailRate, 0))}</td>
         <td>${formatPercent(asNumber(row.critSuccessRate, 0))}</td>
       `;
@@ -668,7 +767,7 @@ function renderDice(report) {
         <td>${asNumber(row.rollsCount, 0)}</td>
         <td>${formatDateTime(row.lastRollAt)}</td>
       `;
-      tr.addEventListener('click', () => openUserStatsModal(row));
+      tr.addEventListener('click', () => openUserStatsModal(row, dice));
       users.appendChild(tr);
     });
   }
