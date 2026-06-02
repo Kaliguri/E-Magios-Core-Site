@@ -22,6 +22,9 @@ export function newsItemFromJson(raw: Record<string, unknown>): NewsItem {
     title: (raw['title'] as string) ?? '',
     brief: (raw['brief'] as string) ?? '',
     features: (raw['features'] as string[]) ?? [],
+    links: (raw['links'] as NewsItem['links']) ?? [],
+    objectGroups: (raw['objectGroups'] as NewsItem['objectGroups']) ?? [],
+    stats: (raw['stats'] as NewsItem['stats']) ?? null,
   };
 }
 

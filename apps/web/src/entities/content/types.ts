@@ -1,9 +1,32 @@
+export interface NewsLink {
+  text: string;
+  route: string;
+}
+
+export interface NewsObjectItem {
+  name: string;
+  route: string;
+}
+
+export interface NewsObjectGroup {
+  label: string;
+  items: NewsObjectItem[];
+}
+
+export interface NewsStat {
+  label: string;
+  value: string;
+}
+
 export interface NewsItem {
   id: string;
   date: string;
   title: string;
   brief: string;
   features: string[];
+  links?: NewsLink[];
+  objectGroups?: NewsObjectGroup[];
+  stats?: NewsStat[] | null;
   status?: string;
   version?: number;
   updatedAt?: string | null;

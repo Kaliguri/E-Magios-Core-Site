@@ -474,6 +474,7 @@ export function DetailModal({
     <Modal
       open={open}
       onClose={onClose}
+      size="xl"
       title={entity ? String((entity as unknown as Record<string, unknown>)['name'] ?? '') : ''}
       footer={footer}
     >

@@ -13,7 +13,47 @@
       "Улучшен интерфейс Групп Заклинаний: добавлены корректные формулы бросков для подзаклинаний.",
       "Продолжается работа над Листом Персонажа: подготовка к системе крафта и оптимизация загрузки.",
       "Многочисленные визуальные правки и улучшения стабильности."
-    ]
+    ],
+    "links": [],
+    "objectGroups": [
+      {
+        "label": "Новые заклинания",
+        "items": []
+      },
+      {
+        "label": "Новые школы",
+        "items": []
+      },
+      {
+        "label": "Новые эффекты",
+        "items": []
+      },
+      {
+        "label": "Новые архетипы",
+        "items": []
+      },
+      {
+        "label": "Новые базовые действия",
+        "items": []
+      },
+      {
+        "label": "Новые основы системы",
+        "items": []
+      },
+      {
+        "label": "Новые навыки",
+        "items": []
+      },
+      {
+        "label": "Новые типы действий",
+        "items": []
+      },
+      {
+        "label": "Новые компоненты боевой системы",
+        "items": []
+      }
+    ],
+    "stats": null
   },
   {
     "id": "2025-12-08-alfred-gift",
@@ -32,6 +72,64 @@
       "Добавлен единый экран загрузки для профиля, редактора и лобби — убирает вспышки авторизации и подготавливает данные перед показом.",
       "Добавлены первые онлайн-лобби (BETA): список комнат, вход по ссылке или коду, чат и общий холст.",
       "Упрощена поддержка базы: таблицы и попапы читают единую схему колонок и фильтров — правки делаются в одном месте."
+    ],
+    "links": [
+      {
+        "text": "Профиль",
+        "route": "#/profile"
+      }
+    ],
+    "objectGroups": [
+      {
+        "label": "Новые заклинания",
+        "items": []
+      },
+      {
+        "label": "Новые школы",
+        "items": []
+      },
+      {
+        "label": "Новые эффекты",
+        "items": []
+      },
+      {
+        "label": "Новые архетипы",
+        "items": []
+      },
+      {
+        "label": "Новые базовые действия",
+        "items": []
+      },
+      {
+        "label": "Новые основы системы",
+        "items": []
+      },
+      {
+        "label": "Новые навыки",
+        "items": []
+      },
+      {
+        "label": "Новые типы действий",
+        "items": []
+      },
+      {
+        "label": "Новые компоненты боевой системы",
+        "items": []
+      }
+    ],
+    "stats": [
+      {
+        "label": "Всего символов в контенте (Книги, БД)",
+        "value": "207 093"
+      },
+      {
+        "label": "Всего глав (разделов) в книгах",
+        "value": "38"
+      },
+      {
+        "label": "Всего объектов в базе данных",
+        "value": "290 (заклинания: 113, школы: 38, эффекты: 18, архетипы: 13, базовые действия: 22, основы системы: 18, навыки: 10, типы действий: 13, компоненты боя: 21, ремесленные компоненты: 11, профессии ремесла: 6, специализации ремесла: 21, типы рецептов: 3, рецепты: 1)"
+      }
     ]
   },
   {
@@ -48,6 +146,308 @@
       "Добавлен фильтр «Фирменное Заклинание (Да/Нет)» в базе заклинаний с автоопределением.",
       "Сделаны кликабельными формулы бросков в базе и редакторе: открывают виджет, сразу выполняют бросок и сохраняют исходное выражение.",
       "Добавлено саммари в таблицы «Типы действий» и «Компоненты боя»; кнопки бросков используют понятные подписи с бонусом."
+    ],
+    "links": [
+      {
+        "text": "База данных — заклинания",
+        "route": "#/db?tab=spells"
+      }
+    ],
+    "objectGroups": [
+      {
+        "label": "Новые заклинания",
+        "items": [
+          {
+            "name": "Антидот",
+            "route": "#/db?tab=spells&detail=%D0%B0%D0%BD%D1%82%D0%B8%D0%B4%D0%BE%D1%82"
+          },
+          {
+            "name": "Двойственный Яд",
+            "route": "#/db?tab=spells&detail=%D0%B4%D0%B2%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%B5%D0%BD%D0%BD%D1%8B%D0%B9-%D1%8F%D0%B4"
+          },
+          {
+            "name": "Иглы Стойкости",
+            "route": "#/db?tab=spells&detail=%D0%B8%D0%B3%D0%BB%D1%8B-%D1%81%D1%82%D0%BE%D0%B9%D0%BA%D0%BE%D1%81%D1%82%D0%B8"
+          },
+          {
+            "name": "Лечебные Галлюцинации",
+            "route": "#/db?tab=spells&detail=%D0%BB%D0%B5%D1%87%D0%B5%D0%B1%D0%BD%D1%8B%D0%B5-%D0%B3%D0%B0%D0%BB%D0%BB%D1%8E%D1%86%D0%B8%D0%BD%D0%B0%D1%86%D0%B8%D0%B8"
+          },
+          {
+            "name": "Модернизация Автоматонов Дагнилифа",
+            "route": "#/db?tab=spells&detail=%D0%BC%D0%BE%D0%B4%D0%B5%D1%80%D0%BD%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F-%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%BE%D0%BD%D0%BE%D0%B2-%D0%B4%D0%B0%D0%B3%D0%BD%D0%B8%D0%BB%D0%B8%D1%84%D0%B0"
+          },
+          {
+            "name": "Нестабильный Заряд Элая",
+            "route": "#/db?tab=spells&detail=%D0%BD%D0%B5%D1%81%D1%82%D0%B0%D0%B1%D0%B8%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9-%D0%B7%D0%B0%D1%80%D1%8F%D0%B4-%D1%8D%D0%BB%D0%B0%D1%8F"
+          },
+          {
+            "name": "Огненный Ворон Селены",
+            "route": "#/db?tab=spells&detail=%D0%BE%D0%B3%D0%BD%D0%B5%D0%BD%D0%BD%D1%8B%D0%B9-%D0%B2%D0%BE%D1%80%D0%BE%D0%BD-%D1%81%D0%B5%D0%BB%D0%B5%D0%BD%D1%8B"
+          },
+          {
+            "name": "Передвижной Факел",
+            "route": "#/db?tab=spells&detail=%D0%BF%D0%B5%D1%80%D0%B5%D0%B4%D0%B2%D0%B8%D0%B6%D0%BD%D0%BE%D0%B9-%D1%84%D0%B0%D0%BA%D0%B5%D0%BB"
+          },
+          {
+            "name": "Спасительный Яд",
+            "route": "#/db?tab=spells&detail=%D1%81%D0%BF%D0%B0%D1%81%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9-%D1%8F%D0%B4"
+          },
+          {
+            "name": "Яд Берсерка",
+            "route": "#/db?tab=spells&detail=%D1%8F%D0%B4-%D0%B1%D0%B5%D1%80%D1%81%D0%B5%D1%80%D0%BA%D0%B0"
+          }
+        ]
+      },
+      {
+        "label": "Новые школы",
+        "items": []
+      },
+      {
+        "label": "Новые эффекты",
+        "items": [
+          {
+            "name": "Близок к Смерти",
+            "route": "#/db?tab=effects&detail=%D0%B1%D0%BB%D0%B8%D0%B7%D0%BE%D0%BA-%D0%BA-%D1%81%D0%BC%D0%B5%D1%80%D1%82%D0%B8"
+          }
+        ]
+      },
+      {
+        "label": "Новые архетипы",
+        "items": []
+      },
+      {
+        "label": "Новые базовые действия",
+        "items": [
+          {
+            "name": "Стабилизация",
+            "route": "#/db?tab=actions&detail=%D1%81%D1%82%D0%B0%D0%B1%D0%B8%D0%BB%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F"
+          }
+        ]
+      },
+      {
+        "label": "Новые основы системы",
+        "items": []
+      },
+      {
+        "label": "Новые навыки",
+        "items": []
+      },
+      {
+        "label": "Новые типы действий",
+        "items": []
+      },
+      {
+        "label": "Новые компоненты боевой системы",
+        "items": []
+      },
+      {
+        "label": "Новые ремесленные компоненты",
+        "items": [
+          {
+            "name": "Быстрое Создание",
+            "route": "#/db?tab=craft-components&detail=%D0%B1%D1%8B%D1%81%D1%82%D1%80%D0%BE%D0%B5-%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Качество Предмета",
+            "route": "#/db?tab=craft-components&detail=%D0%BA%D0%B0%D1%87%D0%B5%D1%81%D1%82%D0%B2%D0%BE-%D0%BF%D1%80%D0%B5%D0%B4%D0%BC%D0%B5%D1%82%D0%B0"
+          },
+          {
+            "name": "Оборудование Ремесленника",
+            "route": "#/db?tab=craft-components&detail=%D0%BE%D0%B1%D0%BE%D1%80%D1%83%D0%B4%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-%D1%80%D0%B5%D0%BC%D0%B5%D1%81%D0%BB%D0%B5%D0%BD%D0%BD%D0%B8%D0%BA%D0%B0"
+          },
+          {
+            "name": "Профессия",
+            "route": "#/db?tab=craft-components&detail=%D0%BF%D1%80%D0%BE%D1%84%D0%B5%D1%81%D1%81%D0%B8%D1%8F"
+          },
+          {
+            "name": "Редкость Рецепта",
+            "route": "#/db?tab=craft-components&detail=%D1%80%D0%B5%D0%B4%D0%BA%D0%BE%D1%81%D1%82%D1%8C-%D1%80%D0%B5%D1%86%D0%B5%D0%BF%D1%82%D0%B0"
+          },
+          {
+            "name": "Рецепт",
+            "route": "#/db?tab=craft-components&detail=%D1%80%D0%B5%D1%86%D0%B5%D0%BF%D1%82"
+          },
+          {
+            "name": "Специализация",
+            "route": "#/db?tab=craft-components&detail=%D1%81%D0%BF%D0%B5%D1%86%D0%B8%D0%B0%D0%BB%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F"
+          },
+          {
+            "name": "Стоимость Рецепта",
+            "route": "#/db?tab=craft-components&detail=%D1%81%D1%82%D0%BE%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D1%8C-%D1%80%D0%B5%D1%86%D0%B5%D0%BF%D1%82%D0%B0"
+          },
+          {
+            "name": "Уровень Рецепта",
+            "route": "#/db?tab=craft-components&detail=%D1%83%D1%80%D0%BE%D0%B2%D0%B5%D0%BD%D1%8C-%D1%80%D0%B5%D1%86%D0%B5%D0%BF%D1%82%D0%B0"
+          },
+          {
+            "name": "Штраф Уровня",
+            "route": "#/db?tab=craft-components&detail=%D1%88%D1%82%D1%80%D0%B0%D1%84-%D1%83%D1%80%D0%BE%D0%B2%D0%BD%D1%8F"
+          },
+          {
+            "name": "Этапы Создания",
+            "route": "#/db?tab=craft-components&detail=%D1%8D%D1%82%D0%B0%D0%BF%D1%8B-%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D1%8F"
+          }
+        ]
+      },
+      {
+        "label": "Новые профессии ремесла",
+        "items": [
+          {
+            "name": "Алхимик",
+            "route": "#/db?tab=craft-professions&detail=%D0%B0%D0%BB%D1%85%D0%B8%D0%BC%D0%B8%D0%BA"
+          },
+          {
+            "name": "Артефактор",
+            "route": "#/db?tab=craft-professions&detail=%D0%B0%D1%80%D1%82%D0%B5%D1%84%D0%B0%D0%BA%D1%82%D0%BE%D1%80"
+          },
+          {
+            "name": "Зачарователь",
+            "route": "#/db?tab=craft-professions&detail=%D0%B7%D0%B0%D1%87%D0%B0%D1%80%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C"
+          },
+          {
+            "name": "Инженер",
+            "route": "#/db?tab=craft-professions&detail=%D0%B8%D0%BD%D0%B6%D0%B5%D0%BD%D0%B5%D1%80"
+          },
+          {
+            "name": "Исследователь",
+            "route": "#/db?tab=craft-professions&detail=%D0%B8%D1%81%D1%81%D0%BB%D0%B5%D0%B4%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C"
+          },
+          {
+            "name": "Медиум",
+            "route": "#/db?tab=craft-professions&detail=%D0%BC%D0%B5%D0%B4%D0%B8%D1%83%D0%BC"
+          }
+        ]
+      },
+      {
+        "label": "Новые специализации ремесла",
+        "items": [
+          {
+            "name": "Зельевар",
+            "route": "#/db?tab=craft-specializations&detail=%D0%B0%D0%BB%D1%85%D0%B8%D0%BC%D0%B8%D0%BA-%D0%B7%D0%B5%D0%BB%D1%8C%D0%B5%D0%B2%D0%B0%D1%80"
+          },
+          {
+            "name": "Метатель",
+            "route": "#/db?tab=craft-specializations&detail=%D0%B0%D0%BB%D1%85%D0%B8%D0%BC%D0%B8%D0%BA-%D0%BC%D0%B5%D1%82%D0%B0%D1%82%D0%B5%D0%BB%D1%8C"
+          },
+          {
+            "name": "Токсиколог",
+            "route": "#/db?tab=craft-specializations&detail=%D0%B0%D0%BB%D1%85%D0%B8%D0%BC%D0%B8%D0%BA-%D1%82%D0%BE%D0%BA%D1%81%D0%B8%D0%BA%D0%BE%D0%BB%D0%BE%D0%B3"
+          },
+          {
+            "name": "Бронник",
+            "route": "#/db?tab=craft-specializations&detail=%D0%B0%D1%80%D1%82%D0%B5%D1%84%D0%B0%D0%BA%D1%82%D0%BE%D1%80-%D0%B1%D1%80%D0%BE%D0%BD%D0%BD%D0%B8%D0%BA"
+          },
+          {
+            "name": "Оружейник",
+            "route": "#/db?tab=craft-specializations&detail=%D0%B0%D1%80%D1%82%D0%B5%D1%84%D0%B0%D0%BA%D1%82%D0%BE%D1%80-%D0%BE%D1%80%D1%83%D0%B6%D0%B5%D0%B9%D0%BD%D0%B8%D0%BA"
+          },
+          {
+            "name": "Ювелир",
+            "route": "#/db?tab=craft-specializations&detail=%D0%B0%D1%80%D1%82%D0%B5%D1%84%D0%B0%D0%BA%D1%82%D0%BE%D1%80-%D1%8E%D0%B2%D0%B5%D0%BB%D0%B8%D1%80"
+          },
+          {
+            "name": "Мастер Рун",
+            "route": "#/db?tab=craft-specializations&detail=%D0%B7%D0%B0%D1%87%D0%B0%D1%80%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C-%D0%BC%D0%B0%D1%81%D1%82%D0%B5%D1%80-%D1%80%D1%83%D0%BD"
+          },
+          {
+            "name": "Распылить",
+            "route": "#/db?tab=craft-specializations&detail=%D0%B7%D0%B0%D1%87%D0%B0%D1%80%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C-%D1%80%D0%B0%D1%81%D0%BF%D1%8B%D0%BB%D0%B8%D1%82%D1%8C"
+          },
+          {
+            "name": "Философ",
+            "route": "#/db?tab=craft-specializations&detail=%D0%B7%D0%B0%D1%87%D0%B0%D1%80%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C-%D1%84%D0%B8%D0%BB%D0%BE%D1%81%D0%BE%D1%84"
+          },
+          {
+            "name": "Ловец",
+            "route": "#/db?tab=craft-specializations&detail=%D0%B8%D0%BD%D0%B6%D0%B5%D0%BD%D0%B5%D1%80-%D0%BB%D0%BE%D0%B2%D0%B5%D1%86"
+          },
+          {
+            "name": "Механик",
+            "route": "#/db?tab=craft-specializations&detail=%D0%B8%D0%BD%D0%B6%D0%B5%D0%BD%D0%B5%D1%80-%D0%BC%D0%B5%D1%85%D0%B0%D0%BD%D0%B8%D0%BA"
+          },
+          {
+            "name": "Фортификатор",
+            "route": "#/db?tab=craft-specializations&detail=%D0%B8%D0%BD%D0%B6%D0%B5%D0%BD%D0%B5%D1%80-%D1%84%D0%BE%D1%80%D1%82%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%82%D0%BE%D1%80"
+          },
+          {
+            "name": "Лингвист",
+            "route": "#/db?tab=craft-specializations&detail=%D0%B8%D1%81%D1%81%D0%BB%D0%B5%D0%B4%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C-%D0%BB%D0%B8%D0%BD%D0%B3%D0%B2%D0%B8%D1%81%D1%82"
+          },
+          {
+            "name": "Писатель",
+            "route": "#/db?tab=craft-specializations&detail=%D0%B8%D1%81%D1%81%D0%BB%D0%B5%D0%B4%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C-%D0%BF%D0%B8%D1%81%D0%B0%D1%82%D0%B5%D0%BB%D1%8C"
+          },
+          {
+            "name": "Созидатель",
+            "route": "#/db?tab=craft-specializations&detail=%D0%B8%D1%81%D1%81%D0%BB%D0%B5%D0%B4%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C-%D1%81%D0%BE%D0%B7%D0%B8%D0%B4%D0%B0%D1%82%D0%B5%D0%BB%D1%8C"
+          },
+          {
+            "name": "Дипломат",
+            "route": "#/db?tab=craft-specializations&detail=%D0%BB%D0%B8%D0%B4%D0%B5%D1%80-%D0%B4%D0%B8%D0%BF%D0%BB%D0%BE%D0%BC%D0%B0%D1%82"
+          },
+          {
+            "name": "Завоеватель",
+            "route": "#/db?tab=craft-specializations&detail=%D0%BB%D0%B8%D0%B4%D0%B5%D1%80-%D0%B7%D0%B0%D0%B2%D0%BE%D0%B5%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C"
+          },
+          {
+            "name": "Торговец",
+            "route": "#/db?tab=craft-specializations&detail=%D0%BB%D0%B8%D0%B4%D0%B5%D1%80-%D1%82%D0%BE%D1%80%D0%B3%D0%BE%D0%B2%D0%B5%D1%86"
+          },
+          {
+            "name": "Предсказатель",
+            "route": "#/db?tab=craft-specializations&detail=%D0%BC%D0%B5%D0%B4%D0%B8%D1%83%D0%BC-%D0%BF%D1%80%D0%B5%D0%B4%D1%81%D0%BA%D0%B0%D0%B7%D0%B0%D1%82%D0%B5%D0%BB%D1%8C"
+          },
+          {
+            "name": "Призыватель",
+            "route": "#/db?tab=craft-specializations&detail=%D0%BC%D0%B5%D0%B4%D0%B8%D1%83%D0%BC-%D0%BF%D1%80%D0%B8%D0%B7%D1%8B%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C"
+          },
+          {
+            "name": "Провидец",
+            "route": "#/db?tab=craft-specializations&detail=%D0%BC%D0%B5%D0%B4%D0%B8%D1%83%D0%BC-%D0%BF%D1%80%D0%BE%D0%B2%D0%B8%D0%B4%D0%B5%D1%86"
+          }
+        ]
+      },
+      {
+        "label": "Новые типы рецептов",
+        "items": [
+          {
+            "name": "Зелье",
+            "route": "#/db?tab=recipe-types&detail=%D0%B7%D0%B5%D0%BB%D1%8C%D0%B5"
+          },
+          {
+            "name": "Крафт",
+            "route": "#/db?tab=recipe-types&detail=%D0%BA%D1%80%D0%B0%D1%84%D1%82"
+          },
+          {
+            "name": "Расходуемое",
+            "route": "#/db?tab=recipe-types&detail=%D1%80%D0%B0%D1%81%D1%85%D0%BE%D0%B4%D1%83%D0%B5%D0%BC%D0%BE%D0%B5"
+          }
+        ]
+      },
+      {
+        "label": "Новые рецепты",
+        "items": [
+          {
+            "name": "Зимнее Лечебное Зелье 0 Ранга",
+            "route": "#/db?tab=recipes&detail=%D1%80%D0%B5%D1%86%D0%B5%D0%BF%D1%82-%D0%B0%D0%BB%D1%85%D0%B8%D0%BC%D0%B8%D0%BA-%D0%B7%D0%B5%D0%BB%D1%8C%D0%B5%D0%B2%D0%B0%D1%80-%D0%B7%D0%B8%D0%BC%D0%BD%D0%B5%D0%B5-%D0%BB%D0%B5%D1%87%D0%B5%D0%B1%D0%BD%D0%BE%D0%B5-%D0%B7%D0%B5%D0%BB%D1%8C%D0%B5-0-%D1%80%D0%B0%D0%BD%D0%B3%D0%B0"
+          }
+        ]
+      }
+    ],
+    "stats": [
+      {
+        "label": "Всего символов в контенте (Книги, БД)",
+        "value": "207 093"
+      },
+      {
+        "label": "Всего глав (разделов) в книгах",
+        "value": "38"
+      },
+      {
+        "label": "Всего объектов в базе данных",
+        "value": "290 (заклинания: 113, школы: 38, эффекты: 18, архетипы: 13, базовые действия: 22, основы системы: 18, навыки: 10, типы действий: 13, компоненты боя: 21, ремесленные компоненты: 11, профессии ремесла: 6, специализации ремесла: 21, типы рецептов: 3, рецепты: 1)"
+      }
     ]
   },
   {
@@ -64,6 +464,563 @@
       "Улучшены карточки заклинаний: кликабельные школы и типы действий, сворачиваемые подзаклинания, блок требований для ритуалов.",
       "Обновлены архетипы (добавлен «Легендарный Ремесленник») и эффекты (17) с оформленными описаниями.",
       "Обновлены поп-апы базы и фильтров: тёмный стиль, кастомные скроллбары, аккуратная шапка."
+    ],
+    "links": [
+      {
+        "text": "База данных — вкладка «Навыки»",
+        "route": "#/db?tab=skills"
+      },
+      {
+        "text": "База данных — вкладка «Типы Действий»",
+        "route": "#/db?tab=action-types"
+      },
+      {
+        "text": "База данных — вкладка «Боевая система»",
+        "route": "#/db?tab=combat"
+      }
+    ],
+    "objectGroups": [
+      {
+        "label": "Новые заклинания",
+        "items": [
+          {
+            "name": "Блуждающий Разум",
+            "route": "#/db?tab=spells&detail=%D0%B1%D0%BB%D1%83%D0%B6%D0%B4%D0%B0%D1%8E%D1%89%D0%B8%D0%B9-%D1%80%D0%B0%D0%B7%D1%83%D0%BC"
+          },
+          {
+            "name": "Великое Обнаружение Магии",
+            "route": "#/db?tab=spells&detail=%D0%B2%D0%B5%D0%BB%D0%B8%D0%BA%D0%BE%D0%B5-%D0%BE%D0%B1%D0%BD%D0%B0%D1%80%D1%83%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BC%D0%B0%D0%B3%D0%B8%D0%B8"
+          },
+          {
+            "name": "Великое Подводное Дыхание",
+            "route": "#/db?tab=spells&detail=%D0%B2%D0%B5%D0%BB%D0%B8%D0%BA%D0%BE%D0%B5-%D0%BF%D0%BE%D0%B4%D0%B2%D0%BE%D0%B4%D0%BD%D0%BE%D0%B5-%D0%B4%D1%8B%D1%85%D0%B0%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Взрывные Грибы",
+            "route": "#/db?tab=spells&detail=%D0%B2%D0%B7%D1%80%D1%8B%D0%B2%D0%BD%D1%8B%D0%B5-%D0%B3%D1%80%D0%B8%D0%B1%D1%8B"
+          },
+          {
+            "name": "Вихрь из Меток Пламени",
+            "route": "#/db?tab=spells&detail=%D0%B2%D0%B8%D1%85%D1%80%D1%8C-%D0%B8%D0%B7-%D0%BC%D0%B5%D1%82%D0%BE%D0%BA-%D0%BF%D0%BB%D0%B0%D0%BC%D0%B5%D0%BD%D0%B8"
+          },
+          {
+            "name": "Влюбленность",
+            "route": "#/db?tab=spells&detail=%D0%B2%D0%BB%D1%8E%D0%B1%D0%BB%D0%B5%D0%BD%D0%BD%D0%BE%D1%81%D1%82%D1%8C"
+          },
+          {
+            "name": "Водяная Клетка",
+            "route": "#/db?tab=spells&detail=%D0%B2%D0%BE%D0%B4%D1%8F%D0%BD%D0%B0%D1%8F-%D0%BA%D0%BB%D0%B5%D1%82%D0%BA%D0%B0"
+          },
+          {
+            "name": "Возведение Земли",
+            "route": "#/db?tab=spells&detail=%D0%B2%D0%BE%D0%B7%D0%B2%D0%B5%D0%B4%D0%B5%D0%BD%D0%B8%D0%B5-%D0%B7%D0%B5%D0%BC%D0%BB%D0%B8"
+          },
+          {
+            "name": "Всполох Мести",
+            "route": "#/db?tab=spells&detail=%D0%B2%D1%81%D0%BF%D0%BE%D0%BB%D0%BE%D1%85-%D0%BC%D0%B5%D1%81%D1%82%D0%B8"
+          },
+          {
+            "name": "Генератор Щита МК1",
+            "route": "#/db?tab=spells&detail=%D0%B3%D0%B5%D0%BD%D0%B5%D1%80%D0%B0%D1%82%D0%BE%D1%80-%D1%89%D0%B8%D1%82%D0%B0-%D0%BC%D0%BA1"
+          },
+          {
+            "name": "Глаз Бури",
+            "route": "#/db?tab=spells&detail=%D0%B3%D0%BB%D0%B0%D0%B7-%D0%B1%D1%83%D1%80%D0%B8"
+          },
+          {
+            "name": "Глаз-Разведчик МК1",
+            "route": "#/db?tab=spells&detail=%D0%B3%D0%BB%D0%B0%D0%B7-%D1%80%D0%B0%D0%B7%D0%B2%D0%B5%D0%B4%D1%87%D0%B8%D0%BA-%D0%BC%D0%BA1"
+          },
+          {
+            "name": "Животные Чувства",
+            "route": "#/db?tab=spells&detail=%D0%B6%D0%B8%D0%B2%D0%BE%D1%82%D0%BD%D1%8B%D0%B5-%D1%87%D1%83%D0%B2%D1%81%D1%82%D0%B2%D0%B0"
+          },
+          {
+            "name": "Жнец МК1",
+            "route": "#/db?tab=spells&detail=%D0%B6%D0%BD%D0%B5%D1%86-%D0%BC%D0%BA1"
+          },
+          {
+            "name": "Защита Территории",
+            "route": "#/db?tab=spells&detail=%D0%B7%D0%B0%D1%89%D0%B8%D1%82%D0%B0-%D1%82%D0%B5%D1%80%D1%80%D0%B8%D1%82%D0%BE%D1%80%D0%B8%D0%B8"
+          },
+          {
+            "name": "Защитник МК1",
+            "route": "#/db?tab=spells&detail=%D0%B7%D0%B0%D1%89%D0%B8%D1%82%D0%BD%D0%B8%D0%BA-%D0%BC%D0%BA1"
+          },
+          {
+            "name": "Изучение крови",
+            "route": "#/db?tab=spells&detail=%D0%B8%D0%B7%D1%83%D1%87%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BA%D1%80%D0%BE%D0%B2%D0%B8"
+          },
+          {
+            "name": "Источник Огня",
+            "route": "#/db?tab=spells&detail=%D0%B8%D1%81%D1%82%D0%BE%D1%87%D0%BD%D0%B8%D0%BA-%D0%BE%D0%B3%D0%BD%D1%8F"
+          },
+          {
+            "name": "Коррозийная Стрела",
+            "route": "#/db?tab=spells&detail=%D0%BA%D0%BE%D1%80%D1%80%D0%BE%D0%B7%D0%B8%D0%B9%D0%BD%D0%B0%D1%8F-%D1%81%D1%82%D1%80%D0%B5%D0%BB%D0%B0"
+          },
+          {
+            "name": "Магический Слуга",
+            "route": "#/db?tab=spells&detail=%D0%BC%D0%B0%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9-%D1%81%D0%BB%D1%83%D0%B3%D0%B0"
+          },
+          {
+            "name": "Обнаружение Магии",
+            "route": "#/db?tab=spells&detail=%D0%BE%D0%B1%D0%BD%D0%B0%D1%80%D1%83%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BC%D0%B0%D0%B3%D0%B8%D0%B8"
+          },
+          {
+            "name": "Обнаружение Ядов",
+            "route": "#/db?tab=spells&detail=%D0%BE%D0%B1%D0%BD%D0%B0%D1%80%D1%83%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5-%D1%8F%D0%B4%D0%BE%D0%B2"
+          },
+          {
+            "name": "Общение Воспоминаниями",
+            "route": "#/db?tab=spells&detail=%D0%BE%D0%B1%D1%89%D0%B5%D0%BD%D0%B8%D0%B5-%D0%B2%D0%BE%D1%81%D0%BF%D0%BE%D0%BC%D0%B8%D0%BD%D0%B0%D0%BD%D0%B8%D1%8F%D0%BC%D0%B8"
+          },
+          {
+            "name": "Огненная Бомба",
+            "route": "#/db?tab=spells&detail=%D0%BE%D0%B3%D0%BD%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F-%D0%B1%D0%BE%D0%BC%D0%B1%D0%B0"
+          },
+          {
+            "name": "Огненная Вспышка",
+            "route": "#/db?tab=spells&detail=%D0%BE%D0%B3%D0%BD%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F-%D0%B2%D1%81%D0%BF%D1%8B%D1%88%D0%BA%D0%B0"
+          },
+          {
+            "name": "Огненная Кара",
+            "route": "#/db?tab=spells&detail=%D0%BE%D0%B3%D0%BD%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F-%D0%BA%D0%B0%D1%80%D0%B0"
+          },
+          {
+            "name": "Огненная Стена",
+            "route": "#/db?tab=spells&detail=%D0%BE%D0%B3%D0%BD%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F-%D1%81%D1%82%D0%B5%D0%BD%D0%B0"
+          },
+          {
+            "name": "Передача образа",
+            "route": "#/db?tab=spells&detail=%D0%BF%D0%B5%D1%80%D0%B5%D0%B4%D0%B0%D1%87%D0%B0-%D0%BE%D0%B1%D1%80%D0%B0%D0%B7%D0%B0"
+          },
+          {
+            "name": "Поглощение Стихии",
+            "route": "#/db?tab=spells&detail=%D0%BF%D0%BE%D0%B3%D0%BB%D0%BE%D1%89%D0%B5%D0%BD%D0%B8%D0%B5-%D1%81%D1%82%D0%B8%D1%85%D0%B8%D0%B8"
+          },
+          {
+            "name": "Подводное Дыхание",
+            "route": "#/db?tab=spells&detail=%D0%BF%D0%BE%D0%B4%D0%B2%D0%BE%D0%B4%D0%BD%D0%BE%D0%B5-%D0%B4%D1%8B%D1%85%D0%B0%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Поиск Следов",
+            "route": "#/db?tab=spells&detail=%D0%BF%D0%BE%D0%B8%D1%81%D0%BA-%D1%81%D0%BB%D0%B5%D0%B4%D0%BE%D0%B2"
+          },
+          {
+            "name": "Поиск животных и растений",
+            "route": "#/db?tab=spells&detail=%D0%BF%D0%BE%D0%B8%D1%81%D0%BA-%D0%B6%D0%B8%D0%B2%D0%BE%D1%82%D0%BD%D1%8B%D1%85-%D0%B8-%D1%80%D0%B0%D1%81%D1%82%D0%B5%D0%BD%D0%B8%D0%B9"
+          },
+          {
+            "name": "Призыв Землетрясения",
+            "route": "#/db?tab=spells&detail=%D0%BF%D1%80%D0%B8%D0%B7%D1%8B%D0%B2-%D0%B7%D0%B5%D0%BC%D0%BB%D0%B5%D1%82%D1%80%D1%8F%D1%81%D0%B5%D0%BD%D0%B8%D1%8F"
+          },
+          {
+            "name": "Призыв Торнадо",
+            "route": "#/db?tab=spells&detail=%D0%BF%D1%80%D0%B8%D0%B7%D1%8B%D0%B2-%D1%82%D0%BE%D1%80%D0%BD%D0%B0%D0%B4%D0%BE"
+          },
+          {
+            "name": "Призыв Цунами",
+            "route": "#/db?tab=spells&detail=%D0%BF%D1%80%D0%B8%D0%B7%D1%8B%D0%B2-%D1%86%D1%83%D0%BD%D0%B0%D0%BC%D0%B8"
+          },
+          {
+            "name": "Призыв воды",
+            "route": "#/db?tab=spells&detail=%D0%BF%D1%80%D0%B8%D0%B7%D1%8B%D0%B2-%D0%B2%D0%BE%D0%B4%D1%8B"
+          },
+          {
+            "name": "Пробуждение вулкана",
+            "route": "#/db?tab=spells&detail=%D0%BF%D1%80%D0%BE%D0%B1%D1%83%D0%B6%D0%B4%D0%B5%D0%BD%D0%B8%D0%B5-%D0%B2%D1%83%D0%BB%D0%BA%D0%B0%D0%BD%D0%B0"
+          },
+          {
+            "name": "Противоядие",
+            "route": "#/db?tab=spells&detail=%D0%BF%D1%80%D0%BE%D1%82%D0%B8%D0%B2%D0%BE%D1%8F%D0%B4%D0%B8%D0%B5"
+          },
+          {
+            "name": "Психический Щит",
+            "route": "#/db?tab=spells&detail=%D0%BF%D1%81%D0%B8%D1%85%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9-%D1%89%D0%B8%D1%82"
+          },
+          {
+            "name": "Путешествие в Воспоминание",
+            "route": "#/db?tab=spells&detail=%D0%BF%D1%83%D1%82%D0%B5%D1%88%D0%B5%D1%81%D1%82%D0%B2%D0%B8%D0%B5-%D0%B2-%D0%B2%D0%BE%D1%81%D0%BF%D0%BE%D0%BC%D0%B8%D0%BD%D0%B0%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Разговор с Животными",
+            "route": "#/db?tab=spells&detail=%D1%80%D0%B0%D0%B7%D0%B3%D0%BE%D0%B2%D0%BE%D1%80-%D1%81-%D0%B6%D0%B8%D0%B2%D0%BE%D1%82%D0%BD%D1%8B%D0%BC%D0%B8"
+          },
+          {
+            "name": "Разрушение в Защиту",
+            "route": "#/db?tab=spells&detail=%D1%80%D0%B0%D0%B7%D1%80%D1%83%D1%88%D0%B5%D0%BD%D0%B8%D0%B5-%D0%B2-%D0%B7%D0%B0%D1%89%D0%B8%D1%82%D1%83"
+          },
+          {
+            "name": "Робот-Рука МК1",
+            "route": "#/db?tab=spells&detail=%D1%80%D0%BE%D0%B1%D0%BE%D1%82-%D1%80%D1%83%D0%BA%D0%B0-%D0%BC%D0%BA1"
+          },
+          {
+            "name": "Сбивающий яд",
+            "route": "#/db?tab=spells&detail=%D1%81%D0%B1%D0%B8%D0%B2%D0%B0%D1%8E%D1%89%D0%B8%D0%B9-%D1%8F%D0%B4"
+          },
+          {
+            "name": "Сверхлегкий Клинок М1",
+            "route": "#/db?tab=spells&detail=%D1%81%D0%B2%D0%B5%D1%80%D1%85%D0%BB%D0%B5%D0%B3%D0%BA%D0%B8%D0%B9-%D0%BA%D0%BB%D0%B8%D0%BD%D0%BE%D0%BA-%D0%BC1"
+          },
+          {
+            "name": "Слепая Ярость",
+            "route": "#/db?tab=spells&detail=%D1%81%D0%BB%D0%B5%D0%BF%D0%B0%D1%8F-%D1%8F%D1%80%D0%BE%D1%81%D1%82%D1%8C"
+          },
+          {
+            "name": "Слияние с Природой",
+            "route": "#/db?tab=spells&detail=%D1%81%D0%BB%D0%B8%D1%8F%D0%BD%D0%B8%D0%B5-%D1%81-%D0%BF%D1%80%D0%B8%D1%80%D0%BE%D0%B4%D0%BE%D0%B9"
+          },
+          {
+            "name": "Смертельный Сон",
+            "route": "#/db?tab=spells&detail=%D1%81%D0%BC%D0%B5%D1%80%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9-%D1%81%D0%BE%D0%BD"
+          },
+          {
+            "name": "Телепатическая Связь",
+            "route": "#/db?tab=spells&detail=%D1%82%D0%B5%D0%BB%D0%B5%D0%BF%D0%B0%D1%82%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B0%D1%8F-%D1%81%D0%B2%D1%8F%D0%B7%D1%8C"
+          },
+          {
+            "name": "Трех-контурное Наступательное Усиление",
+            "route": "#/db?tab=spells&detail=%D1%82%D1%80%D0%B5%D1%85-%D0%BA%D0%BE%D0%BD%D1%82%D1%83%D1%80%D0%BD%D0%BE%D0%B5-%D0%BD%D0%B0%D1%81%D1%82%D1%83%D0%BF%D0%B0%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D0%B5-%D1%83%D1%81%D0%B8%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Трехзарядный Магический Револьвер М1",
+            "route": "#/db?tab=spells&detail=%D1%82%D1%80%D0%B5%D1%85%D0%B7%D0%B0%D1%80%D1%8F%D0%B4%D0%BD%D1%8B%D0%B9-%D0%BC%D0%B0%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9-%D1%80%D0%B5%D0%B2%D0%BE%D0%BB%D1%8C%D0%B2%D0%B5%D1%80-%D0%BC1"
+          },
+          {
+            "name": "Универсальный Протез Руки М1",
+            "route": "#/db?tab=spells&detail=%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9-%D0%BF%D1%80%D0%BE%D1%82%D0%B5%D0%B7-%D1%80%D1%83%D0%BA%D0%B8-%D0%BC1"
+          },
+          {
+            "name": "Устройства Связи",
+            "route": "#/db?tab=spells&detail=%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%B0-%D1%81%D0%B2%D1%8F%D0%B7%D0%B8"
+          },
+          {
+            "name": "Усыпляющий Дождь",
+            "route": "#/db?tab=spells&detail=%D1%83%D1%81%D1%8B%D0%BF%D0%BB%D1%8F%D1%8E%D1%89%D0%B8%D0%B9-%D0%B4%D0%BE%D0%B6%D0%B4%D1%8C"
+          },
+          {
+            "name": "Хождение по Воде",
+            "route": "#/db?tab=spells&detail=%D1%85%D0%BE%D0%B6%D0%B4%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BF%D0%BE-%D0%B2%D0%BE%D0%B4%D0%B5"
+          },
+          {
+            "name": "Энергетическая Броня МК1",
+            "route": "#/db?tab=spells&detail=%D1%8D%D0%BD%D0%B5%D1%80%D0%B3%D0%B5%D1%82%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B0%D1%8F-%D0%B1%D1%80%D0%BE%D0%BD%D1%8F-%D0%BC%D0%BA1"
+          }
+        ]
+      },
+      {
+        "label": "Новые школы",
+        "items": []
+      },
+      {
+        "label": "Новые эффекты",
+        "items": [
+          {
+            "name": "Близок к Смерти",
+            "route": "#/db?tab=effects&detail=%D0%B1%D0%BB%D0%B8%D0%B7%D0%BE%D0%BA-%D0%BA-%D1%81%D0%BC%D0%B5%D1%80%D1%82%D0%B8"
+          },
+          {
+            "name": "Глухота",
+            "route": "#/db?tab=effects&detail=%D0%B3%D0%BB%D1%83%D1%85%D0%BE%D1%82%D0%B0"
+          },
+          {
+            "name": "Недееспособность",
+            "route": "#/db?tab=effects&detail=%D0%BD%D0%B5%D0%B4%D0%B5%D0%B5%D1%81%D0%BF%D0%BE%D1%81%D0%BE%D0%B1%D0%BD%D0%BE%D1%81%D1%82%D1%8C"
+          },
+          {
+            "name": "Очарование",
+            "route": "#/db?tab=effects&detail=%D0%BE%D1%87%D0%B0%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Пассивность",
+            "route": "#/db?tab=effects&detail=%D0%BF%D0%B0%D1%81%D1%81%D0%B8%D0%B2%D0%BD%D0%BE%D1%81%D1%82%D1%8C"
+          },
+          {
+            "name": "Скрытый",
+            "route": "#/db?tab=effects&detail=%D1%81%D0%BA%D1%80%D1%8B%D1%82%D1%8B%D0%B9"
+          },
+          {
+            "name": "Слепота",
+            "route": "#/db?tab=effects&detail=%D1%81%D0%BB%D0%B5%D0%BF%D0%BE%D1%82%D0%B0"
+          },
+          {
+            "name": "Страх",
+            "route": "#/db?tab=effects&detail=%D1%81%D1%82%D1%80%D0%B0%D1%85"
+          }
+        ]
+      },
+      {
+        "label": "Новые архетипы",
+        "items": [
+          {
+            "name": "Легендарный Ремесленник",
+            "route": "#/db?tab=archetypes&detail=%D0%BB%D0%B5%D0%B3%D0%B5%D0%BD%D0%B4%D0%B0%D1%80%D0%BD%D1%8B%D0%B9-%D1%80%D0%B5%D0%BC%D0%B5%D1%81%D0%BB%D0%B5%D0%BD%D0%BD%D0%B8%D0%BA"
+          }
+        ]
+      },
+      {
+        "label": "Новые базовые действия",
+        "items": [
+          {
+            "name": "Вспомнить Информацию",
+            "route": "#/db?tab=actions&detail=%D0%B2%D1%81%D0%BF%D0%BE%D0%BC%D0%BD%D0%B8%D1%82%D1%8C-%D0%B8%D0%BD%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D1%86%D0%B8%D1%8E"
+          },
+          {
+            "name": "Длительный отдых",
+            "route": "#/db?tab=actions&detail=%D0%B4%D0%BB%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9-%D0%BE%D1%82%D0%B4%D1%8B%D1%85"
+          },
+          {
+            "name": "Заклинания",
+            "route": "#/db?tab=actions&detail=%D0%B7%D0%B0%D0%BA%D0%BB%D0%B8%D0%BD%D0%B0%D0%BD%D0%B8%D1%8F"
+          },
+          {
+            "name": "Исследование",
+            "route": "#/db?tab=actions&detail=%D0%B8%D1%81%D1%81%D0%BB%D0%B5%D0%B4%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Концентрация",
+            "route": "#/db?tab=actions&detail=%D0%BA%D0%BE%D0%BD%D1%86%D0%B5%D0%BD%D1%82%D1%80%D0%B0%D1%86%D0%B8%D1%8F"
+          },
+          {
+            "name": "Короткий отдых",
+            "route": "#/db?tab=actions&detail=%D0%BA%D0%BE%D1%80%D0%BE%D1%82%D0%BA%D0%B8%D0%B9-%D0%BE%D1%82%D0%B4%D1%8B%D1%85"
+          },
+          {
+            "name": "Лечение ран",
+            "route": "#/db?tab=actions&detail=%D0%BB%D0%B5%D1%87%D0%B5%D0%BD%D0%B8%D0%B5-%D1%80%D0%B0%D0%BD"
+          },
+          {
+            "name": "Медитация",
+            "route": "#/db?tab=actions&detail=%D0%BC%D0%B5%D0%B4%D0%B8%D1%82%D0%B0%D1%86%D0%B8%D1%8F"
+          },
+          {
+            "name": "Оборона",
+            "route": "#/db?tab=actions&detail=%D0%BE%D0%B1%D0%BE%D1%80%D0%BE%D0%BD%D0%B0"
+          },
+          {
+            "name": "Передвижение",
+            "route": "#/db?tab=actions&detail=%D0%BF%D0%B5%D1%80%D0%B5%D0%B4%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Поиск Слабого Места",
+            "route": "#/db?tab=actions&detail=%D0%BF%D0%BE%D0%B8%D1%81%D0%BA-%D1%81%D0%BB%D0%B0%D0%B1%D0%BE%D0%B3%D0%BE-%D0%BC%D0%B5%D1%81%D1%82%D0%B0"
+          },
+          {
+            "name": "Починка",
+            "route": "#/db?tab=actions&detail=%D0%BF%D0%BE%D1%87%D0%B8%D0%BD%D0%BA%D0%B0"
+          },
+          {
+            "name": "Преодоление",
+            "route": "#/db?tab=actions&detail=%D0%BF%D1%80%D0%B5%D0%BE%D0%B4%D0%BE%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Создание",
+            "route": "#/db?tab=actions&detail=%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Создание Метамагии",
+            "route": "#/db?tab=actions&detail=%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5-%D0%BC%D0%B5%D1%82%D0%B0%D0%BC%D0%B0%D0%B3%D0%B8%D0%B8"
+          },
+          {
+            "name": "Создание Спотнанного Заклинания",
+            "route": "#/db?tab=actions&detail=%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5-%D1%81%D0%BF%D0%BE%D1%82%D0%BD%D0%B0%D0%BD%D0%BD%D0%BE%D0%B3%D0%BE-%D0%B7%D0%B0%D0%BA%D0%BB%D0%B8%D0%BD%D0%B0%D0%BD%D0%B8%D1%8F"
+          },
+          {
+            "name": "Спасбросок",
+            "route": "#/db?tab=actions&detail=%D1%81%D0%BF%D0%B0%D1%81%D0%B1%D1%80%D0%BE%D1%81%D0%BE%D0%BA"
+          },
+          {
+            "name": "Удар",
+            "route": "#/db?tab=actions&detail=%D1%83%D0%B4%D0%B0%D1%80"
+          },
+          {
+            "name": "Фокус",
+            "route": "#/db?tab=actions&detail=%D1%84%D0%BE%D0%BA%D1%83%D1%81"
+          }
+        ]
+      },
+      {
+        "label": "Новые основы системы",
+        "items": []
+      },
+      {
+        "label": "Новые навыки",
+        "items": [
+          {
+            "name": "Атлетика",
+            "route": "#/db?tab=skills&detail=%D0%B0%D1%82%D0%BB%D0%B5%D1%82%D0%B8%D0%BA%D0%B0"
+          },
+          {
+            "name": "Восприятие",
+            "route": "#/db?tab=skills&detail=%D0%B2%D0%BE%D1%81%D0%BF%D1%80%D0%B8%D1%8F%D1%82%D0%B8%D0%B5"
+          },
+          {
+            "name": "Знания",
+            "route": "#/db?tab=skills&detail=%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D1%8F"
+          },
+          {
+            "name": "Контакты",
+            "route": "#/db?tab=skills&detail=%D0%BA%D0%BE%D0%BD%D1%82%D0%B0%D0%BA%D1%82%D1%8B"
+          },
+          {
+            "name": "Общение",
+            "route": "#/db?tab=skills&detail=%D0%BE%D0%B1%D1%89%D0%B5%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Конструирование",
+            "route": "#/db?tab=skills&detail=%D0%BA%D0%BE%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Метамагия",
+            "route": "#/db?tab=skills&detail=%D0%BC%D0%B5%D1%82%D0%B0%D0%BC%D0%B0%D0%B3%D0%B8%D1%8F"
+          },
+          {
+            "name": "Ритуалогия",
+            "route": "#/db?tab=skills&detail=%D1%80%D0%B8%D1%82%D1%83%D0%B0%D0%BB%D0%BE%D0%B3%D0%B8%D1%8F"
+          },
+          {
+            "name": "Созидание",
+            "route": "#/db?tab=skills&detail=%D1%81%D0%BE%D0%B7%D0%B8%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Спонтанность",
+            "route": "#/db?tab=skills&detail=%D1%81%D0%BF%D0%BE%D0%BD%D1%82%D0%B0%D0%BD%D0%BD%D0%BE%D1%81%D1%82%D1%8C"
+          }
+        ]
+      },
+      {
+        "label": "Новые типы действий",
+        "items": [
+          {
+            "name": "Автоматон",
+            "route": "#/db?tab=action-types&detail=%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%BE%D0%BD"
+          },
+          {
+            "name": "Атака",
+            "route": "#/db?tab=action-types&detail=%D0%B0%D1%82%D0%B0%D0%BA%D0%B0"
+          },
+          {
+            "name": "Группа Заклинаний",
+            "route": "#/db?tab=action-types&detail=%D0%B3%D1%80%D1%83%D0%BF%D0%BF%D0%B0-%D0%B7%D0%B0%D0%BA%D0%BB%D0%B8%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9"
+          },
+          {
+            "name": "Защита",
+            "route": "#/db?tab=action-types&detail=%D0%B7%D0%B0%D1%89%D0%B8%D1%82%D0%B0"
+          },
+          {
+            "name": "Комбо",
+            "route": "#/db?tab=action-types&detail=%D0%BA%D0%BE%D0%BC%D0%B1%D0%BE"
+          },
+          {
+            "name": "Контроль",
+            "route": "#/db?tab=action-types&detail=%D0%BA%D0%BE%D0%BD%D1%82%D1%80%D0%BE%D0%BB%D1%8C"
+          },
+          {
+            "name": "Магическое Приспособление",
+            "route": "#/db?tab=action-types&detail=%D0%BC%D0%B0%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B5-%D0%BF%D1%80%D0%B8%D1%81%D0%BF%D0%BE%D1%81%D0%BE%D0%B1%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Небоевое",
+            "route": "#/db?tab=action-types&detail=%D0%BD%D0%B5%D0%B1%D0%BE%D0%B5%D0%B2%D0%BE%D0%B5"
+          },
+          {
+            "name": "Пассивно",
+            "route": "#/db?tab=action-types&detail=%D0%BF%D0%B0%D1%81%D1%81%D0%B8%D0%B2%D0%BD%D0%BE"
+          },
+          {
+            "name": "Поддержка",
+            "route": "#/db?tab=action-types&detail=%D0%BF%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%BA%D0%B0"
+          },
+          {
+            "name": "Призыв Объекта",
+            "route": "#/db?tab=action-types&detail=%D0%BF%D1%80%D0%B8%D0%B7%D1%8B%D0%B2-%D0%BE%D0%B1%D1%8A%D0%B5%D0%BA%D1%82%D0%B0"
+          },
+          {
+            "name": "Ритуал",
+            "route": "#/db?tab=action-types&detail=%D1%80%D0%B8%D1%82%D1%83%D0%B0%D0%BB"
+          }
+        ]
+      },
+      {
+        "label": "Новые компоненты боевой системы",
+        "items": [
+          {
+            "name": "Аркана",
+            "route": "#/db?tab=combat&detail=%D0%B0%D1%80%D0%BA%D0%B0%D0%BD%D0%B0"
+          },
+          {
+            "name": "Бонус к Наложению",
+            "route": "#/db?tab=combat&detail=%D0%B1%D0%BE%D0%BD%D1%83%D1%81-%D0%BA-%D0%BD%D0%B0%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D1%8E"
+          },
+          {
+            "name": "Бонус к Попаданию",
+            "route": "#/db?tab=combat&detail=%D0%B1%D0%BE%D0%BD%D1%83%D1%81-%D0%BA-%D0%BF%D0%BE%D0%BF%D0%B0%D0%B4%D0%B0%D0%BD%D0%B8%D1%8E"
+          },
+          {
+            "name": "Воля",
+            "route": "#/db?tab=combat&detail=%D0%B2%D0%BE%D0%BB%D1%8F"
+          },
+          {
+            "name": "Защита",
+            "route": "#/db?tab=combat&detail=%D0%B7%D0%B0%D1%89%D0%B8%D1%82%D0%B0"
+          },
+          {
+            "name": "Здоровье",
+            "route": "#/db?tab=combat&detail=%D0%B7%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%D1%8C%D0%B5"
+          },
+          {
+            "name": "Концентрация",
+            "route": "#/db?tab=combat&detail=%D0%BA%D0%BE%D0%BD%D1%86%D0%B5%D0%BD%D1%82%D1%80%D0%B0%D1%86%D0%B8%D1%8F"
+          },
+          {
+            "name": "Правило Наибольшего Значения",
+            "route": "#/db?tab=combat&detail=%D0%BF%D1%80%D0%B0%D0%B2%D0%B8%D0%BB%D0%BE-%D0%BD%D0%B0%D0%B8%D0%B1%D0%BE%D0%BB%D1%8C%D1%88%D0%B5%D0%B3%D0%BE-%D0%B7%D0%BD%D0%B0%D1%87%D0%B5%D0%BD%D0%B8%D1%8F"
+          },
+          {
+            "name": "Сопротивление",
+            "route": "#/db?tab=combat&detail=%D1%81%D0%BE%D0%BF%D1%80%D0%BE%D1%82%D0%B8%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Спасбросок",
+            "route": "#/db?tab=combat&detail=%D1%81%D0%BF%D0%B0%D1%81%D0%B1%D1%80%D0%BE%D1%81%D0%BE%D0%BA"
+          },
+          {
+            "name": "Стойкость",
+            "route": "#/db?tab=combat&detail=%D1%81%D1%82%D0%BE%D0%B9%D0%BA%D0%BE%D1%81%D1%82%D1%8C"
+          },
+          {
+            "name": "Уклонение",
+            "route": "#/db?tab=combat&detail=%D1%83%D0%BA%D0%BB%D0%BE%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Уровень",
+            "route": "#/db?tab=combat&detail=%D1%83%D1%80%D0%BE%D0%B2%D0%B5%D0%BD%D1%8C"
+          },
+          {
+            "name": "Уровни Повреждений",
+            "route": "#/db?tab=combat&detail=%D1%83%D1%80%D0%BE%D0%B2%D0%BD%D0%B8-%D0%BF%D0%BE%D0%B2%D1%80%D0%B5%D0%B6%D0%B4%D0%B5%D0%BD%D0%B8%D0%B9"
+          },
+          {
+            "name": "Уязвимость",
+            "route": "#/db?tab=combat&detail=%D1%83%D1%8F%D0%B7%D0%B2%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D1%8C"
+          }
+        ]
+      }
+    ],
+    "stats": [
+      {
+        "label": "Всего символов в данных базы",
+        "value": "140 477"
+      },
+      {
+        "label": "Всего глав (разделов) в книгах",
+        "value": "39"
+      },
+      {
+        "label": "Всего объектов в базе данных",
+        "value": "230 (заклинания: 103, школы: 38, эффекты: 17, архетипы: 13, базовые действия: 19, навыки: 10, типы действий: 12, компоненты боя: 18)"
+      }
     ]
   },
   {
@@ -76,6 +1033,665 @@
       "Добавлена база данных с фильтрами и карточками заклинаний, школ, эффектов, архетипов и действий.",
       "Добавлен редактор персонажей: считает характеристики по уровню, сохраняет несколько профилей, экспортирует в JSON.",
       "Добавлена защита закрытых разделов единым паролем и кнопкой сброса доступа."
-    ]
+    ],
+    "links": [
+      {
+        "text": "Player's Handbook",
+        "route": "#/phb/intro"
+      },
+      {
+        "text": "Spellbook",
+        "route": "#/spellbook/intro"
+      },
+      {
+        "text": "База данных",
+        "route": "#/db"
+      },
+      {
+        "text": "Редактор персонажей",
+        "route": "#/character-editor"
+      }
+    ],
+    "objectGroups": [
+      {
+        "label": "Новые заклинания",
+        "items": [
+          {
+            "name": "Аркановое Оружие",
+            "route": "#/db?tab=spells&detail=%D0%B0%D1%80%D0%BA%D0%B0%D0%BD%D0%BE%D0%B2%D0%BE%D0%B5-%D0%BE%D1%80%D1%83%D0%B6%D0%B8%D0%B5"
+          },
+          {
+            "name": "Аркановый Залп",
+            "route": "#/db?tab=spells&detail=%D0%B0%D1%80%D0%BA%D0%B0%D0%BD%D0%BE%D0%B2%D1%8B%D0%B9-%D0%B7%D0%B0%D0%BB%D0%BF"
+          },
+          {
+            "name": "Аркановый Разрез",
+            "route": "#/db?tab=spells&detail=%D0%B0%D1%80%D0%BA%D0%B0%D0%BD%D0%BE%D0%B2%D1%8B%D0%B9-%D1%80%D0%B0%D0%B7%D1%80%D0%B5%D0%B7"
+          },
+          {
+            "name": "Благословение Быка",
+            "route": "#/db?tab=spells&detail=%D0%B1%D0%BB%D0%B0%D0%B3%D0%BE%D1%81%D0%BB%D0%BE%D0%B2%D0%B5%D0%BD%D0%B8%D0%B5-%D0%B1%D1%8B%D0%BA%D0%B0"
+          },
+          {
+            "name": "Благословенный Ветрами",
+            "route": "#/db?tab=spells&detail=%D0%B1%D0%BB%D0%B0%D0%B3%D0%BE%D1%81%D0%BB%D0%BE%D0%B2%D0%B5%D0%BD%D0%BD%D1%8B%D0%B9-%D0%B2%D0%B5%D1%82%D1%80%D0%B0%D0%BC%D0%B8"
+          },
+          {
+            "name": "Взрыв Арканы",
+            "route": "#/db?tab=spells&detail=%D0%B2%D0%B7%D1%80%D1%8B%D0%B2-%D0%B0%D1%80%D0%BA%D0%B0%D0%BD%D1%8B"
+          },
+          {
+            "name": "Взрыв Разума",
+            "route": "#/db?tab=spells&detail=%D0%B2%D0%B7%D1%80%D1%8B%D0%B2-%D1%80%D0%B0%D0%B7%D1%83%D0%BC%D0%B0"
+          },
+          {
+            "name": "Водяной Щит",
+            "route": "#/db?tab=spells&detail=%D0%B2%D0%BE%D0%B4%D1%8F%D0%BD%D0%BE%D0%B9-%D1%89%D0%B8%D1%82"
+          },
+          {
+            "name": "Водяные Иглы",
+            "route": "#/db?tab=spells&detail=%D0%B2%D0%BE%D0%B4%D1%8F%D0%BD%D1%8B%D0%B5-%D0%B8%D0%B3%D0%BB%D1%8B"
+          },
+          {
+            "name": "Воздушный Кулак",
+            "route": "#/db?tab=spells&detail=%D0%B2%D0%BE%D0%B7%D0%B4%D1%83%D1%88%D0%BD%D1%8B%D0%B9-%D0%BA%D1%83%D0%BB%D0%B0%D0%BA"
+          },
+          {
+            "name": "Волна",
+            "route": "#/db?tab=spells&detail=%D0%B2%D0%BE%D0%BB%D0%BD%D0%B0"
+          },
+          {
+            "name": "Выстрел Арканы",
+            "route": "#/db?tab=spells&detail=%D0%B2%D1%8B%D1%81%D1%82%D1%80%D0%B5%D0%BB-%D0%B0%D1%80%D0%BA%D0%B0%D0%BD%D1%8B"
+          },
+          {
+            "name": "Головокружение",
+            "route": "#/db?tab=spells&detail=%D0%B3%D0%BE%D0%BB%D0%BE%D0%B2%D0%BE%D0%BA%D1%80%D1%83%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Двойная Вспышка",
+            "route": "#/db?tab=spells&detail=%D0%B4%D0%B2%D0%BE%D0%B9%D0%BD%D0%B0%D1%8F-%D0%B2%D1%81%D0%BF%D1%8B%D1%88%D0%BA%D0%B0"
+          },
+          {
+            "name": "Защита Разума",
+            "route": "#/db?tab=spells&detail=%D0%B7%D0%B0%D1%89%D0%B8%D1%82%D0%B0-%D1%80%D0%B0%D0%B7%D1%83%D0%BC%D0%B0"
+          },
+          {
+            "name": "Земляная Защита",
+            "route": "#/db?tab=spells&detail=%D0%B7%D0%B5%D0%BC%D0%BB%D1%8F%D0%BD%D0%B0%D1%8F-%D0%B7%D0%B0%D1%89%D0%B8%D1%82%D0%B0"
+          },
+          {
+            "name": "Земляная Тюрьма",
+            "route": "#/db?tab=spells&detail=%D0%B7%D0%B5%D0%BC%D0%BB%D1%8F%D0%BD%D0%B0%D1%8F-%D1%82%D1%8E%D1%80%D1%8C%D0%BC%D0%B0"
+          },
+          {
+            "name": "Мгновенный Шаг",
+            "route": "#/db?tab=spells&detail=%D0%BC%D0%B3%D0%BD%D0%BE%D0%B2%D0%B5%D0%BD%D0%BD%D1%8B%D0%B9-%D1%88%D0%B0%D0%B3"
+          },
+          {
+            "name": "Метка Пламени",
+            "route": "#/db?tab=spells&detail=%D0%BC%D0%B5%D1%82%D0%BA%D0%B0-%D0%BF%D0%BB%D0%B0%D0%BC%D0%B5%D0%BD%D0%B8"
+          },
+          {
+            "name": "Облако Яда",
+            "route": "#/db?tab=spells&detail=%D0%BE%D0%B1%D0%BB%D0%B0%D0%BA%D0%BE-%D1%8F%D0%B4%D0%B0"
+          },
+          {
+            "name": "Огненный Шар",
+            "route": "#/db?tab=spells&detail=%D0%BE%D0%B3%D0%BD%D0%B5%D0%BD%D0%BD%D1%8B%D0%B9-%D1%88%D0%B0%D1%80"
+          },
+          {
+            "name": "Огненный Щит",
+            "route": "#/db?tab=spells&detail=%D0%BE%D0%B3%D0%BD%D0%B5%D0%BD%D0%BD%D1%8B%D0%B9-%D1%89%D0%B8%D1%82"
+          },
+          {
+            "name": "Перенаправление Снаряда",
+            "route": "#/db?tab=spells&detail=%D0%BF%D0%B5%D1%80%D0%B5%D0%BD%D0%B0%D0%BF%D1%80%D0%B0%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5-%D1%81%D0%BD%D0%B0%D1%80%D1%8F%D0%B4%D0%B0"
+          },
+          {
+            "name": "Приказ",
+            "route": "#/db?tab=spells&detail=%D0%BF%D1%80%D0%B8%D0%BA%D0%B0%D0%B7"
+          },
+          {
+            "name": "Рой Насекомых",
+            "route": "#/db?tab=spells&detail=%D1%80%D0%BE%D0%B9-%D0%BD%D0%B0%D1%81%D0%B5%D0%BA%D0%BE%D0%BC%D1%8B%D1%85"
+          },
+          {
+            "name": "Слабовольность",
+            "route": "#/db?tab=spells&detail=%D1%81%D0%BB%D0%B0%D0%B1%D0%BE%D0%B2%D0%BE%D0%BB%D1%8C%D0%BD%D0%BE%D1%81%D1%82%D1%8C"
+          },
+          {
+            "name": "Смена Приспособления",
+            "route": "#/db?tab=spells&detail=%D1%81%D0%BC%D0%B5%D0%BD%D0%B0-%D0%BF%D1%80%D0%B8%D1%81%D0%BF%D0%BE%D1%81%D0%BE%D0%B1%D0%BB%D0%B5%D0%BD%D0%B8%D1%8F"
+          },
+          {
+            "name": "Смертельная Игла",
+            "route": "#/db?tab=spells&detail=%D1%81%D0%BC%D0%B5%D1%80%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F-%D0%B8%D0%B3%D0%BB%D0%B0"
+          },
+          {
+            "name": "Сонный Паралич",
+            "route": "#/db?tab=spells&detail=%D1%81%D0%BE%D0%BD%D0%BD%D1%8B%D0%B9-%D0%BF%D0%B0%D1%80%D0%B0%D0%BB%D0%B8%D1%87"
+          },
+          {
+            "name": "Стремительный Рывок",
+            "route": "#/db?tab=spells&detail=%D1%81%D1%82%D1%80%D0%B5%D0%BC%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9-%D1%80%D1%8B%D0%B2%D0%BE%D0%BA"
+          },
+          {
+            "name": "Твердыня",
+            "route": "#/db?tab=spells&detail=%D1%82%D0%B2%D0%B5%D1%80%D0%B4%D1%8B%D0%BD%D1%8F"
+          },
+          {
+            "name": "Терновая клетка",
+            "route": "#/db?tab=spells&detail=%D1%82%D0%B5%D1%80%D0%BD%D0%BE%D0%B2%D0%B0%D1%8F-%D0%BA%D0%BB%D0%B5%D1%82%D0%BA%D0%B0"
+          },
+          {
+            "name": "Тошнотворный Цветок",
+            "route": "#/db?tab=spells&detail=%D1%82%D0%BE%D1%88%D0%BD%D0%BE%D1%82%D0%B2%D0%BE%D1%80%D0%BD%D1%8B%D0%B9-%D1%86%D0%B2%D0%B5%D1%82%D0%BE%D0%BA"
+          },
+          {
+            "name": "Удар Парящего Змея",
+            "route": "#/db?tab=spells&detail=%D1%83%D0%B4%D0%B0%D1%80-%D0%BF%D0%B0%D1%80%D1%8F%D1%89%D0%B5%D0%B3%D0%BE-%D0%B7%D0%BC%D0%B5%D1%8F"
+          },
+          {
+            "name": "Управление Скалой",
+            "route": "#/db?tab=spells&detail=%D1%83%D0%BF%D1%80%D0%B0%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5-%D1%81%D0%BA%D0%B0%D0%BB%D0%BE%D0%B9"
+          },
+          {
+            "name": "Усиленный Удар",
+            "route": "#/db?tab=spells&detail=%D1%83%D1%81%D0%B8%D0%BB%D0%B5%D0%BD%D0%BD%D1%8B%D0%B9-%D1%83%D0%B4%D0%B0%D1%80"
+          },
+          {
+            "name": "Ускорение",
+            "route": "#/db?tab=spells&detail=%D1%83%D1%81%D0%BA%D0%BE%D1%80%D0%B5%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Целительная Вода",
+            "route": "#/db?tab=spells&detail=%D1%86%D0%B5%D0%BB%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F-%D0%B2%D0%BE%D0%B4%D0%B0"
+          },
+          {
+            "name": "Цепи Арканы",
+            "route": "#/db?tab=spells&detail=%D1%86%D0%B5%D0%BF%D0%B8-%D0%B0%D1%80%D0%BA%D0%B0%D0%BD%D1%8B"
+          },
+          {
+            "name": "Цепь Молний",
+            "route": "#/db?tab=spells&detail=%D1%86%D0%B5%D0%BF%D1%8C-%D0%BC%D0%BE%D0%BB%D0%BD%D0%B8%D0%B9"
+          },
+          {
+            "name": "Чувство Земли",
+            "route": "#/db?tab=spells&detail=%D1%87%D1%83%D0%B2%D1%81%D1%82%D0%B2%D0%BE-%D0%B7%D0%B5%D0%BC%D0%BB%D0%B8"
+          },
+          {
+            "name": "Щит Арканы",
+            "route": "#/db?tab=spells&detail=%D1%89%D0%B8%D1%82-%D0%B0%D1%80%D0%BA%D0%B0%D0%BD%D1%8B"
+          },
+          {
+            "name": "Электрическая Перегрузка",
+            "route": "#/db?tab=spells&detail=%D1%8D%D0%BB%D0%B5%D0%BA%D1%82%D1%80%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B0%D1%8F-%D0%BF%D0%B5%D1%80%D0%B5%D0%B3%D1%80%D1%83%D0%B7%D0%BA%D0%B0"
+          },
+          {
+            "name": "Яд-Поглотитель",
+            "route": "#/db?tab=spells&detail=%D1%8F%D0%B4-%D0%BF%D0%BE%D0%B3%D0%BB%D0%BE%D1%82%D0%B8%D1%82%D0%B5%D0%BB%D1%8C"
+          },
+          {
+            "name": "Ядовитая Аура",
+            "route": "#/db?tab=spells&detail=%D1%8F%D0%B4%D0%BE%D0%B2%D0%B8%D1%82%D0%B0%D1%8F-%D0%B0%D1%83%D1%80%D0%B0"
+          },
+          {
+            "name": "Язык Лягушки",
+            "route": "#/db?tab=spells&detail=%D1%8F%D0%B7%D1%8B%D0%BA-%D0%BB%D1%8F%D0%B3%D1%83%D1%88%D0%BA%D0%B8"
+          }
+        ]
+      },
+      {
+        "label": "Новые школы",
+        "items": [
+          {
+            "name": "4-ая стена",
+            "route": "#/db?tab=schools&detail=4-%D0%B0%D1%8F-%D1%81%D1%82%D0%B5%D0%BD%D0%B0"
+          },
+          {
+            "name": "Астральная Навигация",
+            "route": "#/db?tab=schools&detail=%D0%B0%D1%81%D1%82%D1%80%D0%B0%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F-%D0%BD%D0%B0%D0%B2%D0%B8%D0%B3%D0%B0%D1%86%D0%B8%D1%8F"
+          },
+          {
+            "name": "Природа",
+            "route": "#/db?tab=schools&detail=%D0%BF%D1%80%D0%B8%D1%80%D0%BE%D0%B4%D0%B0"
+          },
+          {
+            "name": "Редкая Стихийная Магия",
+            "route": "#/db?tab=schools&detail=%D1%80%D0%B5%D0%B4%D0%BA%D0%B0%D1%8F-%D1%81%D1%82%D0%B8%D1%85%D0%B8%D0%B9%D0%BD%D0%B0%D1%8F-%D0%BC%D0%B0%D0%B3%D0%B8%D1%8F"
+          },
+          {
+            "name": "Базовая Аркана",
+            "route": "#/db?tab=schools&detail=%D0%B1%D0%B0%D0%B7%D0%BE%D0%B2%D0%B0%D1%8F-%D0%B0%D1%80%D0%BA%D0%B0%D0%BD%D0%B0"
+          },
+          {
+            "name": "Базовая Стихийная Магия",
+            "route": "#/db?tab=schools&detail=%D0%B1%D0%B0%D0%B7%D0%BE%D0%B2%D0%B0%D1%8F-%D1%81%D1%82%D0%B8%D1%85%D0%B8%D0%B9%D0%BD%D0%B0%D1%8F-%D0%BC%D0%B0%D0%B3%D0%B8%D1%8F"
+          },
+          {
+            "name": "Вода",
+            "route": "#/db?tab=schools&detail=%D0%B2%D0%BE%D0%B4%D0%B0"
+          },
+          {
+            "name": "Воздух",
+            "route": "#/db?tab=schools&detail=%D0%B2%D0%BE%D0%B7%D0%B4%D1%83%D1%85"
+          },
+          {
+            "name": "Время",
+            "route": "#/db?tab=schools&detail=%D0%B2%D1%80%D0%B5%D0%BC%D1%8F"
+          },
+          {
+            "name": "Душа",
+            "route": "#/db?tab=schools&detail=%D0%B4%D1%83%D1%88%D0%B0"
+          },
+          {
+            "name": "Жизнь",
+            "route": "#/db?tab=schools&detail=%D0%B6%D0%B8%D0%B7%D0%BD%D1%8C"
+          },
+          {
+            "name": "Закономерность",
+            "route": "#/db?tab=schools&detail=%D0%B7%D0%B0%D0%BA%D0%BE%D0%BD%D0%BE%D0%BC%D0%B5%D1%80%D0%BD%D0%BE%D1%81%D1%82%D1%8C"
+          },
+          {
+            "name": "Земля",
+            "route": "#/db?tab=schools&detail=%D0%B7%D0%B5%D0%BC%D0%BB%D1%8F"
+          },
+          {
+            "name": "Иные миры",
+            "route": "#/db?tab=schools&detail=%D0%B8%D0%BD%D1%8B%D0%B5-%D0%BC%D0%B8%D1%80%D1%8B"
+          },
+          {
+            "name": "Истинная Аркана",
+            "route": "#/db?tab=schools&detail=%D0%B8%D1%81%D1%82%D0%B8%D0%BD%D0%BD%D0%B0%D1%8F-%D0%B0%D1%80%D0%BA%D0%B0%D0%BD%D0%B0"
+          },
+          {
+            "name": "Контракты",
+            "route": "#/db?tab=schools&detail=%D0%BA%D0%BE%D0%BD%D1%82%D1%80%D0%B0%D0%BA%D1%82%D1%8B"
+          },
+          {
+            "name": "Кристаллы",
+            "route": "#/db?tab=schools&detail=%D0%BA%D1%80%D0%B8%D1%81%D1%82%D0%B0%D0%BB%D0%BB%D1%8B"
+          },
+          {
+            "name": "Кровь",
+            "route": "#/db?tab=schools&detail=%D0%BA%D1%80%D0%BE%D0%B2%D1%8C"
+          },
+          {
+            "name": "Лава",
+            "route": "#/db?tab=schools&detail=%D0%BB%D0%B0%D0%B2%D0%B0"
+          },
+          {
+            "name": "Лед",
+            "route": "#/db?tab=schools&detail=%D0%BB%D0%B5%D0%B4"
+          },
+          {
+            "name": "Магические Приспособления",
+            "route": "#/db?tab=schools&detail=%D0%BC%D0%B0%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5-%D0%BF%D1%80%D0%B8%D1%81%D0%BF%D0%BE%D1%81%D0%BE%D0%B1%D0%BB%D0%B5%D0%BD%D0%B8%D1%8F"
+          },
+          {
+            "name": "Материализация",
+            "route": "#/db?tab=schools&detail=%D0%BC%D0%B0%D1%82%D0%B5%D1%80%D0%B8%D0%B0%D0%BB%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F"
+          },
+          {
+            "name": "Металл",
+            "route": "#/db?tab=schools&detail=%D0%BC%D0%B5%D1%82%D0%B0%D0%BB%D0%BB"
+          },
+          {
+            "name": "Молния",
+            "route": "#/db?tab=schools&detail=%D0%BC%D0%BE%D0%BB%D0%BD%D0%B8%D1%8F"
+          },
+          {
+            "name": "Музыка",
+            "route": "#/db?tab=schools&detail=%D0%BC%D1%83%D0%B7%D1%8B%D0%BA%D0%B0"
+          },
+          {
+            "name": "Огонь",
+            "route": "#/db?tab=schools&detail=%D0%BE%D0%B3%D0%BE%D0%BD%D1%8C"
+          },
+          {
+            "name": "Природная магия",
+            "route": "#/db?tab=schools&detail=%D0%BF%D1%80%D0%B8%D1%80%D0%BE%D0%B4%D0%BD%D0%B0%D1%8F-%D0%BC%D0%B0%D0%B3%D0%B8%D1%8F"
+          },
+          {
+            "name": "Пространство",
+            "route": "#/db?tab=schools&detail=%D0%BF%D1%80%D0%BE%D1%81%D1%82%D1%80%D0%B0%D0%BD%D1%81%D1%82%D0%B2%D0%BE"
+          },
+          {
+            "name": "Разум",
+            "route": "#/db?tab=schools&detail=%D1%80%D0%B0%D0%B7%D1%83%D0%BC"
+          },
+          {
+            "name": "Расширенная Стихийная Магия",
+            "route": "#/db?tab=schools&detail=%D1%80%D0%B0%D1%81%D1%88%D0%B8%D1%80%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F-%D1%81%D1%82%D0%B8%D1%85%D0%B8%D0%B9%D0%BD%D0%B0%D1%8F-%D0%BC%D0%B0%D0%B3%D0%B8%D1%8F"
+          },
+          {
+            "name": "Рунная Магия",
+            "route": "#/db?tab=schools&detail=%D1%80%D1%83%D0%BD%D0%BD%D0%B0%D1%8F-%D0%BC%D0%B0%D0%B3%D0%B8%D1%8F"
+          },
+          {
+            "name": "Свет",
+            "route": "#/db?tab=schools&detail=%D1%81%D0%B2%D0%B5%D1%82"
+          },
+          {
+            "name": "Смерть",
+            "route": "#/db?tab=schools&detail=%D1%81%D0%BC%D0%B5%D1%80%D1%82%D1%8C"
+          },
+          {
+            "name": "Сон",
+            "route": "#/db?tab=schools&detail=%D1%81%D0%BE%D0%BD"
+          },
+          {
+            "name": "Судьба",
+            "route": "#/db?tab=schools&detail=%D1%81%D1%83%D0%B4%D1%8C%D0%B1%D0%B0"
+          },
+          {
+            "name": "Тени",
+            "route": "#/db?tab=schools&detail=%D1%82%D0%B5%D0%BD%D0%B8"
+          },
+          {
+            "name": "Тьма",
+            "route": "#/db?tab=schools&detail=%D1%82%D1%8C%D0%BC%D0%B0"
+          },
+          {
+            "name": "Физические усиления",
+            "route": "#/db?tab=schools&detail=%D1%84%D0%B8%D0%B7%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5-%D1%83%D1%81%D0%B8%D0%BB%D0%B5%D0%BD%D0%B8%D1%8F"
+          },
+          {
+            "name": "Хаос",
+            "route": "#/db?tab=schools&detail=%D1%85%D0%B0%D0%BE%D1%81"
+          },
+          {
+            "name": "Яды",
+            "route": "#/db?tab=schools&detail=%D1%8F%D0%B4%D1%8B"
+          }
+        ]
+      },
+      {
+        "label": "Новые эффекты",
+        "items": [
+          {
+            "name": "В укрытии",
+            "route": "#/db?tab=effects&detail=%D0%B2-%D1%83%D0%BA%D1%80%D1%8B%D1%82%D0%B8%D0%B8"
+          },
+          {
+            "name": "Замедление",
+            "route": "#/db?tab=effects&detail=%D0%B7%D0%B0%D0%BC%D0%B5%D0%B4%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Немота",
+            "route": "#/db?tab=effects&detail=%D0%BD%D0%B5%D0%BC%D0%BE%D1%82%D0%B0"
+          },
+          {
+            "name": "Обездвиженность",
+            "route": "#/db?tab=effects&detail=%D0%BE%D0%B1%D0%B5%D0%B7%D0%B4%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD%D0%BD%D0%BE%D1%81%D1%82%D1%8C"
+          },
+          {
+            "name": "Оглушение",
+            "route": "#/db?tab=effects&detail=%D0%BE%D0%B3%D0%BB%D1%83%D1%88%D0%B5%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Подавление Магии",
+            "route": "#/db?tab=effects&detail=%D0%BF%D0%BE%D0%B4%D0%B0%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BC%D0%B0%D0%B3%D0%B8%D0%B8"
+          },
+          {
+            "name": "Сбитый с ног",
+            "route": "#/db?tab=effects&detail=%D1%81%D0%B1%D0%B8%D1%82%D1%8B%D0%B9-%D1%81-%D0%BD%D0%BE%D0%B3"
+          },
+          {
+            "name": "Скованность",
+            "route": "#/db?tab=effects&detail=%D1%81%D0%BA%D0%BE%D0%B2%D0%B0%D0%BD%D0%BD%D0%BE%D1%81%D1%82%D1%8C"
+          },
+          {
+            "name": "Сон",
+            "route": "#/db?tab=effects&detail=%D1%81%D0%BE%D0%BD"
+          },
+          {
+            "name": "Тошнота",
+            "route": "#/db?tab=effects&detail=%D1%82%D0%BE%D1%88%D0%BD%D0%BE%D1%82%D0%B0"
+          }
+        ]
+      },
+      {
+        "label": "Новые архетипы",
+        "items": [
+          {
+            "name": "Вор Заклятий",
+            "route": "#/db?tab=archetypes&detail=%D0%B2%D0%BE%D1%80-%D0%B7%D0%B0%D0%BA%D0%BB%D1%8F%D1%82%D0%B8%D0%B9"
+          },
+          {
+            "name": "Ищущий Вдохновение",
+            "route": "#/db?tab=archetypes&detail=%D0%B8%D1%89%D1%83%D1%89%D0%B8%D0%B9-%D0%B2%D0%B4%D0%BE%D1%85%D0%BD%D0%BE%D0%B2%D0%B5%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Кинетик",
+            "route": "#/db?tab=archetypes&detail=%D0%BA%D0%B8%D0%BD%D0%B5%D1%82%D0%B8%D0%BA"
+          },
+          {
+            "name": "Легендарный Ремесленник",
+            "route": "#/db?tab=archetypes&detail=%D0%BB%D0%B5%D0%B3%D0%B5%D0%BD%D0%B4%D0%B0%D1%80%D0%BD%D1%8B%D0%B9-%D1%80%D0%B5%D0%BC%D0%B5%D1%81%D0%BB%D0%B5%D0%BD%D0%BD%D0%B8%D0%BA"
+          },
+          {
+            "name": "Маг Мгновенного Слова",
+            "route": "#/db?tab=archetypes&detail=%D0%BC%D0%B0%D0%B3-%D0%BC%D0%B3%D0%BD%D0%BE%D0%B2%D0%B5%D0%BD%D0%BD%D0%BE%D0%B3%D0%BE-%D1%81%D0%BB%D0%BE%D0%B2%D0%B0"
+          },
+          {
+            "name": "Маг Отложенного Эха",
+            "route": "#/db?tab=archetypes&detail=%D0%BC%D0%B0%D0%B3-%D0%BE%D1%82%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%BD%D0%BE%D0%B3%D0%BE-%D1%8D%D1%85%D0%B0"
+          },
+          {
+            "name": "Маг Памяти",
+            "route": "#/db?tab=archetypes&detail=%D0%BC%D0%B0%D0%B3-%D0%BF%D0%B0%D0%BC%D1%8F%D1%82%D0%B8"
+          },
+          {
+            "name": "Маг Потока",
+            "route": "#/db?tab=archetypes&detail=%D0%BC%D0%B0%D0%B3-%D0%BF%D0%BE%D1%82%D0%BE%D0%BA%D0%B0"
+          },
+          {
+            "name": "Магический Рыцарь",
+            "route": "#/db?tab=archetypes&detail=%D0%BC%D0%B0%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9-%D1%80%D1%8B%D1%86%D0%B0%D1%80%D1%8C"
+          },
+          {
+            "name": "Метамаг",
+            "route": "#/db?tab=archetypes&detail=%D0%BC%D0%B5%D1%82%D0%B0%D0%BC%D0%B0%D0%B3"
+          },
+          {
+            "name": "Стратег",
+            "route": "#/db?tab=archetypes&detail=%D1%81%D1%82%D1%80%D0%B0%D1%82%D0%B5%D0%B3"
+          },
+          {
+            "name": "Темный Ритуалист",
+            "route": "#/db?tab=archetypes&detail=%D1%82%D0%B5%D0%BC%D0%BD%D1%8B%D0%B9-%D1%80%D0%B8%D1%82%D1%83%D0%B0%D0%BB%D0%B8%D1%81%D1%82"
+          },
+          {
+            "name": "Эмпат",
+            "route": "#/db?tab=archetypes&detail=%D1%8D%D0%BC%D0%BF%D0%B0%D1%82"
+          }
+        ]
+      },
+      {
+        "label": "Новые базовые действия",
+        "items": [
+          {
+            "name": "Вспомнить Информацию",
+            "route": "#/db?tab=actions&detail=%D0%B2%D1%81%D0%BF%D0%BE%D0%BC%D0%BD%D0%B8%D1%82%D1%8C-%D0%B8%D0%BD%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D1%86%D0%B8%D1%8E"
+          },
+          {
+            "name": "Длительный отдых",
+            "route": "#/db?tab=actions&detail=%D0%B4%D0%BB%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9-%D0%BE%D1%82%D0%B4%D1%8B%D1%85"
+          },
+          {
+            "name": "Заклинания",
+            "route": "#/db?tab=actions&detail=%D0%B7%D0%B0%D0%BA%D0%BB%D0%B8%D0%BD%D0%B0%D0%BD%D0%B8%D1%8F"
+          },
+          {
+            "name": "Исследование",
+            "route": "#/db?tab=actions&detail=%D0%B8%D1%81%D1%81%D0%BB%D0%B5%D0%B4%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Концентрация",
+            "route": "#/db?tab=actions&detail=%D0%BA%D0%BE%D0%BD%D1%86%D0%B5%D0%BD%D1%82%D1%80%D0%B0%D1%86%D0%B8%D1%8F"
+          },
+          {
+            "name": "Короткий отдых",
+            "route": "#/db?tab=actions&detail=%D0%BA%D0%BE%D1%80%D0%BE%D1%82%D0%BA%D0%B8%D0%B9-%D0%BE%D1%82%D0%B4%D1%8B%D1%85"
+          },
+          {
+            "name": "Лечение ран",
+            "route": "#/db?tab=actions&detail=%D0%BB%D0%B5%D1%87%D0%B5%D0%BD%D0%B8%D0%B5-%D1%80%D0%B0%D0%BD"
+          },
+          {
+            "name": "Медитация",
+            "route": "#/db?tab=actions&detail=%D0%BC%D0%B5%D0%B4%D0%B8%D1%82%D0%B0%D1%86%D0%B8%D1%8F"
+          },
+          {
+            "name": "Оборона",
+            "route": "#/db?tab=actions&detail=%D0%BE%D0%B1%D0%BE%D1%80%D0%BE%D0%BD%D0%B0"
+          },
+          {
+            "name": "Передвижение",
+            "route": "#/db?tab=actions&detail=%D0%BF%D0%B5%D1%80%D0%B5%D0%B4%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Поиск Скрытого Противника",
+            "route": "#/db?tab=actions&detail=%D0%BF%D0%BE%D0%B8%D1%81%D0%BA-%D1%81%D0%BA%D1%80%D1%8B%D1%82%D0%BE%D0%B3%D0%BE-%D0%BF%D1%80%D0%BE%D1%82%D0%B8%D0%B2%D0%BD%D0%B8%D0%BA%D0%B0"
+          },
+          {
+            "name": "Поиск Слабого Места",
+            "route": "#/db?tab=actions&detail=%D0%BF%D0%BE%D0%B8%D1%81%D0%BA-%D1%81%D0%BB%D0%B0%D0%B1%D0%BE%D0%B3%D0%BE-%D0%BC%D0%B5%D1%81%D1%82%D0%B0"
+          },
+          {
+            "name": "Починка",
+            "route": "#/db?tab=actions&detail=%D0%BF%D0%BE%D1%87%D0%B8%D0%BD%D0%BA%D0%B0"
+          },
+          {
+            "name": "Преодоление",
+            "route": "#/db?tab=actions&detail=%D0%BF%D1%80%D0%B5%D0%BE%D0%B4%D0%BE%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Скрыться",
+            "route": "#/db?tab=actions&detail=%D1%81%D0%BA%D1%80%D1%8B%D1%82%D1%8C%D1%81%D1%8F"
+          },
+          {
+            "name": "Создание",
+            "route": "#/db?tab=actions&detail=%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5"
+          },
+          {
+            "name": "Создание Метамагии",
+            "route": "#/db?tab=actions&detail=%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5-%D0%BC%D0%B5%D1%82%D0%B0%D0%BC%D0%B0%D0%B3%D0%B8%D0%B8"
+          },
+          {
+            "name": "Создание Спотнанного Заклинания",
+            "route": "#/db?tab=actions&detail=%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5-%D1%81%D0%BF%D0%BE%D1%82%D0%BD%D0%B0%D0%BD%D0%BD%D0%BE%D0%B3%D0%BE-%D0%B7%D0%B0%D0%BA%D0%BB%D0%B8%D0%BD%D0%B0%D0%BD%D0%B8%D1%8F"
+          },
+          {
+            "name": "Спасбросок",
+            "route": "#/db?tab=actions&detail=%D1%81%D0%BF%D0%B0%D1%81%D0%B1%D1%80%D0%BE%D1%81%D0%BE%D0%BA"
+          },
+          {
+            "name": "Стабилизация",
+            "route": "#/db?tab=actions&detail=%D1%81%D1%82%D0%B0%D0%B1%D0%B8%D0%BB%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F"
+          },
+          {
+            "name": "Удар",
+            "route": "#/db?tab=actions&detail=%D1%83%D0%B4%D0%B0%D1%80"
+          },
+          {
+            "name": "Фокус",
+            "route": "#/db?tab=actions&detail=%D1%84%D0%BE%D0%BA%D1%83%D1%81"
+          }
+        ]
+      },
+      {
+        "label": "Новые основы системы",
+        "items": [
+          {
+            "name": "Абстрактные Категории",
+            "route": "#/db?tab=basics&detail=abstract-categories"
+          },
+          {
+            "name": "Архетипы",
+            "route": "#/db?tab=basics&detail=archetypes"
+          },
+          {
+            "name": "Базовые Действия",
+            "route": "#/db?tab=basics&detail=actions"
+          },
+          {
+            "name": "Введение",
+            "route": "#/db?tab=basics&detail=intro"
+          },
+          {
+            "name": "Долгосрочные Проекты",
+            "route": "#/db?tab=basics&detail=long-term-projects"
+          },
+          {
+            "name": "Компоненты Боевой Системы",
+            "route": "#/db?tab=basics&detail=combat"
+          },
+          {
+            "name": "Критический Успех",
+            "route": "#/db?tab=basics&detail=critical-success"
+          },
+          {
+            "name": "Метамагия",
+            "route": "#/db?tab=basics&detail=metamagic"
+          },
+          {
+            "name": "Повышение Уровня",
+            "route": "#/db?tab=basics&detail=leveling"
+          },
+          {
+            "name": "Раны",
+            "route": "#/db?tab=basics&detail=wounds"
+          },
+          {
+            "name": "Ритуалы",
+            "route": "#/db?tab=basics&detail=rituals"
+          },
+          {
+            "name": "Создание Персонажа",
+            "route": "#/db?tab=basics&detail=creation"
+          },
+          {
+            "name": "Спонтанные Заклинания",
+            "route": "#/db?tab=basics&detail=spontaneous-spells"
+          },
+          {
+            "name": "Учебные Заклинания",
+            "route": "#/db?tab=basics&detail=study-spells"
+          },
+          {
+            "name": "Фирменные Заклинания",
+            "route": "#/db?tab=basics&detail=signature-spells"
+          },
+          {
+            "name": "Характеристики",
+            "route": "#/db?tab=basics&detail=stats"
+          },
+          {
+            "name": "Экипировка",
+            "route": "#/db?tab=basics&detail=equipment"
+          },
+          {
+            "name": "Эффекты",
+            "route": "#/db?tab=basics&detail=effects"
+          }
+        ]
+      },
+      {
+        "label": "Новые навыки",
+        "items": []
+      },
+      {
+        "label": "Новые типы действий",
+        "items": []
+      },
+      {
+        "label": "Новые компоненты боевой системы",
+        "items": []
+      }
+    ],
+    "stats": null
   }
 ]

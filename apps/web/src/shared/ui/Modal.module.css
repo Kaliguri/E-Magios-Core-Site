@@ -15,15 +15,23 @@
   border-radius: var(--radius-lg);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
   width: 100%;
-  max-width: 600px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-.wide {
+.md {
+  max-width: 600px;
+}
+
+.lg {
   max-width: 900px;
+}
+
+/* Legacy spell-popup width — the reference style for detail popups. */
+.xl {
+  max-width: 1040px;
 }
 
 .header {
@@ -60,7 +68,28 @@
 .body {
   padding: var(--spacing-md);
   overflow-y: auto;
+  overscroll-behavior: contain;
   flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg-elevated) var(--bg-secondary);
+}
+
+.body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.body::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.body::-webkit-scrollbar-thumb {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+}
+
+.body::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
 }
 
 .footer {
