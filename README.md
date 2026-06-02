@@ -1,435 +1,256 @@
-# E'Magios Core — Официальный сайт
+# E'Magios Core Site
 
-Официальный веб-сайт настольной ролевой системы **E'Magios Core**.
+Официальный сайт и инженерный контур проекта E'Magios Core.
 
-**Live Site:** [https://kaliguri.github.io/E-Magios-Core-Site/](https://kaliguri.github.io/E-Magios-Core-Site/) *(после настройки GitHub Pages)*
+Live: [https://kaliguri.github.io/E-Magios-Core-Site/](https://kaliguri.github.io/E-Magios-Core-Site/)
 
-## О проекте
+## Текущее состояние и целевая архитектура
 
-E'Magios Core — это настольная ролевая система о магах, которые создают свои уникальные заклинания и исследуют мир магии.
+Проект развивается как гибрид:
 
-Этот сайт включает:
-- **Player's Handbook** — правила для игроков (11 глав, защищено паролем **147**)
-- **Spellbook** — 41 школа магии, типология, метамагия (защищено паролем **147**)
-- **Master's Handbook** — руководство для мастера (защищено паролем **147**)
-- **Craftbook** — ремёсла и создание артефактов (защищено паролем **147**)
-- **Compendium of Rumors** — дополнительные материалы (защищено паролем **147**)
-- **Новости** — лента крупных обновлений сайта с перечнями изменений и статистикой (страница `news.html`)
-- **Редактор персонажей** — создание и управление несколькими персонажами (через Google‑аккаунт)
-  - Авторизация через **Google** (Firebase Authentication)
-  - Автоматические расчёты характеристик по уровню (1–20)
-  - Сохранение и загрузка персонажей в **Firebase Firestore**, данные привязаны к `uid` Google‑аккаунта
-  - Множественные персонажи с индивидуальным управлением, клонированием, экспортом и импортом в JSON
-- **Профиль** — страница пользователя (Google Auth + Firestore)
-  - Просмотр и изменение отображаемого имени
-  - Просмотр email и аватара из Google‑аккаунта
-  - Быстрый переход к редактору персонажей и базе данных
-- **База данных** — поиск и фильтрация нескольких типов данных из книг правил
-  - **Основы системы** — быстрые ссылки на ключевые главы PHB (Введение, Создание персонажа, Характеристики и др.)
-  - **Заклинания** (103 шт) — поддержка групп заклинаний и подзаклинаний, мультишколы, фильтры по типу, типу действия, школе, типу урона, концентрации и Требуемому Уровню
-  - **Школы Магии** (38 шт) — фильтры по редкости, свойствам, сложности; связи «Конклав ↔ Часть Конклава»
-  - **Эффекты** (17 шт) — фильтры по типу действия, аккуратная разбивка описаний на абзацы
-  - **Архетипы** (13 шт) — поиск по названию, улучшенное отображение описаний и улучшений
-  - **Базовые Действия** и **Действия Отдыха** (19 шт суммарно) — единый раздел с фильтром по типу действия
-  - **Навыки** (10 шт) — единый раздел для навыков Личности и Магии, уровни навыков оформлены отдельными подзаголовками
-  - **Типы Действий** (12 шт) — справочник по видам действий с примерами режимов (например, «Автоматон»)
-  - **Компоненты Боевой системы** (18 шт) — справочник по ключевым элементам боевой системы с привязкой к разделам PHB
-  - Детальные страницы с полной информацией и ссылками на правила
-  - Интерактивные связи между объектами (школы ↔ заклинания, типы действий ↔ заклинания, эффекты ↔ заклинания)
-  - Модальное окно фильтров с кнопками‑тегами и управлением «Применить / Отменить / Очистить»
-  - Кастомные скроллбары и блокировка прокрутки фона при открытых поп‑апах
+- legacy-контент в корне репозитория (статические книги);
+- SPA на React в `apps/web`;
+- контентный контур импорта в `scripts/import-content`;
+- backend через Firebase Auth + Firestore;
+- публикация через GitHub Pages.
 
-## Технологии
+```mermaid
+flowchart TD
+  ContentSource[MarkdownAndJsonSources] --> ImportScripts[ImportScripts]
+  ImportScripts --> DraftDocs[StatusDraft]
+  DraftDocs --> ReviewDocs[StatusReview]
+  ReviewDocs --> PublishedDocs[StatusPublished]
+  PublishedDocs --> FirestoreRuntime[FirestoreRuntime]
+  FirestoreRuntime --> WebApp[ReactWebApp]
+  WebApp --> IndexedDBCache[IndexedDBCache]
+  WebApp --> OpsMetrics[OpsMetricsPage]
+  DevPush[DeveloperPushOrPR] --> CIQualityGate[CIQualityGate]
+  CIQualityGate --> DeployPages[DeployGitHubPages]
+```
 
-- **HTML5** + **CSS3** + **Vanilla JavaScript**
-- Без фреймворков, без зависимостей, без сборщиков
-- Темная тема с изумрудными акцентами
-- Полностью статический сайт
-- **Динамическая генерация компонентов** — sidebar генерируется JavaScript для избежания дублирования кода
+## Репозиторная структура
 
-### Почему нет дублирования кода?
+```text
+E-Magios-Core-Site/
+├── apps/web/                    # React + TypeScript + Vite
+├── scripts/import-content/      # import + workflow + smoke checks
+├── scripts/data-pipeline/       # normalize/validate/relations/report
+├── data/                        # source JSON for import scripts
+├── reports/                     # generated validation/data reports
+├── dashboard.html               # legacy dashboard page
+├── dashboard.js                 # legacy dashboard logic
+├── .github/workflows/           # CI and deploy workflows
+├── firestore.rules              # access model and roles
+├── firestore.indexes.json       # firestore indexes
+└── README.md
+```
 
-Вместо копирования HTML sidebar на каждую страницу, используется **JavaScript генерация** в `common.0c2bb10e.js`:
+## Quality Gate
 
-```javascript
-function initSidebar() {
-  const sidebarHTML = `...`;
-  document.querySelector('.page-with-sidebar').insertAdjacentHTML('afterbegin', sidebarHTML);
+`apps/web`:
+
+- `npm run lint`
+- `npm run format:check`
+- `npm run typecheck`
+- `npm run test`
+- `npm run check` (агрегатор)
+
+`scripts/import-content`:
+
+- `npm run typecheck`
+- `npm run smoke`
+- `npm run check` (агрегатор)
+
+`scripts/data-pipeline`:
+
+- `python scripts/data-pipeline/process_data.py`
+- `python scripts/data-pipeline/process_data.py --include-normalize`
+- `python scripts/data-pipeline/process_data.py --strict`
+
+## CI/CD
+
+### CI (`.github/workflows/ci.yml`)
+
+На `pull_request` и `push` в `main/dev`:
+
+1. Установка зависимостей `apps/web` и `scripts/import-content`.
+2. `apps/web`: `npm run check`, `npm run build`.
+3. `scripts/import-content`: `npm run check`.
+4. `scripts/data-pipeline`: генерация `reports/validation_report.json` и `reports/data_report.json`.
+5. Проверка существования report-артефактов.
+
+### CD (`.github/workflows/deploy.yml`)
+
+На `push` в `main`:
+
+1. Build `apps/web`.
+2. Публикация `dist-react` в GitHub Pages.
+
+## Контентный workflow
+
+Поддерживаемые статусы:
+
+- `draft`
+- `review`
+- `published`
+- `archived`
+
+Переходы выполняются через `scripts/import-content/content-workflow.ts`.
+
+Готовые команды:
+
+```bash
+cd scripts/import-content
+npm run workflow:submit-review
+npm run workflow:publish
+npm run workflow:archive
+```
+
+Кастомный запуск:
+
+```bash
+npx tsx content-workflow.ts --from=draft --to=review --role=author --actorId=<id> --collection=spells --changeSummary="Batch update"
+```
+
+Аудит переходов пишется в `content_publication_log`.
+
+## Версионирование контента
+
+Версионирование реализовано в import-скриптах:
+
+- `doc.version` увеличивается только при реальном изменении payload;
+- неизмененные документы сохраняют прежнюю версию;
+- манифест `contentManifest/production` обновляет:
+  - `collections.<name>.version`
+  - `contentRevision`
+  - `release.version`
+  - `release.tag`
+  - `release.changedCollections`
+  - `release.changedDocs`
+
+По умолчанию импорт выставляет `status=draft`. Можно переопределить:
+
+```bash
+IMPORT_STATUS=published npm run import:compendium
+```
+
+## Legacy data-processing и dashboard
+
+Data-processing pipeline:
+
+```bash
+python scripts/data-pipeline/process_data.py
+```
+
+Pipeline создает:
+
+- `reports/validation_report.json`
+- `reports/data_report.json`
+- `reports/data_report.html`
+
+Схема отчета зафиксирована в `scripts/data-pipeline/report_schema.md` (`schemaVersion: 1.0.0`).
+
+Legacy dashboard:
+
+- страница: `dashboard.html`
+- источник метрик качества/контента: `reports/data_report.json`
+- источник метрик бросков:
+  - при наличии localStorage событий: `diceRollEventsLegacy`
+  - иначе fallback на блок `dice` в `reports/data_report.json`
+
+Формат локального dice-события:
+
+```json
+{
+  "eventId": "uuid",
+  "userId": "uid_or_anonymous",
+  "characterId": "optional",
+  "diceType": "d12",
+  "sides": 12,
+  "result": 9,
+  "modifier": 0,
+  "total": 11,
+  "context": "arcana|hit|apply|other",
+  "sessionId": "session-id",
+  "createdAt": 1717330000000,
+  "appVersion": "legacy-site"
 }
 ```
 
-**Преимущества:**
-- ✅ Один источник правды — изменения в одном месте (`common.0c2bb10e.js`)
-- ✅ Автоматическая подсветка активной страницы
-- ✅ Нет дублирования кода
-- ✅ Сохраняет Vanilla JS подход (без фреймворков)
+## Observability MVP
 
-**Альтернативы, которые НЕ работают на GitHub Pages:**
-- ❌ PHP includes
-- ❌ Server Side Includes (SSI)
-- ❌ Фреймворки (по правилам проекта)
+Бесплатный контур наблюдаемости:
 
-## Исходные материалы
+- `ErrorBoundary` фиксирует UI-сбои в `client_telemetry`;
+- роутинг пишет `page_view` telemetry;
+- загрузки данных пишут `cache_hit`, `data_fetch_success`, `data_fetch_error`;
+- служебная страница `/ops` показывает:
+  - последние telemetry события;
+  - последние публикационные логи;
+  - агрегированную сводку по типам telemetry событий.
 
-Контент для сайта берётся из приватного репозитория Obsidian Vault:
-- **Исходный репозиторий:** [Obsidian-Vault](https://github.com/Kaliguri/Obsidian-Vault) *(приватный)*
-- 📁 **Локальный путь:** `C:\Users\Kaliguri\Documents\Obsidian Vault\E'Magios Core\`
-- 📋 **Требования к оформлению:** `E'Magios Core/099. Требования к оформлению.md`
+## Безопасность и роли
 
-### Автоматизация: Python скрипты парсинга
+`firestore.rules` поддерживают роли:
 
-JSON данные генерируются автоматически из Markdown файлов Obsidian:
+- `author`
+- `editor`
+- `admin`
 
-```bash
-# Парсинг школ магии (38 школ)
-python parse_schools.py
+Для контентных коллекций:
 
-# Парсинг заклинаний (103 заклинания)
-python parse_spells.py
+- публичное чтение только `status == "published"`;
+- create/update ограничены ролью и допустимыми переходами статусов;
+- `content_publication_log` и `client_telemetry` читаются только `editor/admin`;
+- `client_telemetry` допускает `create` только для авторизованных пользователей.
 
-# Парсинг эффектов (17 эффектов)
-python parse_effects.py
+## Локальный запуск
 
-# Парсинг архетипов (13 архетипов)
-python parse_archetypes.py
-
-# Парсинг базовых и отдыховых действий (19 действий)
-python parse_actions.py
-
-# Парсинг навыков личности и магии (10 навыков)
-python parse_skills.py
-
-# Парсинг типов действий (12 типов)
-python parse_action_types.py
-
-# Парсинг компонентов боевой системы (18 компонентов)
-python parse_combat_components.py
-```
-
-**Подробнее:** См. `PARSING_SCRIPTS.md` для полной документации по скриптам
-
-**Что парсят скрипты:**
-- Извлекают параметры, описания, принципы, особенности
-- Конвертируют wikilinks из Obsidian в связи между объектами
-- Генерируют корректные JSON файлы в `data/`:
-  - `spells.json`, `schools.json`, `effects.json`
-  - `archetypes.json`, `actions.json`, `skills.json`
-  - `action_types.json`, `combat_components.json`
-
-**Важно:** Не редактируйте JSON файлы вручную! Используйте скрипты парсинга.
-
-## Структура проекта
-
-```
-E-Magios-Core-Site/
-├── index.html              # Главная страница
-├── news.html               # Раздел «Новости» (история изменений)
-├── profile.html            # Профиль пользователя (Google Auth + Firestore)
-├── phb/                    # Player's Handbook (11 глав, пароль: 147)
-│   ├── intro.html
-│   ├── creation.html
-│   └── ...
-├── spellbook/              # Spellbook (пароль: 147)
-│   ├── intro.html
-│   ├── schools.html        # 41 школа магии
-│   └── ...
-├── master/                 # Master's Handbook (пароль: 147)
-├── craftbook/              # Craftbook (пароль: 147)
-├── rumors/                 # Compendium of Rumors (пароль: 147)
-├── character-editor.html   # Редактор персонажей
-├── db.html                 # База данных
-├── styles.c4c5979f.css              # Глобальные стили (360px sidebar)
-├── common.0c2bb10e.js               # Общие функции (sidebar, защита паролем и навигация)
-├── auth.ac2305e2.js                 # Логика авторизации через Google (Firebase Auth, общая для страниц)
-├── news.1e5e8571.js                 # Логика раздела «Новости» (списки изменений и статистика)
-├── character-editor.ff343e13.js     # Логика редактора персонажей (расчёт статов, работа с Firestore)
-├── db.01f5a923.js                   # Логика базы данных (фильтры, детальные страницы, ссылки)
-├── data/
-│   ├── spells.json         # Заклинания (103 шт, парсится из Obsidian)
-│   ├── schools.json        # Школы магии (38 шт, парсится из Obsidian)
-│   ├── effects.json        # Эффекты (17 шт, парсится из Obsidian)
-│   ├── archetypes.json     # Архетипы (13 шт, парсится из Obsidian)
-│   ├── actions.json        # Базовые действия и Действия Отдыха (19 шт, парсится из Obsidian)
-│   ├── skills.json         # Навыки личности и магии (10 шт, парсится из Obsidian)
-│   ├── action_types.json   # Типы действий (12 шт, парсится из Obsidian)
-│   └── combat_components.json # Компоненты боевой системы (18 шт, парсится из Obsidian)
-├── parse_schools.py        # Скрипт парсинга школ магии
-├── parse_spells.py         # Скрипт парсинга заклинаний
-├── parse_effects.py        # Скрипт парсинга эффектов
-├── parse_archetypes.py     # Скрипт парсинга архетипов
-├── parse_actions.py        # Скрипт парсинга базовых действий и Действий Отдыха
-├── parse_skills.py         # Скрипт парсинга навыков Личности и Магии
-├── parse_action_types.py   # Скрипт парсинга типов действий
-├── parse_combat_components.py # Скрипт парсинга компонентов боевой системы
-├── convert_md_to_html.py   # Скрипт конвертации глав из MD → HTML с поддержкой wikilinks
-├── link_resolver.py        # Общая логика резолвинга wikilinks в ссылки сайта
-├── CONTENT_SOURCE.md       # Как MD-файлы сопоставлены HTML страницам
-├── PARSING_SCRIPTS.md      # Документация по скриптам
-├── .cursorrules            # Правила для Cursor AI
-├── .nojekyll               # Для GitHub Pages
-└── README.md               # Этот файл
-```
-
-## Локальная разработка
-
-### Запуск локального сервера
+Web:
 
 ```bash
-# Python 3
-cd C:\Gamedev\E-Magios-Core-Site
+cd apps/web
+npm install
+npm run dev
+```
+
+Import scripts:
+
+```bash
+cd scripts/import-content
+npm install
+npm run check
+```
+
+Data processing:
+
+```bash
+python scripts/data-pipeline/process_data.py --no-fail-on-errors
+```
+
+Legacy static preview:
+
+```bash
 python -m http.server 8000
-
-# Затем откройте http://localhost:8000
 ```
 
-**Важно:** Всегда тестируйте через локальный сервер (`http://`), а не через `file://` протокол!
+Открыть:
 
-### Проверка изменений
+- `http://localhost:8000/dashboard.html`
+- `http://localhost:8000/reports/data_report.html`
 
-1. Внесите изменения в HTML/CSS/JS файлы
-2. Обновите страницу в браузере (Ctrl+F5 для жесткого обновления)
-3. Проверьте консоль браузера (F12) на ошибки
+Для импорта в Firestore нужен `scripts/import-content/service-account.json`.
 
-### Версионирование статики (Cache Busting)
+## Roadmap (следующий этап)
 
-Dev:
-- Страницы подключают файлы с `?v=<hash>`; хэши проставляет `python assets_version.py --query`. Запускайте после любых правок JS/CSS, чтобы браузер не тянул кеш.
-- Для быстрой отладки достаточно Ctrl+F5 или включить Disable cache в DevTools.
+1. Добавить отдельный admin UI для ручного управления переходами статусов.
+2. Вынести часть контентного workflow в server-side функции.
+3. Добавить тесты для `content-workflow.ts` и versioning-логики import scripts.
+4. Расширить Ops-дэшборд до метрик периодов (DAU/WAU/MAU и publish lead time).
 
-Prod:
-- Перед выкладкой обязательно прогоняйте `python assets_version.py --query`, чтобы обновились хэши во всех ссылках и import'ах модулей.
-- Полный режим с переименованием (хэш в имени) локально не используем; включайте только если нужна immutable-копия на прод.
+## Референсы
 
-Подсказки:
-```bash
-# Проставить ?v=<hash> в HTML/MD
-python assets_version.py --query
+Для архитектурных паттернов и организационных решений использовались:
 
-# Посмотреть, что изменится
-python assets_version.py --dry-run
-```
-
-Скрипт обновляет ссылки в HTML/README и в режиме `--query` также добавляет `?v=<hash>` в import-выражения JS. В dev хэш-файлы не коммитим.
-
-## Развёртывание на GitHub Pages
-
-### Первоначальная настройка
-
-1. **Инициализируйте Git репозиторий:**
-   ```bash
-   cd C:\Gamedev\E-Magios-Core-Site
-   git init
-   git add .
-   git commit -m "Initial commit: E'Magios Core website"
-   ```
-
-2. **Подключите к GitHub:**
-   ```bash
-   git remote add origin https://github.com/Kaliguri/E-Magios-Core-Site.git
-   git branch -M main
-   git push -u origin main
-   ```
-
-3. **Настройте GitHub Pages:**
-   - Откройте: **Settings** → **Pages**
-   - **Source**: `Deploy from a branch`
-   - **Branch**: `main` → **Folder**: `/ (root)`
-   - Нажмите **Save**
-
-4. **Сайт будет доступен через 1-2 минуты:**
-   ```
-   https://kaliguri.github.io/E-Magios-Core-Site/
-   ```
-
-### Обновление сайта
-
-```bash
-# 1. Внесите изменения в файлы
-
-# 2. Закоммитьте изменения
-git add .
-git commit -m "Update: описание изменений"
-
-# 3. Отправьте на GitHub
-git push origin main
-
-# 4. Через 1-2 минуты изменения появятся на сайте
-```
-
-## Работа с контентом
-
-### Обновление JSON данных
-
-**НЕ редактируйте JSON файлы вручную!** Используйте Python скрипты:
-
-```bash
-# Обновить школы магии из Obsidian
-python parse_schools.py
-
-# Обновить заклинания из Obsidian
-python parse_spells.py
-
-# Обновить эффекты из Obsidian
-python parse_effects.py
-```
-
-Скрипты автоматически:
-- Читают Markdown файлы из Obsidian Vault
-- Парсят параметры, описания, принципы, особенности
-- Конвертируют wikilinks в связи
-- Генерируют корректные JSON файлы
-
-**Подробнее:** См. `PARSING_SCRIPTS.md`
-
-### Конвертация Markdown → HTML
-
-Для глав книг (PHB, Spellbook и т.д.) можно использовать скрипт `convert_md_to_html.py`, который:
-
-- Конвертирует заголовки, списки, таблицы и базовое форматирование Markdown.
-- Автоматически резолвит wikilinks (`[[...]]`) в:
-  - ссылки на главы и разделы PHB (`phb/*.html#anchor`);
-  - ссылки на объекты базы данных (`db.html?spell=...`, `db.html?school=...`, `db.html?effect=...`).
-
-Пример использования:
-
-```bash
-python convert_md_to_html.py "<input_md>" <output_html> <book_code> <chapter_id> [title]
-```
-
-Если нужен ручной контроль, можно по-прежнему:
-
-1. Открыть исходный MD файл в Obsidian Vault.
-2. Конвертировать фрагмент вручную, следуя `099. Требования к оформлению.md`.
-3. Вставить HTML в нужный файл главы и обновить TOC при необходимости.
-
-### Обновление защищённых страниц
-
-Пароль для PHB/Spellbook/Master's/Craftbook/Rumors: **147**
-
-Пароль сохраняется в `localStorage`. Для сброса используйте кнопку 🔓 в правом верхнем углу.
-
-Если нужно изменить пароль, отредактируйте `MASTER_PASSWORD` в `config.js?v=66e2681e
-
-## Возможности
-
-### Редактор персонажей
-- ✅ Автоматический расчёт характеристик по уровню (1-20)
-- ✅ Все таблицы: Навыки Магии, Навыки Личности
-- ✅ Динамические списки заклинаний
-- ✅ **Множественные персонажи:**
-  - Сохранение нескольких персонажей в localStorage
-  - Список с кнопками: Загрузить, Экспорт, Удалить
-  - Автоматическая миграция старых данных
-- ✅ **Разделённые действия:**
-  - "Сохранить на сайте" → localStorage
-  - "Экспортировать в JSON" → скачать файл
-  - "Импортировать из JSON" → загрузить файл
-- ✅ Все действия без alert/confirm
-
-### База данных
-- ✅ **Пять разделов:** Заклинания (52 шт), Школы Магии (38 шт), Эффекты (12 шт), Архетипы (12 шт), Базовые Действия (13 шт)
-- ✅ **Интерфейс фильтров (вдохновлён TTG.club):**
-  - Большое модальное окно с фиксированным заголовком и футером
-  - Кнопки-теги вместо чекбоксов (тёмно-изумрудный цвет при активации)
-  - Сворачиваемые категории фильтров
-  - Кнопки "Выбрать все" и "Снять все" в каждой категории
-  - Трёхкнопочное управление: Применить, Отменить, Очистить
-  - Отложенное применение фильтров (только по кнопке "Применить")
-- ✅ **Фильтры для заклинаний:**
-  - Название (текстовый поиск)
-  - Тип (Атака, Защита, Контроль, Поддержка)
-  - Источник (Учебное, Фирменное)
-  - Школа (все 41 школа магии)
-  - Тип урона (Аркана, Физический, и др.)
-  - Концентрация (Да, Нет)
-- ✅ **Фильтры для школ магии:**
-  - Название (текстовый поиск)
-  - Редкость (Редкая, Эпическая, Скрытая)
-  - Свойства (Конклав, Часть Конклава, Запретная)
-  - Сложность (★ до ★★★★★)
-- ✅ **Фильтры для эффектов:**
-  - Название (текстовый поиск)
-  - Тип Действия (Обычный, Относительное)
-- ✅ **Поиск для архетипов и базовых действий:** по названию, с детальными страницами
-- ✅ **Сортировка:** По всем колонкам (клик на заголовок)
-- ✅ **Детальные страницы:**
-  - Параметры, Описание, Принципы, Особенности
-  - Интерактивные связи (Конклавы ↔ Части)
-  - Кликабельные ссылки между объектами
-  - Возврат к списку через кнопку "← Назад"
-- ✅ **Кастомные скроллбары** в модальном окне
-- ✅ **Fallback данные** при ошибке загрузки JSON
-
-### Защита контента
-- ✅ Модальное окно с названием книги
-- ✅ Сохранение доступа в **localStorage** (между сессиями)
-- ✅ Кнопка сброса пароля (🔓) в правом верхнем углу
-  - Видна при наведении
-  - Доступна на всех страницах
-
-### Дизайн
-- ✅ Темная тема с изумрудными акцентами
-- ✅ Адаптивный sidebar (360px → 320px → 100%)
-- ✅ Динамическая генерация sidebar через JavaScript
-- ✅ Кастомные скроллбары
-- ✅ Плавные переходы и анимации
-
-## Планы развития
-
-### Ближайшие планы
-- [ ] Добавить больше заклинаний в Obsidian Vault
-- [ ] Конвертировать оставшиеся главы Master's Handbook
-- [ ] Заполнить Craftbook
-- [ ] Добавить материалы в Compendium of Rumors
-- [ ] Улучшить мобильную версию
-
-### Долгосрочные планы
-- [x] Авторизация через Google (Firebase Authentication) для редактора персонажей
-- [ ] Облачное хранение персонажей (Firestore)
-- [ ] Синхронизация между устройствами
-- [ ] Веб-приложение для игры онлайн
-- [ ] Экспорт персонажей в PDF
-- [ ] Переключатель тёмной/светлой темы
-
-## Документация для разработчиков
-
-### Основные файлы документации:
-- **`.cursorrules`** — полные правила разработки, архитектурные решения, структура данных
-- **`PARSING_SCRIPTS.md`** — документация по Python скриптам парсинга данных
-
-### Ключевые принципы:
-- Никаких фреймворков (React, Vue и т.д.)
-- Никаких сборщиков (webpack, vite и т.д.)
-- Никаких зависимостей (npm packages)
-- ✅ Только чистый HTML/CSS/JavaScript
-- ✅ Работает везде без настройки
-- ✅ Простота и читаемость кода
-
-### Общие модули:
-- `config.66e2681e.js` — базовые константы (пароль, ключи)
-- `books.10fb81c2.js` — структура книг/глав для сайдбара
-- `access.6fbab4d2.js` — защита паролем и кнопка сброса
-- `sidebar.7885c7a9.js` — генерация сайдбара
-- `scroll.7df88915.js` — якоря и кнопка наверх
-- `common.0c2bb10e.js` — точка входа (type="module"), экспортирует нужные глобалы в `window`
-
-### Обновление контента:
-1. Редактируйте Markdown файлы в Obsidian Vault
-2. Запустите Python скрипты для JSON: `python parse_schools.py`, `python parse_spells.py`, `python parse_effects.py`
-3. Конвертируйте новые страницы из MD в HTML вручную
-4. Закоммитьте изменения и запушьте на GitHub
-
-## Лицензия
-
-Контент системы E'Magios Core защищён авторским правом.
-
-Код сайта распространяется под лицензией MIT.
-
-## Контакты
-
-- **GitHub Issues:** [Создать issue](https://github.com/Kaliguri/E-Magios-Core-Site/issues)
-- **Основной репозиторий:** [Obsidian Vault](https://github.com/Kaliguri/Obsidian-Vault) *(приватный)*
-
----
-
-**E'Magios Core** — система о магах, создающих свои уникальные заклинания.
+- [Posleslovie](https://github.com/Kaliguri/Posleslovie)
+- [Guildmaster-Autobattler](https://github.com/Kaliguri/Guildmaster-Autobattler)

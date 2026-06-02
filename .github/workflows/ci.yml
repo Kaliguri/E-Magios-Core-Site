@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            apps/web/package-lock.json
+            scripts/import-content/package-lock.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: npm ci
+
+      - name: Install import dependencies
+        working-directory: scripts/import-content
+        run: npm ci
+
+      - name: Run web quality gate
+        working-directory: apps/web
+        run: npm run check
+
+      - name: Build web app
+        working-directory: apps/web
+        run: npm run build
+
+      - name: Run import smoke checks
+        working-directory: scripts/import-content
+        run: npm run check
+
+      - name: Run data-processing pipeline
+        run: python scripts/data-pipeline/process_data.py --no-fail-on-errors
+
+      - name: Validate report artifacts
+        shell: bash
+        run: |
+          test -f reports/validation_report.json
+          test -f reports/data_report.json
+          test -f reports/data_report.html
+

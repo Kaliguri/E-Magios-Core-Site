@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Дашборд данных — E'Magios Core</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="dashboard">
+  <div class="page-with-sidebar">
+    <main class="main-content main-content-wide">
+      <section class="dashboard-container">
+        <header class="dashboard-header">
+          <h1>Дашборд обработки данных</h1>
+          <p class="text-muted" id="dashboard-status">Ожидание загрузки...</p>
+        </header>
+
+        <section class="dashboard-section">
+          <div class="dashboard-section-header">
+            <h2>Quality Dashboard</h2>
+          </div>
+          <div class="dashboard-card-grid" id="quality-cards"></div>
+          <div class="dashboard-grid-two">
+            <div class="results-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Коллекция</th>
+                    <th>Errors</th>
+                    <th>Warnings</th>
+                    <th>Info</th>
+                  </tr>
+                </thead>
+                <tbody id="quality-by-collection">
+                  <tr><td colspan="4" class="no-results">Загрузка...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="dashboard-list-panel">
+              <h3>Топ правил</h3>
+              <ul id="quality-top-rules">
+                <li>Загрузка...</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="dashboard-section">
+          <div class="dashboard-section-header">
+            <h2>Content Dashboard</h2>
+          </div>
+          <div class="dashboard-card-grid" id="content-cards"></div>
+          <div class="dashboard-list-panel">
+            <h3>Распределение заклинаний по школам</h3>
+            <div id="content-school-bars"></div>
+          </div>
+        </section>
+
+        <section class="dashboard-section">
+          <div class="dashboard-section-header">
+            <h2>Dice Analytics Dashboard</h2>
+            <p class="text-muted" id="dice-source"></p>
+          </div>
+          <div class="dashboard-card-grid" id="dice-cards"></div>
+          <div class="results-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Dice</th>
+                  <th>Rolls</th>
+                  <th>Avg</th>
+                  <th>Theoretical Avg</th>
+                  <th>Delta</th>
+                  <th>Crit fail</th>
+                  <th>Crit success</th>
+                </tr>
+              </thead>
+              <tbody id="dice-metrics">
+                <tr><td colspan="7" class="no-results">Загрузка...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="results-table dashboard-user-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Dice</th>
+                  <th>User Avg</th>
+                  <th>Global Avg</th>
+                  <th>Delta</th>
+                </tr>
+              </thead>
+              <tbody id="dice-user-vs-global">
+                <tr><td colspan="5" class="no-results">Загрузка...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <button id="scroll-to-top" class="scroll-to-top" aria-label="Наверх" title="Scroll to top">↑</button>
+
+  <script type="module" src="common.js"></script>
+  <script defer src="dashboard.js"></script>
+</body>
+</html>

@@ -3770,3 +3770,125 @@ details[open] > .news-section-summary::after {
   background: var(--bg-elevated);
 }
 
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.dashboard-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dashboard-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dashboard-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.dashboard-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.dashboard-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.8rem;
+}
+
+.dashboard-card-title {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.dashboard-card-value {
+  margin: 0.35rem 0;
+  font-size: 1.35rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.dashboard-card-hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.dashboard-grid-two {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+}
+
+.dashboard-list-panel {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.8rem;
+}
+
+.dashboard-list-panel h3 {
+  margin-top: 0;
+}
+
+.dashboard-list-panel ul {
+  margin: 0;
+  padding-left: 1rem;
+}
+
+.dashboard-bar-item {
+  margin-bottom: 0.6rem;
+}
+
+.dashboard-bar-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.dashboard-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.dashboard-bar-fill {
+  height: 100%;
+  background: var(--accent-emerald);
+}
+
+.dashboard-user-table {
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 980px) {
+  .dashboard-grid-two {
+    grid-template-columns: 1fr;
+  }
+}
+

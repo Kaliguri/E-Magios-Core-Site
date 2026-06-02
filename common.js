@@ -270,6 +270,142 @@ const DICE_ROLLER_STATE = {
 };
 
 const DICE_SETTINGS_STORAGE_KEY = 'diceSettings';
+const DICE_HISTORY_STORAGE_KEY = 'diceHistoryLocal';
+const DICE_EVENTS_STORAGE_KEY = 'diceRollEventsLegacy';
+const DICE_EVENTS_SESSION_KEY = 'diceEventsSessionId';
+const DICE_EVENTS_MAX = 5000;
+
+function getDiceSessionId() {
+  try {
+    const saved = sessionStorage.getItem(DICE_EVENTS_SESSION_KEY);
+    if (saved) {
+      return saved;
+    }
+    let nextId = '';
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      nextId = crypto.randomUUID();
+    } else {
+      nextId = `session-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    }
+    sessionStorage.setItem(DICE_EVENTS_SESSION_KEY, nextId);
+    return nextId;
+  } catch (e) {
+    return `session-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+}
+
+function loadDiceLocalHistory() {
+  try {
+    const raw = localStorage.getItem(DICE_HISTORY_STORAGE_KEY);
+    if (!raw) {
+      return [];
+    }
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed.filter((entry) => entry && typeof entry === 'object').slice(-DICE_ROLLER_STATE.maxHistory);
+  } catch (e) {
+    console.error('Failed to load local dice history:', e);
+    return [];
+  }
+}
+
+function saveDiceLocalHistory(history) {
+  try {
+    const safeHistory = Array.isArray(history) ? history.slice(-DICE_ROLLER_STATE.maxHistory) : [];
+    localStorage.setItem(DICE_HISTORY_STORAGE_KEY, JSON.stringify(safeHistory));
+  } catch (e) {
+    console.error('Failed to save local dice history:', e);
+  }
+}
+
+function loadDiceEvents() {
+  try {
+    const raw = localStorage.getItem(DICE_EVENTS_STORAGE_KEY);
+    if (!raw) {
+      return [];
+    }
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed.filter((event) => event && typeof event === 'object').slice(-DICE_EVENTS_MAX);
+  } catch (e) {
+    console.error('Failed to load local dice events:', e);
+    return [];
+  }
+}
+
+function saveDiceEvents(events) {
+  try {
+    const safeEvents = Array.isArray(events) ? events.slice(-DICE_EVENTS_MAX) : [];
+    localStorage.setItem(DICE_EVENTS_STORAGE_KEY, JSON.stringify(safeEvents));
+  } catch (e) {
+    console.error('Failed to save local dice events:', e);
+  }
+}
+
+function buildDiceEventsFromEntry(entry) {
+  if (!entry || !Array.isArray(entry.parts) || !entry.parts.length) {
+    return [];
+  }
+  const createdAt =
+    typeof entry.createdAt === 'number' && Number.isFinite(entry.createdAt) ? entry.createdAt : Date.now();
+  const userId = DICE_ROLLER_STATE.user && DICE_ROLLER_STATE.user.uid ? DICE_ROLLER_STATE.user.uid : 'anonymous';
+  const characterId =
+    entry.contextCharacterId && typeof entry.contextCharacterId === 'string'
+      ? entry.contextCharacterId
+      : null;
+  const context =
+    entry.contextSource && typeof entry.contextSource === 'string'
+      ? entry.contextSource
+      : entry.contextRollType && typeof entry.contextRollType === 'string'
+      ? entry.contextRollType
+      : 'other';
+  const sessionId = getDiceSessionId();
+  const events = [];
+
+  entry.parts.forEach((part) => {
+    if (!part || !(part.kind === 'dice' || part.type === 'dice')) {
+      return;
+    }
+    const sides = Number(part.sides);
+    const rolls = Array.isArray(part.rolls) ? part.rolls : [];
+    if (!Number.isFinite(sides) || sides <= 0 || !rolls.length) {
+      return;
+    }
+    rolls.forEach((rollValue) => {
+      const result = Number(rollValue);
+      if (!Number.isFinite(result)) {
+        return;
+      }
+      const diceType = `d${Math.trunc(sides)}`;
+      let eventId = '';
+      if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        eventId = crypto.randomUUID();
+      } else {
+        eventId = `event-${createdAt}-${Math.random().toString(36).slice(2, 10)}`;
+      }
+      events.push({
+        eventId,
+        userId,
+        characterId,
+        diceType,
+        sides: Math.trunc(sides),
+        result: Math.trunc(result),
+        modifier: 0,
+        total: typeof entry.total === 'number' ? entry.total : Math.trunc(result),
+        context,
+        sessionId,
+        createdAt,
+        appVersion: 'legacy-site'
+      });
+    });
+  });
+
+  return events;
+}
 
 function loadDiceLocalSettings() {
   try {
@@ -322,7 +458,7 @@ function initDiceRoller() {
       loadDiceUserSettingsAndHistory();
     } else {
       DICE_ROLLER_STATE.db = null;
-      DICE_ROLLER_STATE.history = [];
+      DICE_ROLLER_STATE.history = loadDiceLocalHistory();
       DICE_ROLLER_STATE.historyLoaded = true;
       clearDiceCharacters();
       renderDiceHistory();
@@ -991,6 +1127,8 @@ function clearDiceHistory() {
   // Сначала очищаем локальную историю и UI
   DICE_ROLLER_STATE.history = [];
   renderDiceHistory();
+  saveDiceLocalHistory([]);
+  saveDiceEvents([]);
 
   // Если нет подключённой БД или пользователя — на этом всё
   if (!DICE_ROLLER_STATE.db || !DICE_ROLLER_STATE.user) {
@@ -1618,6 +1756,7 @@ function addDiceResultToHistory(entry, shouldPersist) {
     DICE_ROLLER_STATE.history.splice(0, overflow);
   }
   renderDiceHistory();
+  saveDiceLocalHistory(DICE_ROLLER_STATE.history);
 
   if (shouldPersist && DICE_ROLLER_STATE.db && DICE_ROLLER_STATE.user && !entry.system) {
     try {
@@ -1656,6 +1795,12 @@ function addDiceResultToHistory(entry, shouldPersist) {
     } catch (err) {
       console.error('Failed to send dice roll to Discord:', err);
     }
+  }
+
+  if (shouldPersist && !entry.system) {
+    const currentEvents = loadDiceEvents();
+    const nextEvents = currentEvents.concat(buildDiceEventsFromEntry(entry));
+    saveDiceEvents(nextEvents);
   }
 }
 
@@ -2005,7 +2150,7 @@ function sendDiceResultToDiscord(entry) {
 
 function loadDiceHistory() {
   if (!DICE_ROLLER_STATE.db || !DICE_ROLLER_STATE.user) {
-    DICE_ROLLER_STATE.history = [];
+    DICE_ROLLER_STATE.history = loadDiceLocalHistory();
     DICE_ROLLER_STATE.historyLoaded = true;
     renderDiceHistory();
     return;

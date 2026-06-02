@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Report</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #1a1a1a; color: #e0e0e0; margin: 0; padding: 24px; }
+    h1, h2 { color: #10b981; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+    .card { background: #2a2a2a; border: 1px solid #3a3a3a; border-radius: 10px; padding: 12px; }
+    .muted { color: #999999; }
+    ul { margin: 0; padding-left: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Data Processing Report</h1>
+  <p class="muted">Generated at: 2026-06-02T14:29:36.353280+00:00</p>
+
+  <h2>Quality</h2>
+  <div class="cards">
+    <div class="card"><strong>Errors</strong><div>0</div></div>
+    <div class="card"><strong>Warnings</strong><div>0</div></div>
+    <div class="card"><strong>Info</strong><div>0</div></div>
+  </div>
+
+  <h2>Content</h2>
+  <div class="cards">
+    <div class="card"><strong>Spells</strong><div>160</div></div>
+    <div class="card"><strong>Schools</strong><div>40</div></div>
+    <div class="card"><strong>Concentration %</strong><div>11.25</div></div>
+    <div class="card"><strong>Subspell %</strong><div>0.0</div></div>
+  </div>
+
+  <h2>Dice</h2>
+  <p>Status: insufficient_data</p>
+  <p class="muted">dice_roll_events.json exists but has no valid events.</p>
+</body>
+</html>

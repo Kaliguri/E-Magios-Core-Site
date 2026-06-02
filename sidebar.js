@@ -16,6 +16,7 @@ export function initSidebar() {
   const isNewsActive = currentPage === 'news' ? 'active' : '';
   const isLobbyActive = currentPage === 'lobby' ? 'active' : '';
   const isProfileActive = currentPage === 'profile' ? 'active' : '';
+  const isDashboardActive = currentPage === 'dashboard' ? 'active' : '';
 
   let sidebarHTML = `
     <aside class="sidebar" id="sidebar">
@@ -74,6 +75,7 @@ export function initSidebar() {
           <ul>
             <li><a href="${isInSubfolder ? '../character-editor.html' : 'character-editor.html'}" class="${currentPage === 'editor' ? 'active' : ''}">Редактор персонажей</a></li>
             <li><a href="${isInSubfolder ? '../db.html' : 'db.html'}" class="${currentPage === 'db' ? 'active' : ''}">База данных</a></li>
+            <li><a href="${isInSubfolder ? '../dashboard.html' : 'dashboard.html'}" class="${isDashboardActive}">Дашборд данных</a></li>
           </ul>
         </div>
       </nav>
