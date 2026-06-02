@@ -43,6 +43,14 @@ jobs:
         working-directory: apps/web
         run: npm run build
 
+      - name: Copy legacy site into build
+        run: |
+          mkdir -p dist-react/legacy
+          cp *.html *.js *.css favicon.ico dist-react/legacy/
+          for d in data craftbook master phb rumors spellbook; do
+            [ -d "$d" ] && cp -r "$d" dist-react/legacy/
+          done
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
