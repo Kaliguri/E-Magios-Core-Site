@@ -197,6 +197,7 @@ def _build_empty_dice_block(reason: str) -> Dict[str, Any]:
         "critSuccessRate": {},
         "userAvgVsGlobal": [],
         "userSummaries": [],
+        "userTypeStats": [],
         "rollTypeStats": [],
         "topRollType": None,
     }
@@ -217,6 +218,8 @@ def _build_dice_block(data_dir: Path) -> Dict[str, Any]:
 
     dice_values: Dict[str, List[int]] = defaultdict(list)
     user_dice_values: Dict[tuple[str, str], List[int]] = defaultdict(list)
+    user_type_values: Dict[tuple[str, str], List[int]] = defaultdict(list)
+    user_type_meta: Dict[tuple[str, str], Dict[str, Any]] = {}
     user_summary_values: Dict[str, Dict[str, Any]] = {}
     roll_type_values: Dict[str, List[int]] = defaultdict(list)
     roll_type_meta: Dict[str, Dict[str, Any]] = {}
@@ -264,6 +267,24 @@ def _build_dice_block(data_dir: Path) -> Dict[str, Any]:
         created_at = int(event.get("createdAt") or 0)
         if created_at > int(user_pack["lastRollAt"]):
             user_pack["lastRollAt"] = created_at
+        user_type_key = (user_id, roll_type_key)
+        user_type_values[user_type_key].append(result)
+        if user_type_key not in user_type_meta:
+            user_type_meta[user_type_key] = {
+                "userId": user_id,
+                "userDisplayName": user_display_name,
+                "rollTypeKey": roll_type_key,
+                "label": f"{_context_label(context)} {dice_type.upper()} ({expression})",
+                "context": context,
+                "diceType": dice_type,
+                "expression": expression,
+                "sides": sides,
+                "lastRollAt": created_at,
+            }
+        else:
+            meta_pack = user_type_meta[user_type_key]
+            if created_at > int(meta_pack.get("lastRollAt", 0)):
+                meta_pack["lastRollAt"] = created_at
         roll_type_values[roll_type_key].append(result)
         if roll_type_key not in roll_type_meta:
             roll_type_meta[roll_type_key] = {
@@ -337,6 +358,40 @@ def _build_dice_block(data_dir: Path) -> Dict[str, Any]:
         )
     user_summaries.sort(key=lambda row: (-row["rollsCount"], row["userDisplayName"]))
 
+    user_type_stats = []
+    for user_type_key, values in user_type_values.items():
+        if not values:
+            continue
+        meta = user_type_meta.get(user_type_key, {})
+        sides = int(meta.get("sides", 0))
+        if sides <= 0:
+            continue
+        actual_avg = round(mean(values), 4)
+        theor_avg = round((sides + 1) / 2, 4)
+        crit_fail_count = sum(1 for v in values if v == 1)
+        crit_success_count = sum(1 for v in values if v == sides)
+        user_type_stats.append(
+            {
+                "userId": meta.get("userId"),
+                "userDisplayName": meta.get("userDisplayName"),
+                "rollTypeKey": meta.get("rollTypeKey"),
+                "label": meta.get("label"),
+                "context": meta.get("context"),
+                "diceType": meta.get("diceType"),
+                "expression": meta.get("expression"),
+                "count": len(values),
+                "avg": actual_avg,
+                "theoreticalAvg": theor_avg,
+                "delta": round(actual_avg - theor_avg, 4),
+                "critFailCount": crit_fail_count,
+                "critSuccessCount": crit_success_count,
+                "critFailRate": round(crit_fail_count / len(values), 4),
+                "critSuccessRate": round(crit_success_count / len(values), 4),
+                "lastRollAt": int(meta.get("lastRollAt", 0)),
+            }
+        )
+    user_type_stats.sort(key=lambda row: (row.get("userId", ""), -row["count"], row.get("rollTypeKey", "")))
+
     roll_type_stats = []
     total_rolls = sum(rolls_count.values())
     for roll_type_key, values in roll_type_values.items():
@@ -377,6 +432,7 @@ def _build_dice_block(data_dir: Path) -> Dict[str, Any]:
         "critSuccessRate": crit_success,
         "userAvgVsGlobal": user_avg_vs_global,
         "userSummaries": user_summaries,
+        "userTypeStats": user_type_stats,
         "rollTypeStats": roll_type_stats,
         "topRollType": top_roll_type,
     }
