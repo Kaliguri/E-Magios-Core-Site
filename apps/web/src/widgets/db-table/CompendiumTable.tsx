@@ -1,6 +1,7 @@
 import type { CompendiumEntity } from '@/entities/compendium/types';
 import type { ColumnDescriptor } from '@/entities/compendium/schema';
 import type { SortState } from '@/features/db/useCompendiumSort';
+import { EmptyState } from '@/shared/ui';
 import styles from './CompendiumTable.module.css';
 
 function renderCellValue(item: CompendiumEntity, key: string): string {
@@ -29,7 +30,9 @@ export function CompendiumTable({
   onRowClick,
 }: CompendiumTableProps) {
   if (!items.length) {
-    return <div className={styles.empty}>Ничего не найдено</div>;
+    return (
+      <EmptyState icon="🔍" title="Ничего не найдено" description="Измените поиск или фильтры" />
+    );
   }
 
   return (
