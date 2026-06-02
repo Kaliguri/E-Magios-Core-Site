@@ -1,5 +1,11 @@
 const DICE_EVENTS_STORAGE_KEY = 'diceRollEventsLegacy';
 const SUPPORTED_DICE = ['d2', 'd4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100'];
+const USER_DISPLAY_NAME_BY_UID = {
+  '4BzLAuul5UOkokZiXkvMajzDkgq2': 'xGaida',
+  NgY5bTPvLohTQZsakTLTSozYbWo1: 'Vakineti',
+  fgvej6iwakMQE7hx9rxKpBecxLc2: 'Foxl',
+  hYxVKqLCrSUSyut88VXC1XvBt7t1: 'Shieldomirs'
+};
 
 const DASHBOARD_LABELS = {
   quality: {
@@ -36,11 +42,21 @@ const DASHBOARD_LABELS = {
   }
 };
 
+let userModalContext = null;
+
 function formatPercent(value) {
   if (!Number.isFinite(value)) {
     return '0%';
   }
   return `${(value * 100).toFixed(2)}%`;
+}
+
+function formatDateTime(timestamp) {
+  const date = new Date(asNumber(timestamp, 0));
+  if (Number.isNaN(date.getTime())) {
+    return '-';
+  }
+  return date.toLocaleString('ru-RU');
 }
 
 function asNumber(value, fallback = 0) {
@@ -117,6 +133,17 @@ function buildRollTypeLabel(context, diceType, expression) {
   return `${contextLabel} ${normalizedDiceType.toUpperCase()} (${normalizedExpression})`;
 }
 
+function resolveUserDisplayName(userId, row) {
+  const fromRow = String(row.userDisplayName || row.userLabel || '').trim();
+  if (fromRow) {
+    return fromRow;
+  }
+  if (USER_DISPLAY_NAME_BY_UID[userId]) {
+    return USER_DISPLAY_NAME_BY_UID[userId];
+  }
+  return userId || DASHBOARD_LABELS.dice.anonymous;
+}
+
 function loadLocalDiceEvents() {
   try {
     const raw = localStorage.getItem(DICE_EVENTS_STORAGE_KEY);
@@ -160,6 +187,7 @@ function buildEmptyDiceResult(reason) {
     critFailRate: {},
     critSuccessRate: {},
     userAvgVsGlobal: [],
+    userSummaries: [],
     rollTypeStats: [],
     topRollType: null
   };
@@ -169,6 +197,7 @@ function computeDiceFromEvents(events) {
   const groups = {};
   const userGroups = {};
   const rollGroups = {};
+  const userSummariesMap = {};
 
   events.forEach((event) => {
     if (!event || typeof event !== 'object') {
@@ -178,9 +207,11 @@ function computeDiceFromEvents(events) {
     const sides = Math.trunc(asNumber(event.sides, parseSidesFromDiceType(diceType)));
     const result = Math.trunc(asNumber(event.result, NaN));
     const userId = String(event.userId || DASHBOARD_LABELS.dice.anonymous);
+    const createdAt = Math.trunc(asNumber(event.createdAt, 0));
     const context = normalizeRollContext(event);
     const expression = String(event.expression || event.displayExpression || diceType || '').trim();
     const rollTypeKey = String(event.rollTypeKey || `${context}:${diceType}`).trim().toLowerCase();
+    const userDisplayName = resolveUserDisplayName(userId, event);
 
     if (!diceType || !Number.isFinite(result) || !Number.isFinite(sides) || sides <= 0) {
       return;
@@ -193,7 +224,7 @@ function computeDiceFromEvents(events) {
 
     const userKey = `${userId}::${diceType}`;
     if (!userGroups[userKey]) {
-      userGroups[userKey] = { userId, diceType, values: [] };
+      userGroups[userKey] = { userId, userDisplayName, diceType, values: [] };
     }
     userGroups[userKey].values.push(result);
 
@@ -208,6 +239,34 @@ function computeDiceFromEvents(events) {
       };
     }
     rollGroups[rollTypeKey].values.push(result);
+
+    if (!userSummariesMap[userId]) {
+      userSummariesMap[userId] = {
+        userId,
+        userDisplayName,
+        rollsCount: 0,
+        resultSum: 0,
+        deltaSum: 0,
+        critFailCount: 0,
+        critSuccessCount: 0,
+        lastRollAt: createdAt
+      };
+    }
+    const theoretical = (sides + 1) / 2;
+    const pack = userSummariesMap[userId];
+    pack.userDisplayName = userDisplayName;
+    pack.rollsCount += 1;
+    pack.resultSum += result;
+    pack.deltaSum += result - theoretical;
+    if (result === 1) {
+      pack.critFailCount += 1;
+    }
+    if (result === sides) {
+      pack.critSuccessCount += 1;
+    }
+    if (createdAt > pack.lastRollAt) {
+      pack.lastRollAt = createdAt;
+    }
   });
 
   const rollsCountByDiceType = {};
@@ -243,6 +302,7 @@ function computeDiceFromEvents(events) {
     const globalAvg = avgResultByDiceType[pack.diceType];
     userAvgVsGlobal.push({
       userId: pack.userId,
+      userDisplayName: pack.userDisplayName,
       diceType: pack.diceType,
       userAvg: Number(userAvg.toFixed(4)),
       globalAvg: Number(globalAvg.toFixed(4)),
@@ -271,6 +331,26 @@ function computeDiceFromEvents(events) {
       critSuccessRate: stats.successRate
     });
   });
+
+  const userSummaries = Object.values(userSummariesMap)
+    .map((pack) => ({
+      userId: pack.userId,
+      userDisplayName: pack.userDisplayName,
+      rollsCount: pack.rollsCount,
+      lastRollAt: pack.lastRollAt,
+      avgResult: Number((pack.resultSum / Math.max(pack.rollsCount, 1)).toFixed(4)),
+      avgDeltaFromTheoretical: Number((pack.deltaSum / Math.max(pack.rollsCount, 1)).toFixed(4)),
+      critFailCount: pack.critFailCount,
+      critSuccessCount: pack.critSuccessCount,
+      critFailRate: Number((pack.critFailCount / Math.max(pack.rollsCount, 1)).toFixed(4)),
+      critSuccessRate: Number((pack.critSuccessCount / Math.max(pack.rollsCount, 1)).toFixed(4))
+    }))
+    .sort((left, right) => {
+      if (right.rollsCount !== left.rollsCount) {
+        return right.rollsCount - left.rollsCount;
+      }
+      return String(left.userDisplayName).localeCompare(String(right.userDisplayName), 'ru');
+    });
 
   rollTypeStats.sort((left, right) => {
     if (right.count !== left.count) {
@@ -301,6 +381,7 @@ function computeDiceFromEvents(events) {
     critFailRate,
     critSuccessRate,
     userAvgVsGlobal,
+    userSummaries,
     rollTypeStats,
     topRollType
   };
@@ -311,9 +392,17 @@ function normalizeDiceReport(reportDice) {
   if (String(dice.status || 'insufficient_data') !== 'ok') {
     return buildEmptyDiceResult(String(dice.reason || DASHBOARD_LABELS.dice.noData));
   }
+  const normalizedUserSummaries = safeArray(dice.userSummaries).map((row) => {
+    const userId = String(row.userId || '');
+    return {
+      ...row,
+      userDisplayName: resolveUserDisplayName(userId, row)
+    };
+  });
   return {
     ...dice,
     rollTypeStats: safeArray(dice.rollTypeStats),
+    userSummaries: normalizedUserSummaries,
     topRollType: dice.topRollType || null
   };
 }
@@ -334,6 +423,60 @@ function createMetricCard(title, value, hint) {
   article.appendChild(valueEl);
   article.appendChild(hintEl);
   return article;
+}
+
+function closeUserStatsModal() {
+  const modal = document.getElementById('user-stats-modal');
+  if (!modal) {
+    return;
+  }
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+  userModalContext = null;
+}
+
+function openUserStatsModal(summary) {
+  const modal = document.getElementById('user-stats-modal');
+  const content = document.getElementById('user-stats-content');
+  const title = document.getElementById('user-stats-title');
+  if (!modal || !content || !title) {
+    return;
+  }
+  userModalContext = summary;
+  title.textContent = `Статистика: ${summary.userDisplayName}`;
+  content.innerHTML = `
+    <div class="results-table">
+      <table>
+        <tbody>
+          <tr><th>Пользователь</th><td>${summary.userDisplayName}</td></tr>
+          <tr><th>UID</th><td>${summary.userId}</td></tr>
+          <tr><th>Количество бросков</th><td>${asNumber(summary.rollsCount, 0)}</td></tr>
+          <tr><th>Среднее значение</th><td>${asNumber(summary.avgResult, 0).toFixed(3)}</td></tr>
+          <tr><th>Отклонение</th><td>${asNumber(summary.avgDeltaFromTheoretical, 0).toFixed(3)}</td></tr>
+          <tr><th>Крит. провалы</th><td>${asNumber(summary.critFailCount, 0)} (${formatPercent(asNumber(summary.critFailRate, 0))})</td></tr>
+          <tr><th>Крит. успехи</th><td>${asNumber(summary.critSuccessCount, 0)} (${formatPercent(asNumber(summary.critSuccessRate, 0))})</td></tr>
+          <tr><th>Последний бросок</th><td>${formatDateTime(summary.lastRollAt)}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function setupUserStatsModal() {
+  const modal = document.getElementById('user-stats-modal');
+  if (!modal) {
+    return;
+  }
+  modal.querySelectorAll('[data-close-user-modal]').forEach((el) => {
+    el.addEventListener('click', closeUserStatsModal);
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && userModalContext) {
+      closeUserStatsModal();
+    }
+  });
 }
 
 function renderQuality(report) {
@@ -445,7 +588,7 @@ function renderDice(report) {
     cards.appendChild(createMetricCard(DASHBOARD_LABELS.dice.status, 'insufficient_data', String(dice.reason || DASHBOARD_LABELS.dice.noData)));
     table.innerHTML = `<tr><td colspan="7" class="no-results">${DASHBOARD_LABELS.dice.noDiceData}</td></tr>`;
     rollTypeTable.innerHTML = `<tr><td colspan="7" class="no-results">${DASHBOARD_LABELS.dice.noRollTypeStats}</td></tr>`;
-    users.innerHTML = `<tr><td colspan="5" class="no-results">${DASHBOARD_LABELS.dice.noUserMetrics}</td></tr>`;
+    users.innerHTML = `<tr><td colspan="3" class="no-results">${DASHBOARD_LABELS.dice.noUserMetrics}</td></tr>`;
     return;
   }
 
@@ -512,19 +655,20 @@ function renderDice(report) {
     });
   }
 
-  const userRows = safeArray(dice.userAvgVsGlobal).slice(0, 20);
+  const userRows = safeArray(dice.userSummaries).slice(0, 50);
   if (!userRows.length) {
-    users.innerHTML = `<tr><td colspan="5" class="no-results">${DASHBOARD_LABELS.dice.noUserMetrics}</td></tr>`;
+    users.innerHTML = `<tr><td colspan="3" class="no-results">${DASHBOARD_LABELS.dice.noUserMetrics}</td></tr>`;
   } else {
     userRows.forEach((row) => {
       const tr = document.createElement('tr');
+      tr.className = 'dashboard-user-row';
+      tr.title = 'Нажмите для деталей';
       tr.innerHTML = `
-        <td>${String(row.userLabel || row.userId || DASHBOARD_LABELS.dice.anonymous)}</td>
-        <td>${String(row.diceType || '-')}</td>
-        <td>${asNumber(row.userAvg, 0).toFixed(3)}</td>
-        <td>${asNumber(row.globalAvg, 0).toFixed(3)}</td>
-        <td>${asNumber(row.delta, 0).toFixed(3)}</td>
+        <td>${String(row.userDisplayName || row.userId || DASHBOARD_LABELS.dice.anonymous)}</td>
+        <td>${asNumber(row.rollsCount, 0)}</td>
+        <td>${formatDateTime(row.lastRollAt)}</td>
       `;
+      tr.addEventListener('click', () => openUserStatsModal(row));
       users.appendChild(tr);
     });
   }
@@ -540,12 +684,13 @@ async function loadReport() {
 
 async function initDashboard() {
   const status = document.getElementById('dashboard-status');
+  setupUserStatsModal();
   try {
     status.textContent = 'Загрузка отчета...';
     const report = await loadReport();
-    renderQuality(report);
     renderContent(report);
     renderDice(report);
+    renderQuality(report);
     status.textContent = `Отчет обновлен: ${new Date(report.generatedAt || Date.now()).toLocaleString('ru-RU')}`;
   } catch (error) {
     status.textContent = `Ошибка загрузки отчета: ${error.message}`;
