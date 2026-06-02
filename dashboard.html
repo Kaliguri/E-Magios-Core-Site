@@ -119,14 +119,17 @@
     </main>
   </div>
 
-  <div id="user-stats-modal" class="dashboard-modal hidden" aria-hidden="true">
-    <div class="dashboard-modal-backdrop" data-close-user-modal></div>
-    <div class="dashboard-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="user-stats-title">
-      <div class="dashboard-modal-header">
-        <h3 id="user-stats-title">Статистика пользователя</h3>
-        <button type="button" class="btn btn-secondary btn-sm" data-close-user-modal>Закрыть</button>
+  <div id="user-stats-modal" class="modal-overlay hidden" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="user-stats-title">
+      <div class="modal-header">
+        <h3 class="modal-title" id="user-stats-title">Статистика пользователя</h3>
+        <div class="dashboard-modal-header-actions">
+          <button type="button" class="modal-close-btn" data-close-user-modal aria-label="Закрыть">×</button>
+        </div>
       </div>
-      <div class="dashboard-modal-content" id="user-stats-content"></div>
+      <div class="modal-body">
+        <div class="dashboard-modal-content" id="user-stats-content"></div>
+      </div>
     </div>
   </div>
 
