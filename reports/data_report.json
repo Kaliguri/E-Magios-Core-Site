@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-06-02T14:29:36.353280+00:00",
+  "generatedAt": "2026-06-02T15:04:41.722564+00:00",
   "quality": {
     "totals": {
       "error": 0,
@@ -68,14 +68,493 @@
     "relationDensityAvg": 1.25
   },
   "dice": {
-    "status": "insufficient_data",
-    "reason": "dice_roll_events.json exists but has no valid events.",
-    "rollsCountByDiceType": {},
-    "avgResultByDiceType": {},
-    "theoreticalAvgByDiceType": {},
-    "avgDeltaFromTheoretical": {},
-    "critFailRate": {},
-    "critSuccessRate": {},
-    "userAvgVsGlobal": []
+    "status": "ok",
+    "reason": null,
+    "rollsCountByDiceType": {
+      "d12": 500,
+      "d6": 38,
+      "d4": 33,
+      "d8": 19,
+      "d10": 10
+    },
+    "avgResultByDiceType": {
+      "d12": 6.426,
+      "d6": 3.6053,
+      "d4": 2.7273,
+      "d8": 5.3684,
+      "d10": 6.2
+    },
+    "theoreticalAvgByDiceType": {
+      "d12": 6.5,
+      "d6": 3.5,
+      "d4": 2.5,
+      "d8": 4.5,
+      "d10": 5.5
+    },
+    "avgDeltaFromTheoretical": {
+      "d12": -0.074,
+      "d6": 0.1053,
+      "d4": 0.2273,
+      "d8": 0.8684,
+      "d10": 0.7
+    },
+    "critFailRate": {
+      "d12": 0.07,
+      "d6": 0.0789,
+      "d4": 0.1515,
+      "d8": 0.1053,
+      "d10": 0.0
+    },
+    "critSuccessRate": {
+      "d12": 0.088,
+      "d6": 0.0789,
+      "d4": 0.3636,
+      "d8": 0.4211,
+      "d10": 0.1
+    },
+    "userAvgVsGlobal": [
+      {
+        "userId": "4BzLAuul5UOkokZiXkvMajzDkgq2",
+        "diceType": "d12",
+        "userAvg": 6.048,
+        "globalAvg": 6.426,
+        "delta": -0.378,
+        "rollsCount": 125
+      },
+      {
+        "userId": "NgY5bTPvLohTQZsakTLTSozYbWo1",
+        "diceType": "d12",
+        "userAvg": 6.776,
+        "globalAvg": 6.426,
+        "delta": 0.35,
+        "rollsCount": 125
+      },
+      {
+        "userId": "fgvej6iwakMQE7hx9rxKpBecxLc2",
+        "diceType": "d12",
+        "userAvg": 6.608,
+        "globalAvg": 6.426,
+        "delta": 0.182,
+        "rollsCount": 125
+      },
+      {
+        "userId": "hYxVKqLCrSUSyut88VXC1XvBt7t1",
+        "diceType": "d12",
+        "userAvg": 6.272,
+        "globalAvg": 6.426,
+        "delta": -0.154,
+        "rollsCount": 125
+      },
+      {
+        "userId": "fgvej6iwakMQE7hx9rxKpBecxLc2",
+        "diceType": "d6",
+        "userAvg": 3.3077,
+        "globalAvg": 3.6053,
+        "delta": -0.2976,
+        "rollsCount": 13
+      },
+      {
+        "userId": "4BzLAuul5UOkokZiXkvMajzDkgq2",
+        "diceType": "d6",
+        "userAvg": 4.0909,
+        "globalAvg": 3.6053,
+        "delta": 0.4856,
+        "rollsCount": 11
+      },
+      {
+        "userId": "hYxVKqLCrSUSyut88VXC1XvBt7t1",
+        "diceType": "d4",
+        "userAvg": 3,
+        "globalAvg": 2.7273,
+        "delta": 0.2727,
+        "rollsCount": 11
+      },
+      {
+        "userId": "NgY5bTPvLohTQZsakTLTSozYbWo1",
+        "diceType": "d4",
+        "userAvg": 2.6,
+        "globalAvg": 2.7273,
+        "delta": -0.1273,
+        "rollsCount": 10
+      },
+      {
+        "userId": "NgY5bTPvLohTQZsakTLTSozYbWo1",
+        "diceType": "d6",
+        "userAvg": 4.125,
+        "globalAvg": 3.6053,
+        "delta": 0.5197,
+        "rollsCount": 8
+      },
+      {
+        "userId": "hYxVKqLCrSUSyut88VXC1XvBt7t1",
+        "diceType": "d6",
+        "userAvg": 2.6667,
+        "globalAvg": 3.6053,
+        "delta": -0.9386,
+        "rollsCount": 6
+      },
+      {
+        "userId": "4BzLAuul5UOkokZiXkvMajzDkgq2",
+        "diceType": "d8",
+        "userAvg": 5.5,
+        "globalAvg": 5.3684,
+        "delta": 0.1316,
+        "rollsCount": 6
+      },
+      {
+        "userId": "fgvej6iwakMQE7hx9rxKpBecxLc2",
+        "diceType": "d4",
+        "userAvg": 2.1667,
+        "globalAvg": 2.7273,
+        "delta": -0.5606,
+        "rollsCount": 6
+      },
+      {
+        "userId": "4BzLAuul5UOkokZiXkvMajzDkgq2",
+        "diceType": "d4",
+        "userAvg": 3,
+        "globalAvg": 2.7273,
+        "delta": 0.2727,
+        "rollsCount": 6
+      },
+      {
+        "userId": "hYxVKqLCrSUSyut88VXC1XvBt7t1",
+        "diceType": "d8",
+        "userAvg": 6.2,
+        "globalAvg": 5.3684,
+        "delta": 0.8316,
+        "rollsCount": 5
+      },
+      {
+        "userId": "NgY5bTPvLohTQZsakTLTSozYbWo1",
+        "diceType": "d8",
+        "userAvg": 4,
+        "globalAvg": 5.3684,
+        "delta": -1.3684,
+        "rollsCount": 5
+      },
+      {
+        "userId": "fgvej6iwakMQE7hx9rxKpBecxLc2",
+        "diceType": "d8",
+        "userAvg": 6,
+        "globalAvg": 5.3684,
+        "delta": 0.6316,
+        "rollsCount": 3
+      },
+      {
+        "userId": "fgvej6iwakMQE7hx9rxKpBecxLc2",
+        "diceType": "d10",
+        "userAvg": 5.6667,
+        "globalAvg": 6.2,
+        "delta": -0.5333,
+        "rollsCount": 3
+      },
+      {
+        "userId": "hYxVKqLCrSUSyut88VXC1XvBt7t1",
+        "diceType": "d10",
+        "userAvg": 5.6667,
+        "globalAvg": 6.2,
+        "delta": -0.5333,
+        "rollsCount": 3
+      },
+      {
+        "userId": "4BzLAuul5UOkokZiXkvMajzDkgq2",
+        "diceType": "d10",
+        "userAvg": 7.5,
+        "globalAvg": 6.2,
+        "delta": 1.3,
+        "rollsCount": 2
+      },
+      {
+        "userId": "NgY5bTPvLohTQZsakTLTSozYbWo1",
+        "diceType": "d10",
+        "userAvg": 6.5,
+        "globalAvg": 6.2,
+        "delta": 0.3,
+        "rollsCount": 2
+      }
+    ],
+    "rollTypeStats": [
+      {
+        "rollTypeKey": "apply:d12",
+        "label": "Наложение эффекта D12 (1d12)",
+        "context": "apply",
+        "diceType": "d12",
+        "expression": "1d12",
+        "count": 125,
+        "share": 0.2083,
+        "avg": 6.608,
+        "theoreticalAvg": 6.5,
+        "delta": 0.108,
+        "critFailRate": 0.064,
+        "critSuccessRate": 0.12
+      },
+      {
+        "rollTypeKey": "arcana:d12",
+        "label": "Аркана D12 (1d12)",
+        "context": "arcana",
+        "diceType": "d12",
+        "expression": "1d12",
+        "count": 125,
+        "share": 0.2083,
+        "avg": 6.048,
+        "theoreticalAvg": 6.5,
+        "delta": -0.452,
+        "critFailRate": 0.048,
+        "critSuccessRate": 0.064
+      },
+      {
+        "rollTypeKey": "hit:d12",
+        "label": "Попадание D12 (1d12)",
+        "context": "hit",
+        "diceType": "d12",
+        "expression": "1d12",
+        "count": 125,
+        "share": 0.2083,
+        "avg": 6.776,
+        "theoreticalAvg": 6.5,
+        "delta": 0.276,
+        "critFailRate": 0.088,
+        "critSuccessRate": 0.112
+      },
+      {
+        "rollTypeKey": "other:d12",
+        "label": "Другое D12 (1d12)",
+        "context": "other",
+        "diceType": "d12",
+        "expression": "1d12",
+        "count": 125,
+        "share": 0.2083,
+        "avg": 6.272,
+        "theoreticalAvg": 6.5,
+        "delta": -0.228,
+        "critFailRate": 0.08,
+        "critSuccessRate": 0.056
+      },
+      {
+        "rollTypeKey": "custom_attack:d4",
+        "label": "Кастомный: атака D4 (1d4+1)",
+        "context": "custom_attack",
+        "diceType": "d4",
+        "expression": "1d4+1",
+        "count": 14,
+        "share": 0.0233,
+        "avg": 2.5714,
+        "theoreticalAvg": 2.5,
+        "delta": 0.0714,
+        "critFailRate": 0.1429,
+        "critSuccessRate": 0.2857
+      },
+      {
+        "rollTypeKey": "custom_damage:d6",
+        "label": "Кастомный: урон D6 (1d6)",
+        "context": "custom_damage",
+        "diceType": "d6",
+        "expression": "1d6",
+        "count": 14,
+        "share": 0.0233,
+        "avg": 3.8571,
+        "theoreticalAvg": 3.5,
+        "delta": 0.3571,
+        "critFailRate": 0.0,
+        "critSuccessRate": 0.0714
+      },
+      {
+        "rollTypeKey": "custom_support:d6",
+        "label": "Кастомный: поддержка D6 (2d6)",
+        "context": "custom_support",
+        "diceType": "d6",
+        "expression": "2d6",
+        "count": 14,
+        "share": 0.0233,
+        "avg": 3.3571,
+        "theoreticalAvg": 3.5,
+        "delta": -0.1429,
+        "critFailRate": 0.1429,
+        "critSuccessRate": 0.1429
+      },
+      {
+        "rollTypeKey": "custom_control:d4",
+        "label": "Кастомный: контроль D4 (4d4)",
+        "context": "custom_control",
+        "diceType": "d4",
+        "expression": "4d4",
+        "count": 10,
+        "share": 0.0167,
+        "avg": 2.9,
+        "theoreticalAvg": 2.5,
+        "delta": 0.4,
+        "critFailRate": 0.2,
+        "critSuccessRate": 0.5
+      },
+      {
+        "rollTypeKey": "custom_support:d8",
+        "label": "Кастомный: поддержка D8 (3d8)",
+        "context": "custom_support",
+        "diceType": "d8",
+        "expression": "3d8",
+        "count": 7,
+        "share": 0.0117,
+        "avg": 3.8571,
+        "theoreticalAvg": 4.5,
+        "delta": -0.6429,
+        "critFailRate": 0.2857,
+        "critSuccessRate": 0.1429
+      },
+      {
+        "rollTypeKey": "custom_control:d6",
+        "label": "Кастомный: контроль D6 (6d6)",
+        "context": "custom_control",
+        "diceType": "d6",
+        "expression": "6d6",
+        "count": 6,
+        "share": 0.01,
+        "avg": 3.1667,
+        "theoreticalAvg": 3.5,
+        "delta": -0.3333,
+        "critFailRate": 0.1667,
+        "critSuccessRate": 0.0
+      },
+      {
+        "rollTypeKey": "custom_control:d10",
+        "label": "Кастомный: контроль D10 (3d10)",
+        "context": "custom_control",
+        "diceType": "d10",
+        "expression": "3d10",
+        "count": 5,
+        "share": 0.0083,
+        "avg": 7,
+        "theoreticalAvg": 5.5,
+        "delta": 1.5,
+        "critFailRate": 0.0,
+        "critSuccessRate": 0.2
+      },
+      {
+        "rollTypeKey": "custom_damage:d4",
+        "label": "Кастомный: урон D4 (3d4)",
+        "context": "custom_damage",
+        "diceType": "d4",
+        "expression": "3d4",
+        "count": 5,
+        "share": 0.0083,
+        "avg": 2.6,
+        "theoreticalAvg": 2.5,
+        "delta": 0.1,
+        "critFailRate": 0.2,
+        "critSuccessRate": 0.2
+      },
+      {
+        "rollTypeKey": "custom_attack:d6",
+        "label": "Кастомный: атака D6 (6d6)",
+        "context": "custom_attack",
+        "diceType": "d6",
+        "expression": "6d6",
+        "count": 4,
+        "share": 0.0067,
+        "avg": 4.25,
+        "theoreticalAvg": 3.5,
+        "delta": 0.75,
+        "critFailRate": 0.0,
+        "critSuccessRate": 0.0
+      },
+      {
+        "rollTypeKey": "custom_attack:d8",
+        "label": "Кастомный: атака D8 (1d8+1)",
+        "context": "custom_attack",
+        "diceType": "d8",
+        "expression": "1d8+1",
+        "count": 4,
+        "share": 0.0067,
+        "avg": 5.75,
+        "theoreticalAvg": 4.5,
+        "delta": 1.25,
+        "critFailRate": 0.0,
+        "critSuccessRate": 0.5
+      },
+      {
+        "rollTypeKey": "custom_control:d8",
+        "label": "Кастомный: контроль D8 (3d8)",
+        "context": "custom_control",
+        "diceType": "d8",
+        "expression": "3d8",
+        "count": 4,
+        "share": 0.0067,
+        "avg": 5.75,
+        "theoreticalAvg": 4.5,
+        "delta": 1.25,
+        "critFailRate": 0.0,
+        "critSuccessRate": 0.5
+      },
+      {
+        "rollTypeKey": "custom_damage:d8",
+        "label": "Кастомный: урон D8 (3d8)",
+        "context": "custom_damage",
+        "diceType": "d8",
+        "expression": "3d8",
+        "count": 4,
+        "share": 0.0067,
+        "avg": 7.25,
+        "theoreticalAvg": 4.5,
+        "delta": 2.75,
+        "critFailRate": 0.0,
+        "critSuccessRate": 0.75
+      },
+      {
+        "rollTypeKey": "custom_support:d4",
+        "label": "Кастомный: поддержка D4 (2d4)",
+        "context": "custom_support",
+        "diceType": "d4",
+        "expression": "2d4",
+        "count": 4,
+        "share": 0.0067,
+        "avg": 3,
+        "theoreticalAvg": 2.5,
+        "delta": 0.5,
+        "critFailRate": 0.0,
+        "critSuccessRate": 0.5
+      },
+      {
+        "rollTypeKey": "custom_attack:d10",
+        "label": "Кастомный: атака D10 (1d10)",
+        "context": "custom_attack",
+        "diceType": "d10",
+        "expression": "1d10",
+        "count": 3,
+        "share": 0.005,
+        "avg": 5.6667,
+        "theoreticalAvg": 5.5,
+        "delta": 0.1667,
+        "critFailRate": 0.0,
+        "critSuccessRate": 0.0
+      },
+      {
+        "rollTypeKey": "custom_damage:d10",
+        "label": "Кастомный: урон D10 (1d10)",
+        "context": "custom_damage",
+        "diceType": "d10",
+        "expression": "1d10",
+        "count": 2,
+        "share": 0.0033,
+        "avg": 5,
+        "theoreticalAvg": 5.5,
+        "delta": -0.5,
+        "critFailRate": 0.0,
+        "critSuccessRate": 0.0
+      }
+    ],
+    "topRollType": {
+      "rollTypeKey": "apply:d12",
+      "label": "Наложение эффекта D12 (1d12)",
+      "context": "apply",
+      "diceType": "d12",
+      "expression": "1d12",
+      "count": 125,
+      "share": 0.2083,
+      "avg": 6.608,
+      "theoreticalAvg": 6.5,
+      "delta": 0.108,
+      "critFailRate": 0.064,
+      "critSuccessRate": 0.12
+    }
   }
 }

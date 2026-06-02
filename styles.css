@@ -3809,6 +3809,10 @@ details[open] > .news-section-summary::after {
   gap: 0.75rem;
 }
 
+.dashboard-quality-summary-grid {
+  margin-top: 0.25rem;
+}
+
 .dashboard-card {
   background: var(--bg-elevated);
   border: 1px solid var(--border-color);
@@ -3883,6 +3887,10 @@ details[open] > .news-section-summary::after {
 }
 
 .dashboard-user-table {
+  margin-top: 0.5rem;
+}
+
+.dashboard-roll-type-table {
   margin-top: 0.5rem;
 }
 

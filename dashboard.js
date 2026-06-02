@@ -1,6 +1,41 @@
 const DICE_EVENTS_STORAGE_KEY = 'diceRollEventsLegacy';
 const SUPPORTED_DICE = ['d2', 'd4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100'];
 
+const DASHBOARD_LABELS = {
+  quality: {
+    errorsTitle: 'Ошибки',
+    errorsHint: 'Критические проблемы',
+    warningsTitle: 'Предупреждения',
+    warningsHint: 'Требует проверки',
+    infoTitle: 'Инфо',
+    infoHint: 'Справочные замечания'
+  },
+  content: {
+    spells: 'Заклинания',
+    schools: 'Школы',
+    concentration: 'Концентрация',
+    subspells: 'Подзаклинания',
+    incomplete: 'Неполные объекты',
+    schoolsWithoutSpells: 'Школы без заклинаний'
+  },
+  dice: {
+    status: 'Статус бросков',
+    totalRolls: 'Всего бросков',
+    activeDice: 'Активные типы кубов',
+    topRoll: 'Самый популярный бросок',
+    topRollHint: 'Доля от общего числа',
+    noData: 'Нет данных',
+    noLocalReason: 'Локальные события бросков не найдены.',
+    noDiceData: 'Недостаточно данных по броскам кубов.',
+    noUserMetrics: 'Нет пользовательских метрик.',
+    noRollTypeStats: 'Нет статистики по уникальным типам бросков.',
+    localSource: 'Источник: localStorage события бросков (diceRollEventsLegacy)',
+    reportSource: 'Источник: reports/data_report.json',
+    unknown: 'не указан',
+    anonymous: 'анонимный'
+  }
+};
+
 function formatPercent(value) {
   if (!Number.isFinite(value)) {
     return '0%';
@@ -20,6 +55,68 @@ function safeObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
 }
 
+function normalizeDiceType(value) {
+  const raw = String(value || '').trim().toLowerCase();
+  if (!raw) {
+    return '';
+  }
+  if (raw.startsWith('d')) {
+    return raw;
+  }
+  const numeric = Number(raw);
+  if (Number.isFinite(numeric) && numeric > 0) {
+    return `d${Math.trunc(numeric)}`;
+  }
+  return raw;
+}
+
+function parseSidesFromDiceType(diceType) {
+  const match = String(diceType || '').match(/^d(\d+)$/i);
+  if (!match) {
+    return 0;
+  }
+  return Math.trunc(asNumber(match[1], 0));
+}
+
+function normalizeRollContext(event) {
+  const direct = String(event.context || '').trim().toLowerCase();
+  if (direct) {
+    return direct;
+  }
+  const rollType = String(event.contextRollType || '').trim().toLowerCase();
+  if (rollType) {
+    return rollType;
+  }
+  const source = String(event.contextSource || '').trim().toLowerCase();
+  if (source.includes('arcana')) {
+    return 'arcana';
+  }
+  if (source.includes('hit')) {
+    return 'hit';
+  }
+  if (source.includes('apply')) {
+    return 'apply';
+  }
+  return 'other';
+}
+
+function buildRollTypeLabel(context, diceType, expression) {
+  const contextLabelMap = {
+    arcana: 'Аркана',
+    hit: 'Попадание',
+    apply: 'Наложение эффекта',
+    other: 'Другое',
+    custom_attack: 'Кастомный: атака',
+    custom_damage: 'Кастомный: урон',
+    custom_control: 'Кастомный: контроль',
+    custom_support: 'Кастомный: поддержка'
+  };
+  const contextLabel = contextLabelMap[context] || context || DASHBOARD_LABELS.dice.unknown;
+  const normalizedDiceType = diceType || DASHBOARD_LABELS.dice.unknown;
+  const normalizedExpression = expression || normalizedDiceType;
+  return `${contextLabel} ${normalizedDiceType.toUpperCase()} (${normalizedExpression})`;
+}
+
 function loadLocalDiceEvents() {
   try {
     const raw = localStorage.getItem(DICE_EVENTS_STORAGE_KEY);
@@ -33,18 +130,57 @@ function loadLocalDiceEvents() {
   }
 }
 
+function computeStats(values, sides) {
+  if (!values.length || sides <= 0) {
+    return null;
+  }
+  const sum = values.reduce((acc, item) => acc + item, 0);
+  const avg = sum / values.length;
+  const theoretical = (sides + 1) / 2;
+  const fails = values.filter((item) => item === 1).length;
+  const success = values.filter((item) => item === sides).length;
+  return {
+    count: values.length,
+    avg: Number(avg.toFixed(4)),
+    theoretical: Number(theoretical.toFixed(4)),
+    delta: Number((avg - theoretical).toFixed(4)),
+    failRate: Number((fails / values.length).toFixed(4)),
+    successRate: Number((success / values.length).toFixed(4))
+  };
+}
+
+function buildEmptyDiceResult(reason) {
+  return {
+    status: 'insufficient_data',
+    reason,
+    rollsCountByDiceType: {},
+    avgResultByDiceType: {},
+    theoreticalAvgByDiceType: {},
+    avgDeltaFromTheoretical: {},
+    critFailRate: {},
+    critSuccessRate: {},
+    userAvgVsGlobal: [],
+    rollTypeStats: [],
+    topRollType: null
+  };
+}
+
 function computeDiceFromEvents(events) {
   const groups = {};
   const userGroups = {};
+  const rollGroups = {};
 
   events.forEach((event) => {
     if (!event || typeof event !== 'object') {
       return;
     }
-    const diceType = String(event.diceType || '').toLowerCase();
-    const sides = asNumber(event.sides, 0);
-    const result = asNumber(event.result, NaN);
-    const userId = String(event.userId || 'anonymous');
+    const diceType = normalizeDiceType(event.diceType);
+    const sides = Math.trunc(asNumber(event.sides, parseSidesFromDiceType(diceType)));
+    const result = Math.trunc(asNumber(event.result, NaN));
+    const userId = String(event.userId || DASHBOARD_LABELS.dice.anonymous);
+    const context = normalizeRollContext(event);
+    const expression = String(event.expression || event.displayExpression || diceType || '').trim();
+    const rollTypeKey = String(event.rollTypeKey || `${context}:${diceType}`).trim().toLowerCase();
 
     if (!diceType || !Number.isFinite(result) || !Number.isFinite(sides) || sides <= 0) {
       return;
@@ -60,6 +196,18 @@ function computeDiceFromEvents(events) {
       userGroups[userKey] = { userId, diceType, values: [] };
     }
     userGroups[userKey].values.push(result);
+
+    if (!rollGroups[rollTypeKey]) {
+      rollGroups[rollTypeKey] = {
+        rollTypeKey,
+        context,
+        diceType,
+        expression: expression || diceType,
+        values: [],
+        sides
+      };
+    }
+    rollGroups[rollTypeKey].values.push(result);
   });
 
   const rollsCountByDiceType = {};
@@ -69,26 +217,20 @@ function computeDiceFromEvents(events) {
   const critFailRate = {};
   const critSuccessRate = {};
   const userAvgVsGlobal = [];
+  const rollTypeStats = [];
 
   Object.keys(groups).forEach((diceType) => {
     const pack = groups[diceType];
-    const values = pack.values;
-    if (!values.length) {
+    const stats = computeStats(pack.values, pack.sides);
+    if (!stats) {
       return;
     }
-    const sum = values.reduce((acc, item) => acc + item, 0);
-    const avg = sum / values.length;
-    const sides = pack.sides;
-    const theoretical = (sides + 1) / 2;
-    const fails = values.filter((item) => item === 1).length;
-    const success = values.filter((item) => item === sides).length;
-
-    rollsCountByDiceType[diceType] = values.length;
-    avgResultByDiceType[diceType] = Number(avg.toFixed(4));
-    theoreticalAvgByDiceType[diceType] = Number(theoretical.toFixed(4));
-    avgDeltaFromTheoretical[diceType] = Number((avg - theoretical).toFixed(4));
-    critFailRate[diceType] = Number((fails / values.length).toFixed(4));
-    critSuccessRate[diceType] = Number((success / values.length).toFixed(4));
+    rollsCountByDiceType[diceType] = stats.count;
+    avgResultByDiceType[diceType] = stats.avg;
+    theoreticalAvgByDiceType[diceType] = stats.theoretical;
+    avgDeltaFromTheoretical[diceType] = stats.delta;
+    critFailRate[diceType] = stats.failRate;
+    critSuccessRate[diceType] = stats.successRate;
   });
 
   Object.keys(userGroups).forEach((key) => {
@@ -109,16 +251,70 @@ function computeDiceFromEvents(events) {
     });
   });
 
+  Object.keys(rollGroups).forEach((rollTypeKey) => {
+    const pack = rollGroups[rollTypeKey];
+    const stats = computeStats(pack.values, pack.sides);
+    if (!stats) {
+      return;
+    }
+    rollTypeStats.push({
+      rollTypeKey,
+      context: pack.context,
+      diceType: pack.diceType,
+      expression: pack.expression,
+      label: buildRollTypeLabel(pack.context, pack.diceType, pack.expression),
+      count: stats.count,
+      avg: stats.avg,
+      theoreticalAvg: stats.theoretical,
+      delta: stats.delta,
+      critFailRate: stats.failRate,
+      critSuccessRate: stats.successRate
+    });
+  });
+
+  rollTypeStats.sort((left, right) => {
+    if (right.count !== left.count) {
+      return right.count - left.count;
+    }
+    return String(left.rollTypeKey).localeCompare(String(right.rollTypeKey), 'ru');
+  });
+
+  const totalRolls = Object.keys(rollsCountByDiceType).reduce((acc, key) => acc + asNumber(rollsCountByDiceType[key], 0), 0);
+  const topRollType = rollTypeStats.length
+    ? {
+        ...rollTypeStats[0],
+        share: totalRolls > 0 ? Number((rollTypeStats[0].count / totalRolls).toFixed(4)) : 0
+      }
+    : null;
+
+  if (!Object.keys(rollsCountByDiceType).length) {
+    return buildEmptyDiceResult(DASHBOARD_LABELS.dice.noLocalReason);
+  }
+
   return {
-    status: Object.keys(rollsCountByDiceType).length ? 'ok' : 'insufficient_data',
-    reason: Object.keys(rollsCountByDiceType).length ? null : 'No local dice events were found.',
+    status: 'ok',
+    reason: null,
     rollsCountByDiceType,
     avgResultByDiceType,
     theoreticalAvgByDiceType,
     avgDeltaFromTheoretical,
     critFailRate,
     critSuccessRate,
-    userAvgVsGlobal
+    userAvgVsGlobal,
+    rollTypeStats,
+    topRollType
+  };
+}
+
+function normalizeDiceReport(reportDice) {
+  const dice = safeObject(reportDice);
+  if (String(dice.status || 'insufficient_data') !== 'ok') {
+    return buildEmptyDiceResult(String(dice.reason || DASHBOARD_LABELS.dice.noData));
+  }
+  return {
+    ...dice,
+    rollTypeStats: safeArray(dice.rollTypeStats),
+    topRollType: dice.topRollType || null
   };
 }
 
@@ -153,11 +349,11 @@ function renderQuality(report) {
   byCollection.innerHTML = '';
   rules.innerHTML = '';
 
-  cards.appendChild(createMetricCard('Errors', String(asNumber(totals.error, 0)), 'Blocking issues'));
-  cards.appendChild(createMetricCard('Warnings', String(asNumber(totals.warning, 0)), 'Needs review'));
-  cards.appendChild(createMetricCard('Info', String(asNumber(totals.info, 0)), 'Additional notes'));
+  cards.appendChild(createMetricCard(DASHBOARD_LABELS.quality.errorsTitle, String(asNumber(totals.error, 0)), DASHBOARD_LABELS.quality.errorsHint));
+  cards.appendChild(createMetricCard(DASHBOARD_LABELS.quality.warningsTitle, String(asNumber(totals.warning, 0)), DASHBOARD_LABELS.quality.warningsHint));
+  cards.appendChild(createMetricCard(DASHBOARD_LABELS.quality.infoTitle, String(asNumber(totals.info, 0)), DASHBOARD_LABELS.quality.infoHint));
 
-  const collectionNames = Object.keys(issuesByCollection).sort();
+  const collectionNames = Object.keys(issuesByCollection).sort((left, right) => left.localeCompare(right, 'ru'));
   if (!collectionNames.length) {
     byCollection.innerHTML = '<tr><td colspan="4" class="no-results">Нет данных</td></tr>';
   } else {
@@ -193,12 +389,12 @@ function renderContent(report) {
   cards.innerHTML = '';
   bars.innerHTML = '';
 
-  cards.appendChild(createMetricCard('Spells', String(asNumber(totals.spells, 0)), 'Всего заклинаний'));
-  cards.appendChild(createMetricCard('Schools', String(asNumber(totals.schools, 0)), 'Всего школ'));
-  cards.appendChild(createMetricCard('Concentration', `${asNumber(content.concentrationShare, 0).toFixed(2)}%`, 'Доля концентрации'));
-  cards.appendChild(createMetricCard('Subspells', `${asNumber(content.subspellShare, 0).toFixed(2)}%`, 'Доля подзаклинаний'));
-  cards.appendChild(createMetricCard('Incomplete', String(asNumber(content.incompleteObjects, 0)), 'Неполные объекты'));
-  cards.appendChild(createMetricCard('Schools without spells', String(asNumber(content.schoolsWithoutSpells, 0)), 'Покрытие школ'));
+  cards.appendChild(createMetricCard(DASHBOARD_LABELS.content.spells, String(asNumber(totals.spells, 0)), 'Всего заклинаний'));
+  cards.appendChild(createMetricCard(DASHBOARD_LABELS.content.schools, String(asNumber(totals.schools, 0)), 'Всего школ'));
+  cards.appendChild(createMetricCard(DASHBOARD_LABELS.content.concentration, `${asNumber(content.concentrationShare, 0).toFixed(2)}%`, 'Доля концентрации'));
+  cards.appendChild(createMetricCard(DASHBOARD_LABELS.content.subspells, `${asNumber(content.subspellShare, 0).toFixed(2)}%`, 'Доля подзаклинаний'));
+  cards.appendChild(createMetricCard(DASHBOARD_LABELS.content.incomplete, String(asNumber(content.incompleteObjects, 0)), 'Неполные объекты'));
+  cards.appendChild(createMetricCard(DASHBOARD_LABELS.content.schoolsWithoutSpells, String(asNumber(content.schoolsWithoutSpells, 0)), 'Покрытие школ'));
 
   const rows = safeArray(content.spellsBySchool).slice(0, 12);
   const maxCount = rows.reduce((acc, row) => Math.max(acc, asNumber(row.count, 0)), 0);
@@ -208,7 +404,7 @@ function renderContent(report) {
   }
 
   rows.forEach((row) => {
-    const school = String(row.school || 'unknown');
+    const school = String(row.school || DASHBOARD_LABELS.dice.unknown);
     const count = asNumber(row.count, 0);
     const width = Math.max(4, Math.round((count / maxCount) * 100));
     const item = document.createElement('div');
@@ -227,7 +423,7 @@ function renderContent(report) {
 }
 
 function renderDice(report) {
-  const reportDice = safeObject(report.dice);
+  const reportDice = normalizeDiceReport(report.dice);
   const localEvents = loadLocalDiceEvents();
   const localDice = computeDiceFromEvents(localEvents);
   const useLocal = localEvents.length > 0;
@@ -236,27 +432,40 @@ function renderDice(report) {
   const source = document.getElementById('dice-source');
   const cards = document.getElementById('dice-cards');
   const table = document.getElementById('dice-metrics');
+  const rollTypeTable = document.getElementById('dice-roll-type-stats');
   const users = document.getElementById('dice-user-vs-global');
   cards.innerHTML = '';
   table.innerHTML = '';
+  rollTypeTable.innerHTML = '';
   users.innerHTML = '';
 
-  source.textContent = useLocal
-    ? 'Источник: localStorage события бросков (diceRollEventsLegacy)'
-    : 'Источник: reports/data_report.json';
+  source.textContent = useLocal ? DASHBOARD_LABELS.dice.localSource : DASHBOARD_LABELS.dice.reportSource;
 
-  const status = String(dice.status || 'insufficient_data');
-  if (status !== 'ok') {
-    cards.appendChild(createMetricCard('Dice status', status, String(dice.reason || 'No data')));
-    table.innerHTML = '<tr><td colspan="7" class="no-results">Недостаточно данных по броскам кубов.</td></tr>';
-    users.innerHTML = '<tr><td colspan="5" class="no-results">Нет пользовательских метрик.</td></tr>';
+  if (String(dice.status || 'insufficient_data') !== 'ok') {
+    cards.appendChild(createMetricCard(DASHBOARD_LABELS.dice.status, 'insufficient_data', String(dice.reason || DASHBOARD_LABELS.dice.noData)));
+    table.innerHTML = `<tr><td colspan="7" class="no-results">${DASHBOARD_LABELS.dice.noDiceData}</td></tr>`;
+    rollTypeTable.innerHTML = `<tr><td colspan="7" class="no-results">${DASHBOARD_LABELS.dice.noRollTypeStats}</td></tr>`;
+    users.innerHTML = `<tr><td colspan="5" class="no-results">${DASHBOARD_LABELS.dice.noUserMetrics}</td></tr>`;
     return;
   }
 
   const countByType = safeObject(dice.rollsCountByDiceType);
   const totalRolls = Object.keys(countByType).reduce((acc, key) => acc + asNumber(countByType[key], 0), 0);
-  cards.appendChild(createMetricCard('Total rolls', String(totalRolls), 'Сумма всех бросков'));
-  cards.appendChild(createMetricCard('Active dice types', String(Object.keys(countByType).length), 'Типы кубов с данными'));
+  cards.appendChild(createMetricCard(DASHBOARD_LABELS.dice.totalRolls, String(totalRolls), 'Сумма всех бросков'));
+  cards.appendChild(createMetricCard(DASHBOARD_LABELS.dice.activeDice, String(Object.keys(countByType).length), 'Типы кубов с данными'));
+
+  const topRollType = safeObject(dice.topRollType);
+  if (topRollType.rollTypeKey) {
+    cards.appendChild(
+      createMetricCard(
+        DASHBOARD_LABELS.dice.topRoll,
+        String(topRollType.label || topRollType.rollTypeKey),
+        `${DASHBOARD_LABELS.dice.topRollHint}: ${formatPercent(asNumber(topRollType.share, 0))} (${asNumber(topRollType.count, 0)})`
+      )
+    );
+  } else {
+    cards.appendChild(createMetricCard(DASHBOARD_LABELS.dice.topRoll, DASHBOARD_LABELS.dice.noData, DASHBOARD_LABELS.dice.noRollTypeStats));
+  }
 
   SUPPORTED_DICE.forEach((diceType) => {
     const count = asNumber(countByType[diceType], 0);
@@ -280,15 +489,37 @@ function renderDice(report) {
     `;
     table.appendChild(row);
   });
+  if (!table.children.length) {
+    table.innerHTML = `<tr><td colspan="7" class="no-results">${DASHBOARD_LABELS.dice.noDiceData}</td></tr>`;
+  }
+
+  const rollTypeRows = safeArray(dice.rollTypeStats).slice(0, 40);
+  if (!rollTypeRows.length) {
+    rollTypeTable.innerHTML = `<tr><td colspan="7" class="no-results">${DASHBOARD_LABELS.dice.noRollTypeStats}</td></tr>`;
+  } else {
+    rollTypeRows.forEach((row) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${String(row.label || row.rollTypeKey || DASHBOARD_LABELS.dice.unknown)}</td>
+        <td>${String(row.diceType || DASHBOARD_LABELS.dice.unknown)}</td>
+        <td>${String(row.expression || '-')}</td>
+        <td>${asNumber(row.count, 0)}</td>
+        <td>${asNumber(row.avg, 0).toFixed(3)}</td>
+        <td>${formatPercent(asNumber(row.critFailRate, 0))}</td>
+        <td>${formatPercent(asNumber(row.critSuccessRate, 0))}</td>
+      `;
+      rollTypeTable.appendChild(tr);
+    });
+  }
 
   const userRows = safeArray(dice.userAvgVsGlobal).slice(0, 20);
   if (!userRows.length) {
-    users.innerHTML = '<tr><td colspan="5" class="no-results">Нет пользовательских метрик.</td></tr>';
+    users.innerHTML = `<tr><td colspan="5" class="no-results">${DASHBOARD_LABELS.dice.noUserMetrics}</td></tr>`;
   } else {
     userRows.forEach((row) => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${String(row.userId || 'anonymous')}</td>
+        <td>${String(row.userLabel || row.userId || DASHBOARD_LABELS.dice.anonymous)}</td>
         <td>${String(row.diceType || '-')}</td>
         <td>${asNumber(row.userAvg, 0).toFixed(3)}</td>
         <td>${asNumber(row.globalAvg, 0).toFixed(3)}</td>
@@ -302,7 +533,7 @@ function renderDice(report) {
 async function loadReport() {
   const response = await fetch('reports/data_report.json', { cache: 'no-store' });
   if (!response.ok) {
-    throw new Error(`Failed to load report (${response.status})`);
+    throw new Error(`Не удалось загрузить отчет (${response.status})`);
   }
   return response.json();
 }
@@ -315,7 +546,7 @@ async function initDashboard() {
     renderQuality(report);
     renderContent(report);
     renderDice(report);
-    status.textContent = `Отчет обновлен: ${new Date(report.generatedAt || Date.now()).toLocaleString()}`;
+    status.textContent = `Отчет обновлен: ${new Date(report.generatedAt || Date.now()).toLocaleString('ru-RU')}`;
   } catch (error) {
     status.textContent = `Ошибка загрузки отчета: ${error.message}`;
   }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-06-02T14:29:36.349268+00:00",
+  "generatedAt": "2026-06-02T15:04:41.718410+00:00",
   "sourceDataDir": "C:\\Gamedev\\E-Magios-Core-Site\\data",
   "totals": {
     "error": 0,
@@ -34,7 +34,7 @@
       "items": 21
     },
     "dice_roll_events": {
-      "items": 0
+      "items": 600
     },
     "effects": {
       "items": 18
