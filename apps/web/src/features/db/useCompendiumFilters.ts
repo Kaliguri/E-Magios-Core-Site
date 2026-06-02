@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { CompendiumEntity } from '@/entities/compendium/types';
 import type { FilterDescriptor } from '@/entities/compendium/schema';
 
@@ -138,7 +138,7 @@ export function useCompendiumFilters(
   initialFilters?: FilterState,
   storageKey?: string,
 ): UseCompendiumFiltersResult {
-  const initial = initialFilters ?? {};
+  const initial = useMemo(() => initialFilters ?? {}, [initialFilters]);
   const [filters, setFilters] = useState<FilterState>(() => loadStoredFilters(storageKey, initial));
   const [tempFilters, setTempFiltersState] = useState<FilterState>(() =>
     loadStoredFilters(storageKey, initial),

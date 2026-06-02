@@ -42,14 +42,13 @@ function TabContent({
   onBack: () => void;
   onForward: () => void;
 }) {
-  const stableFetcher = useCallback(config.fetcher, [config]);
   const {
     data: items,
     loading,
     error,
   } = useCompendiumData<CompendiumEntity[]>(
     `compendium:${config.key}`,
-    stableFetcher,
+    config.fetcher,
     config.manifestKey,
   );
 
@@ -180,10 +179,20 @@ export function DbPage() {
     getInitialTab(searchParams),
   );
   const detailModal = useDetailModal();
+  const {
+    current: detailCurrent,
+    isOpen: detailIsOpen,
+    canGoBack,
+    canGoForward,
+    open: openModal,
+    close: closeModal,
+    goBack,
+    goForward,
+  } = detailModal;
   const activeConfig = COMPENDIUM_CONFIG_BY_KEY[activeTab];
   const urlDetailId = searchParams.get('detail');
   const visibleDetailRef =
-    detailModal.current ?? (urlDetailId ? { entityType: activeTab, id: urlDetailId } : null);
+    detailCurrent ?? (urlDetailId ? { entityType: activeTab, id: urlDetailId } : null);
 
   const setDbUrlState = useCallback(
     (tab: CompendiumEntityKey, detail?: string | null) => {
@@ -206,37 +215,34 @@ export function DbPage() {
   const openDetail = useCallback(
     (ref: EntityRef) => {
       setActiveTabState(ref.entityType);
-      detailModal.open(ref);
+      openModal(ref);
       setDbUrlState(ref.entityType, ref.id);
     },
-    [detailModal, setDbUrlState],
+    [openModal, setDbUrlState],
   );
 
   const closeDetail = useCallback(() => {
-    detailModal.close();
+    closeModal();
     setDbUrlState(activeTab, null);
-  }, [activeTab, detailModal, setDbUrlState]);
+  }, [activeTab, closeModal, setDbUrlState]);
 
   useEffect(() => {
     const tab = getInitialTab(searchParams);
     const detailId = searchParams.get('detail');
     setActiveTabState(tab);
-    if (
-      detailId &&
-      (detailModal.current?.entityType !== tab || detailModal.current.id !== detailId)
-    ) {
-      detailModal.open({ entityType: tab, id: detailId });
+    if (detailId && (detailCurrent?.entityType !== tab || detailCurrent.id !== detailId)) {
+      openModal({ entityType: tab, id: detailId });
     }
-  }, [searchParams]);
+  }, [detailCurrent, openModal, searchParams]);
 
   useEffect(() => {
-    if (!detailModal.isOpen || !detailModal.current) return;
-    const { entityType, id } = detailModal.current;
+    if (!detailIsOpen || !detailCurrent) return;
+    const { entityType, id } = detailCurrent;
     setActiveTabState(entityType);
     if (searchParams.get('tab') !== entityType || searchParams.get('detail') !== id) {
       setDbUrlState(entityType, id);
     }
-  }, [detailModal.current?.entityType, detailModal.current?.id, detailModal.isOpen]);
+  }, [detailCurrent, detailIsOpen, searchParams, setDbUrlState]);
 
   return (
     <div className={styles.page}>
@@ -258,14 +264,14 @@ export function DbPage() {
         key={activeTab}
         config={activeConfig}
         detailRef={visibleDetailRef}
-        detailOpen={detailModal.isOpen || Boolean(urlDetailId)}
-        canGoBack={detailModal.canGoBack}
-        canGoForward={detailModal.canGoForward}
+        detailOpen={detailIsOpen || Boolean(urlDetailId)}
+        canGoBack={canGoBack}
+        canGoForward={canGoForward}
         onOpenDetail={openDetail}
         onNavigateTo={openDetail}
         onCloseDetail={closeDetail}
-        onBack={detailModal.goBack}
-        onForward={detailModal.goForward}
+        onBack={goBack}
+        onForward={goForward}
       />
     </div>
   );
