@@ -5,20 +5,36 @@ import {
   MAGIC_SKILLS,
   PERSONALITY_SKILLS,
 } from '@/features/character-editor/characterCalculations';
-import { CharacterRepository } from '@/shared/repositories/CharacterRepository';
-import { CompendiumRepository } from '@/shared/repositories/CompendiumRepository';
 import {
   rollDice,
   recordDiceRoll,
   type DiceRollResult,
   type RollContext,
 } from '@/features/character-editor/diceRoller';
+import { CharacterRepository } from '@/shared/repositories/CharacterRepository';
+import { CompendiumRepository } from '@/shared/repositories/CompendiumRepository';
 import { Button } from '@/shared/ui/Button';
-import type { Character, CharacterSpell } from '@/entities/character/types';
+import { Input } from '@/shared/ui/Input';
+import { Select } from '@/shared/ui/Select';
+import { Textarea } from '@/shared/ui/Textarea';
+import { Tabs, type TabItem } from '@/shared/ui/Tabs';
+import type { Character, CharacterBonus, CharacterSpell } from '@/entities/character/types';
 import type { School, Spell } from '@/entities/compendium/types';
 import styles from './CharacterEditorPage.module.css';
 
 type View = 'list' | 'editor';
+type EditorTab = 'game' | 'bonuses' | 'stats' | 'spells' | 'inventory' | 'craft' | 'description';
+
+const EDITOR_TABS: TabItem<EditorTab>[] = [
+  { key: 'game', label: 'Игровой Режим' },
+  { key: 'bonuses', label: 'Бонусы' },
+  { key: 'stats', label: 'Характеристики' },
+  { key: 'spells', label: 'Заклинания' },
+  { key: 'inventory', label: 'Инвентарь' },
+  { key: 'craft', label: 'Ремесло' },
+  { key: 'description', label: 'Описание' },
+];
+
 const LOCAL_CHARACTERS_KEY = 'emagiosCharacters';
 const TEST_GUEST_MODE_KEY = 'emagiosTestGuestCharacters';
 
@@ -139,6 +155,7 @@ function SkillRow({
         {[0, 1, 2, 3].map((n) => (
           <button
             key={n}
+            type="button"
             className={[styles.skillDot, level >= n && n > 0 ? styles.skillDotFilled : ''].join(
               ' ',
             )}
@@ -148,6 +165,36 @@ function SkillRow({
             {n === 0 ? '○' : '●'}
           </button>
         ))}
+      </div>
+    </div>
+  );
+}
+
+/** +/- stepper for a resource pool (current vs max). */
+function ResourceStepper({
+  label,
+  current,
+  max,
+  onChange,
+}: {
+  label: string;
+  current: number;
+  max: number;
+  onChange: (next: number) => void;
+}) {
+  return (
+    <div className={styles.resourceStepper}>
+      <span className={styles.resourceStepperLabel}>{label}</span>
+      <div className={styles.stepperControl}>
+        <Button variant="ghost" size="sm" onClick={() => onChange(Math.max(0, current - 1))}>
+          −
+        </Button>
+        <span className={styles.stepperValue}>
+          {current} / {max}
+        </span>
+        <Button variant="ghost" size="sm" onClick={() => onChange(current + 1)}>
+          +
+        </Button>
       </div>
     </div>
   );
@@ -189,7 +236,7 @@ function DiceRoller({ uid, characterId }: { uid: string | null; characterId: str
       <div className={styles.diceCustomRow}>
         <label className={styles.diceField}>
           <span>Кубов</span>
-          <input
+          <Input
             type="number"
             min={1}
             max={20}
@@ -199,17 +246,17 @@ function DiceRoller({ uid, characterId }: { uid: string | null; characterId: str
         </label>
         <label className={styles.diceField}>
           <span>Граней</span>
-          <select value={sides} onChange={(e) => setSides(Number(e.target.value))}>
+          <Select value={sides} onChange={(e) => setSides(Number(e.target.value))}>
             {[2, 4, 6, 8, 10, 12, 20, 100].map((s) => (
               <option key={s} value={s}>
                 d{s}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className={styles.diceField}>
           <span>Модиф.</span>
-          <input
+          <Input
             type="number"
             value={modifier}
             onChange={(e) => setModifier(Number(e.target.value))}
@@ -234,6 +281,71 @@ function DiceRoller({ uid, characterId }: { uid: string | null; characterId: str
   );
 }
 
+function BonusesSection({
+  bonuses,
+  onChange,
+}: {
+  bonuses: CharacterBonus[];
+  onChange: (next: CharacterBonus[]) => void;
+}) {
+  const [name, setName] = useState('');
+  const [value, setValue] = useState(0);
+
+  function add() {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    onChange([
+      ...bonuses,
+      { id: Date.now().toString(36) + Math.random().toString(36).slice(2), name: trimmed, value },
+    ]);
+    setName('');
+    setValue(0);
+  }
+
+  return (
+    <div className={styles.section}>
+      <h3>Временные Бонусы</h3>
+      <div className={styles.bonusAddRow}>
+        <Input
+          placeholder="Название бонуса"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <Input
+          type="number"
+          className={styles.bonusValueInput}
+          value={value}
+          onChange={(e) => setValue(Number(e.target.value))}
+        />
+        <Button variant="secondary" size="sm" onClick={add} disabled={!name.trim()}>
+          Добавить
+        </Button>
+      </div>
+      {bonuses.length === 0 ? (
+        <p className={styles.emptyHint}>Нет активных бонусов</p>
+      ) : (
+        <div className={styles.bonusList}>
+          {bonuses.map((bonus) => (
+            <div key={bonus.id} className={styles.bonusRow}>
+              <span>{bonus.name}</span>
+              <span className={styles.bonusValue}>
+                {bonus.value > 0 ? `+${bonus.value}` : bonus.value}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onChange(bonuses.filter((b) => b.id !== bonus.id))}
+              >
+                ✕
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function spellToCharacterSpell(spell: Spell): CharacterSpell {
   return {
     id: spell.id,
@@ -248,7 +360,7 @@ export function CharacterEditorPage() {
   const authHook = useCharacterAuth();
   const state = useCharacterState(authHook.auth.uid, authHook.refreshCharacters);
   const [view, setView] = useState<View>('list');
-  const [activeTab, setActiveTab] = useState<'stats' | 'skills' | 'spells'>('stats');
+  const [activeTab, setActiveTab] = useState<EditorTab>('stats');
   const [guestTestMode] = useState(isGuestTestModeEnabled);
   const [localCharacters, setLocalCharacters] = useState<Character[]>(readLocalCharacters);
   const [spells, setSpells] = useState<Spell[]>([]);
@@ -286,12 +398,14 @@ export function CharacterEditorPage() {
   function handleNew() {
     if (!canEditCharacters) return;
     state.reset();
+    setActiveTab('stats');
     setView('editor');
   }
 
   function handleLoad(character: Character) {
     if (!canEditCharacters) return;
     state.loadCharacter(character);
+    setActiveTab('stats');
     setView('editor');
   }
 
@@ -346,6 +460,7 @@ export function CharacterEditorPage() {
     setLocalCharacters(next);
     writeLocalCharacters(next);
     state.loadCharacter(imported);
+    setActiveTab('stats');
     setView('editor');
   }
 
@@ -452,6 +567,7 @@ export function CharacterEditorPage() {
         </div>
       </div>
 
+      {/* Top row with name + level — kept by request */}
       <div className={styles.nameRow}>
         <input
           className={styles.nameInput}
@@ -473,104 +589,126 @@ export function CharacterEditorPage() {
         </div>
       </div>
 
-      <div className={styles.tabs}>
-        {(['stats', 'skills', 'spells'] as const).map((tab) => (
-          <button
-            key={tab}
-            className={[styles.tab, activeTab === tab ? styles.tabActive : ''].join(' ')}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab === 'stats' ? 'Характеристики' : tab === 'skills' ? 'Навыки' : 'Заклинания'}
-          </button>
-        ))}
-      </div>
+      <Tabs items={EDITOR_TABS} active={activeTab} onChange={setActiveTab} variant="pills" />
 
-      {activeTab === 'stats' && (
-        <>
-          <div className={styles.statsGrid}>
-            {[
-              { label: 'Аркана', value: stats.arcana },
-              { label: 'Здоровье', value: stats.health },
-              { label: 'Воля', value: stats.will },
-              { label: 'Скорость', value: stats.speed },
-              { label: 'Инициатива', value: stats.initiative },
-              { label: 'Бонус к Попаданию', value: `+${stats.hitBonus}` },
-              { label: 'Бонус к Наложению', value: `+${stats.effectBonus}` },
-              { label: 'Уклонение', value: stats.evasion },
-              { label: 'Стойкость', value: stats.fortitude },
-              { label: 'Действия', value: stats.actions },
-              { label: 'Реакции', value: stats.reactions },
-            ].map((s) => (
-              <div key={s.label} className={styles.statCard}>
-                <span className={styles.statValue}>{s.value}</span>
-                <span className={styles.statLabel}>{s.label}</span>
-              </div>
-            ))}
+      {activeTab === 'game' && (
+        <div className={styles.section}>
+          <h3>Игровой Режим</h3>
+          <div className={styles.resourceStepperGrid}>
+            <ResourceStepper
+              label="Здоровье"
+              current={character.currentHealth ?? stats.health}
+              max={character.maxHealth ?? stats.health}
+              onChange={(next) => updateField('currentHealth', next)}
+            />
+            <ResourceStepper
+              label="Воля"
+              current={character.currentWill ?? stats.will}
+              max={character.maxWill ?? stats.will}
+              onChange={(next) => updateField('currentWill', next)}
+            />
           </div>
-
           <div className={styles.resourceGrid}>
-            {[
-              ['currentHealth', 'Текущее здоровье', character.currentHealth ?? stats.health],
-              ['maxHealth', 'Макс. здоровье', character.maxHealth ?? stats.health],
-              ['currentWill', 'Текущая воля', character.currentWill ?? stats.will],
-              ['maxWill', 'Макс. воля', character.maxWill ?? stats.will],
-              ['defense', 'Защита', character.defense ?? stats.evasion],
-            ].map(([key, label, value]) => (
-              <label key={key} className={styles.resourceField}>
-                <span>{label}</span>
-                <input
-                  type="number"
-                  value={Number(value)}
-                  onChange={(event) =>
-                    updateField(key as keyof Character, Number(event.target.value) as never)
-                  }
-                />
-              </label>
-            ))}
+            <label className={styles.resourceField}>
+              <span>Защита</span>
+              <Input
+                type="number"
+                value={character.defense ?? stats.evasion}
+                onChange={(e) => updateField('defense', Number(e.target.value))}
+              />
+            </label>
+            <label className={styles.resourceField}>
+              <span>Макс. здоровье</span>
+              <Input
+                type="number"
+                value={character.maxHealth ?? stats.health}
+                onChange={(e) => updateField('maxHealth', Number(e.target.value))}
+              />
+            </label>
+            <label className={styles.resourceField}>
+              <span>Макс. воля</span>
+              <Input
+                type="number"
+                value={character.maxWill ?? stats.will}
+                onChange={(e) => updateField('maxWill', Number(e.target.value))}
+              />
+            </label>
           </div>
-
           <DiceRoller uid={authHook.auth.uid} characterId={character.id} />
-        </>
-      )}
-
-      {activeTab === 'skills' && (
-        <div className={styles.skillsSection}>
-          <div className={styles.skillGroup}>
-            <h3>Навыки Магии</h3>
-            {MAGIC_SKILLS.map((skill) => {
-              const sk = character.magicSkills.find((s) => s.id === skill.id);
-              return (
-                <SkillRow
-                  key={skill.id}
-                  name={skill.name}
-                  level={sk?.level ?? 0}
-                  onChange={(level) => updateSkillLevel('magic', skill.id, level)}
-                />
-              );
-            })}
-          </div>
-          <div className={styles.skillGroup}>
-            <h3>Навыки Личности</h3>
-            {PERSONALITY_SKILLS.map((skill) => {
-              const sk = character.personalitySkills.find((s) => s.id === skill.id);
-              return (
-                <SkillRow
-                  key={skill.id}
-                  name={skill.name}
-                  level={sk?.level ?? 0}
-                  onChange={(level) => updateSkillLevel('personality', skill.id, level)}
-                />
-              );
-            })}
-          </div>
         </div>
       )}
 
+      {activeTab === 'bonuses' && (
+        <BonusesSection
+          bonuses={character.temporaryBonuses ?? []}
+          onChange={(next) => updateField('temporaryBonuses', next)}
+        />
+      )}
+
+      {activeTab === 'stats' && (
+        <>
+          <div className={styles.section}>
+            <h3>Боевые Характеристики</h3>
+            <div className={styles.statsGrid}>
+              {[
+                { label: 'Аркана', value: stats.arcana },
+                { label: 'Здоровье', value: stats.health },
+                { label: 'Воля', value: stats.will },
+                { label: 'Скорость', value: stats.speed },
+                { label: 'Инициатива', value: stats.initiative },
+                { label: 'Бонус к Попаданию', value: `+${stats.hitBonus}` },
+                { label: 'Бонус к Наложению', value: `+${stats.effectBonus}` },
+                { label: 'Уклонение', value: stats.evasion },
+                { label: 'Стойкость', value: stats.fortitude },
+                { label: 'Действия', value: stats.actions },
+                { label: 'Реакции', value: stats.reactions },
+              ].map((s) => (
+                <div key={s.label} className={styles.statCard}>
+                  <span className={styles.statValue}>{s.value}</span>
+                  <span className={styles.statLabel}>{s.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.skillsSection}>
+            <div className={styles.skillGroup}>
+              <h3>Навыки Магии</h3>
+              {MAGIC_SKILLS.map((skill) => {
+                const sk = character.magicSkills.find((s) => s.id === skill.id);
+                return (
+                  <SkillRow
+                    key={skill.id}
+                    name={skill.name}
+                    level={sk?.level ?? 0}
+                    onChange={(level) => updateSkillLevel('magic', skill.id, level)}
+                  />
+                );
+              })}
+            </div>
+            <div className={styles.skillGroup}>
+              <h3>Навыки Личности</h3>
+              {PERSONALITY_SKILLS.map((skill) => {
+                const sk = character.personalitySkills.find((s) => s.id === skill.id);
+                return (
+                  <SkillRow
+                    key={skill.id}
+                    name={skill.name}
+                    level={sk?.level ?? 0}
+                    onChange={(level) => updateSkillLevel('personality', skill.id, level)}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
+
       {activeTab === 'spells' && (
-        <div className={styles.spellsSection}>
+        <div className={styles.section}>
+          <h3>Заклинания</h3>
           <div className={styles.pickerRow}>
-            <select
-              className={styles.select}
+            <Select
               value={selectedSpellId}
               onChange={(event) => setSelectedSpellId(event.target.value)}
             >
@@ -580,7 +718,7 @@ export function CharacterEditorPage() {
                   {spell.name}
                 </option>
               ))}
-            </select>
+            </Select>
             {(['study', 'signature', 'spontaneous'] as const).map((type) => (
               <Button
                 key={type}
@@ -603,11 +741,19 @@ export function CharacterEditorPage() {
 
           {(
             [
-              { key: 'studySpells' as const, label: 'Учебные Заклинания' },
-              { key: 'signatureSpells' as const, label: 'Фирменные Заклинания' },
-              { key: 'spontaneousSpells' as const, label: 'Спонтанные Заклинания' },
+              { key: 'studySpells' as const, label: 'Учебные Заклинания', type: 'study' as const },
+              {
+                key: 'signatureSpells' as const,
+                label: 'Фирменные Заклинания',
+                type: 'signature' as const,
+              },
+              {
+                key: 'spontaneousSpells' as const,
+                label: 'Спонтанные Заклинания',
+                type: 'spontaneous' as const,
+              },
             ] as const
-          ).map(({ key, label }) => (
+          ).map(({ key, label, type }) => (
             <div key={key} className={styles.spellGroup}>
               <h3>{label}</h3>
               {character[key].length === 0 && (
@@ -619,15 +765,7 @@ export function CharacterEditorPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      const type =
-                        key === 'studySpells'
-                          ? 'study'
-                          : key === 'signatureSpells'
-                            ? 'signature'
-                            : 'spontaneous';
-                      state.removeSpell(type, spell.id);
-                    }}
+                    onClick={() => state.removeSpell(type, spell.id)}
                   >
                     ✕
                   </Button>
@@ -635,93 +773,161 @@ export function CharacterEditorPage() {
               ))}
             </div>
           ))}
-          <p className={styles.hint}>
-            Заклинания добавляются из текущей Базы Данных и сохраняются вместе с персонажем.
-          </p>
+
+          <div className={styles.spellGroup}>
+            <h3>Школы Магии</h3>
+            <div className={styles.pickerRow}>
+              <Select
+                value={selectedSchool}
+                onChange={(event) => setSelectedSchool(event.target.value)}
+              >
+                <option value="">Выберите школу из БД</option>
+                {schools.map((school) => (
+                  <option key={school.id} value={school.name}>
+                    {school.name}
+                  </option>
+                ))}
+              </Select>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={!selectedSchool || character.schools.includes(selectedSchool)}
+                onClick={() => {
+                  updateField('schools', [...character.schools, selectedSchool]);
+                  setSelectedSchool('');
+                }}
+              >
+                Добавить школу
+              </Button>
+            </div>
+            <Input
+              placeholder="Например: Базовая Аркана, Огонь"
+              value={character.schools.join(', ')}
+              onChange={(e) =>
+                updateField(
+                  'schools',
+                  e.target.value
+                    .split(',')
+                    .map((v) => v.trim())
+                    .filter(Boolean),
+                )
+              }
+            />
+          </div>
         </div>
       )}
 
-      <div className={styles.notesSection}>
-        <h3>Школы Магии</h3>
-        <div className={styles.pickerRow}>
-          <select
-            className={styles.select}
-            value={selectedSchool}
-            onChange={(event) => setSelectedSchool(event.target.value)}
-          >
-            <option value="">Выберите школу из БД</option>
-            {schools.map((school) => (
-              <option key={school.id} value={school.name}>
-                {school.name}
-              </option>
-            ))}
-          </select>
-          <Button
-            variant="secondary"
-            size="sm"
-            disabled={!selectedSchool || character.schools.includes(selectedSchool)}
-            onClick={() => {
-              updateField('schools', [...character.schools, selectedSchool]);
-              setSelectedSchool('');
-            }}
-          >
-            Добавить школу
-          </Button>
+      {activeTab === 'inventory' && (
+        <div className={styles.section}>
+          <h3>Инвентарь</h3>
+          <label className={styles.fieldLabel}>Экипировка</label>
+          <Textarea
+            placeholder="Экипировка..."
+            value={character.equipment ?? ''}
+            onChange={(e) => updateField('equipment', e.target.value)}
+            rows={4}
+          />
+          <label className={styles.fieldLabel}>Предметы и снаряжение</label>
+          <Textarea
+            placeholder="Список предметов..."
+            value={character.inventory ?? ''}
+            onChange={(e) => updateField('inventory', e.target.value)}
+            rows={6}
+          />
         </div>
-        <input
-          className={styles.textInput}
-          placeholder="Например: Базовая Аркана, Огонь"
-          value={character.schools.join(', ')}
-          onChange={(e) =>
-            updateField(
-              'schools',
-              e.target.value
-                .split(',')
-                .map((v) => v.trim())
-                .filter(Boolean),
-            )
-          }
-        />
-        <h3>Архетипы</h3>
-        <input
-          className={styles.textInput}
-          placeholder="Архетипы персонажа"
-          value={character.archetypes.join(', ')}
-          onChange={(e) =>
-            updateField(
-              'archetypes',
-              e.target.value
-                .split(',')
-                .map((v) => v.trim())
-                .filter(Boolean),
-            )
-          }
-        />
-        <h3>Экипировка</h3>
-        <textarea
-          className={styles.textarea}
-          placeholder="Экипировка..."
-          value={character.equipment ?? ''}
-          onChange={(e) => updateField('equipment', e.target.value)}
-          rows={3}
-        />
-        <h3>Описание</h3>
-        <textarea
-          className={styles.textarea}
-          placeholder="Описание персонажа..."
-          value={character.description ?? ''}
-          onChange={(e) => updateField('description', e.target.value)}
-          rows={4}
-        />
-        <h3>Заметки</h3>
-        <textarea
-          className={styles.textarea}
-          placeholder="Заметки..."
-          value={character.notes ?? ''}
-          onChange={(e) => updateField('notes', e.target.value)}
-          rows={4}
-        />
-      </div>
+      )}
+
+      {activeTab === 'craft' && (
+        <div className={styles.section}>
+          <h3>Ремесло</h3>
+          <label className={styles.fieldLabel}>Профессии</label>
+          <Textarea
+            placeholder="Профессии и специализации..."
+            value={character.professions ?? ''}
+            onChange={(e) => updateField('professions', e.target.value)}
+            rows={4}
+          />
+          <label className={styles.fieldLabel}>Рецепты</label>
+          <Textarea
+            placeholder="Известные рецепты..."
+            value={character.recipes ?? ''}
+            onChange={(e) => updateField('recipes', e.target.value)}
+            rows={6}
+          />
+        </div>
+      )}
+
+      {activeTab === 'description' && (
+        <div className={styles.section}>
+          <h3>Описание персонажа</h3>
+          <label className={styles.fieldLabel}>О персонаже</label>
+          <Textarea
+            placeholder="Описание персонажа..."
+            value={character.description ?? ''}
+            onChange={(e) => updateField('description', e.target.value)}
+            rows={4}
+          />
+          <div className={styles.descGrid}>
+            <label className={styles.resourceField}>
+              <span>Мировоззрение</span>
+              <Input
+                value={character.alignment ?? ''}
+                onChange={(e) => updateField('alignment', e.target.value)}
+                placeholder="Напр.: Нейтрально-добрый"
+              />
+            </label>
+            <label className={styles.resourceField}>
+              <span>Пол</span>
+              <Input
+                value={character.gender ?? ''}
+                onChange={(e) => updateField('gender', e.target.value)}
+              />
+            </label>
+            <label className={styles.resourceField}>
+              <span>Раса</span>
+              <Input
+                value={character.race ?? ''}
+                onChange={(e) => updateField('race', e.target.value)}
+              />
+            </label>
+          </div>
+          <label className={styles.fieldLabel}>Внешний вид</label>
+          <Textarea
+            placeholder="Внешность персонажа..."
+            value={character.appearance ?? ''}
+            onChange={(e) => updateField('appearance', e.target.value)}
+            rows={3}
+          />
+          <label className={styles.fieldLabel}>Взаимоотношения</label>
+          <Textarea
+            placeholder="Связи и отношения..."
+            value={character.relationships ?? ''}
+            onChange={(e) => updateField('relationships', e.target.value)}
+            rows={3}
+          />
+          <label className={styles.fieldLabel}>Архетипы</label>
+          <Input
+            placeholder="Архетипы персонажа"
+            value={character.archetypes.join(', ')}
+            onChange={(e) =>
+              updateField(
+                'archetypes',
+                e.target.value
+                  .split(',')
+                  .map((v) => v.trim())
+                  .filter(Boolean),
+              )
+            }
+          />
+          <label className={styles.fieldLabel}>Прочее</label>
+          <Textarea
+            placeholder="Заметки..."
+            value={character.notes ?? ''}
+            onChange={(e) => updateField('notes', e.target.value)}
+            rows={4}
+          />
+        </div>
+      )}
     </div>
   );
 }

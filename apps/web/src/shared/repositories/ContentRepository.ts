@@ -1,20 +1,19 @@
-import { collection, doc, getDocs, getDoc, query, where } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/shared/firebase/client';
 import type { NewsItem, ContentManifest } from '@/entities/content/types';
-import { newsItemFromDto, manifestFromDto } from '@/entities/content/mappers';
+import { newsItemFromJson, manifestFromDto } from '@/entities/content/mappers';
 
 export const ContentRepository = {
   async getNews(): Promise<NewsItem[]> {
-    const col = collection(db, 'news');
-    // Filter server-side, sort client-side: avoids requiring a composite
-    // Firestore index on (status, date).
-    const q = query(col, where('status', '==', 'published'));
-    const snap = await getDocs(q);
-    // Doc ids are ISO-date-prefixed (`2025-12-10-slug`), so sorting by id
-    // descending yields newest-first — matching the legacy news order.
-    return snap.docs
-      .map((d) => newsItemFromDto(d.id, d.data()))
-      .sort((a, b) => String(b.id ?? '').localeCompare(String(a.id ?? '')));
+    // News is static, slow-changing content — served as a bundled asset
+    // (like the books), so it deploys with the site and needs no Firestore
+    // index or re-import. File is the full changelog, newest-first.
+    const res = await fetch(`${import.meta.env.BASE_URL}data/news.json`, { cache: 'no-store' });
+    if (!res.ok) {
+      throw new Error(`Не удалось загрузить новости (${res.status})`);
+    }
+    const raw = (await res.json()) as Array<Record<string, unknown>>;
+    return Array.isArray(raw) ? raw.map((item) => newsItemFromJson(item)) : [];
   },
 
   async getManifest(environment = 'production'): Promise<ContentManifest | null> {

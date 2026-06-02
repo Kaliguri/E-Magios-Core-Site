@@ -282,6 +282,106 @@
   border-color: var(--accent-emerald);
 }
 
+.section {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.section > h3 {
+  margin: 0 0 var(--spacing-sm);
+  font-size: 1.05rem;
+}
+
+.fieldLabel {
+  display: block;
+  margin: var(--spacing-md) 0 0.35rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.descGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.resourceStepperGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.resourceStepper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.resourceStepperLabel {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.stepperControl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.stepperValue {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.bonusAddRow {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-sm);
+}
+
+.bonusValueInput {
+  max-width: 100px;
+}
+
+.bonusList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.bonusRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 0.4rem var(--spacing-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.bonusRow > span:first-child {
+  flex: 1;
+}
+
+.bonusValue {
+  color: var(--accent-emerald);
+  font-weight: 600;
+}
+
 .diceRoller {
   margin-top: var(--spacing-md);
   padding: var(--spacing-md);
