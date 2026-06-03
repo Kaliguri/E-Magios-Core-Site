@@ -102,14 +102,17 @@ E-Magios-Core-Site/
 ├── apps/web/                    # React + TypeScript + Vite (Feature-Sliced Design)
 ├── scripts/import-content/      # импорт в Firestore + workflow + smoke-проверки
 ├── scripts/data-pipeline/       # normalize / validate / relations / report
+├── scripts/parsing/             # извлечение контента (source Markdown → data JSON)
 ├── data/                        # исходный JSON для импорта
 ├── reports/                     # сгенерированные отчёты валидации и данных
 ├── docs/                        # план миграции, gap-анализ, UX-аудит
-├── dashboard.html               # legacy-дэшборд (метрики качества контента)
+├── legacy/                      # архив исходного статического сайта (vanilla JS)
 ├── .github/workflows/           # CI и деплой
 ├── firestore.rules              # ролевая модель доступа
 └── firestore.indexes.json       # индексы Firestore
 ```
+
+> Папка `legacy/` — это замороженный исходный сайт на vanilla JS, с которого началась миграция. Он сохранён для истории и сравнения; продакшен — это `apps/web`.
 
 ### Локальный запуск
 
@@ -139,7 +142,7 @@ python scripts/data-pipeline/process_data.py --no-fail-on-errors
 
 ```bash
 python -m http.server 8000
-# http://localhost:8000/dashboard.html
+# http://localhost:8000/legacy/dashboard.html
 # http://localhost:8000/reports/data_report.html
 ```
 

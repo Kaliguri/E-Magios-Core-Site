@@ -382,7 +382,7 @@ function fetchSpellsData() {
     return editorSpellsDataPromise;
   }
 
-  editorSpellsDataPromise = fetch('data/spells.json')
+  editorSpellsDataPromise = fetch('../data/spells.json')
     .then(function (response) {
       return response.json();
     })
@@ -409,7 +409,7 @@ function fetchSchoolsData() {
     return editorSchoolsDataPromise;
   }
 
-  editorSchoolsDataPromise = fetch('data/schools.json')
+  editorSchoolsDataPromise = fetch('../data/schools.json')
     .then(function (response) {
       return response.json();
     })

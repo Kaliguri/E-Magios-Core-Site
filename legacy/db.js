@@ -769,7 +769,7 @@ function getDbBasePath() {
 }
 
 function getDataUrl(fileName) {
-  return getDbBasePath() + 'data/' + fileName;
+  return getDbBasePath() + '../data/' + fileName;
 }
 
 function restoreDbDetailFromSession() {

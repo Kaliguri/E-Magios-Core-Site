@@ -43,13 +43,14 @@ jobs:
         working-directory: apps/web
         run: npm run build
 
-      - name: Copy legacy site into build
+      - name: Copy archived legacy site into build
         run: |
+          # Legacy static site lives under legacy/ and is self-contained for its
+          # content dirs. Its data/ and reports/ references resolve to ../data and
+          # ../reports, which the React build already emits at the dist-react root
+          # (from apps/web/public/), so no extra copy is needed.
           mkdir -p dist-react/legacy
-          cp *.html *.js *.css favicon.ico dist-react/legacy/
-          for d in data craftbook master phb rumors spellbook; do
-            [ -d "$d" ] && cp -r "$d" dist-react/legacy/
-          done
+          cp -r legacy/. dist-react/legacy/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

@@ -4,10 +4,11 @@
 
 ## Обзор
 
-Все скрипты парсинга находятся в корне проекта и следуют единому формату:
+Скрипты парсинга находятся в `scripts/parsing/` и запускаются **из корня репозитория**
+(пути к `data/` — относительно текущей директории):
 
 ```bash
-python parse_<type>.py
+python scripts/parsing/parse_<type>.py
 ```
 
 Скрипты читают Markdown файлы из Obsidian Vault и генерируют соответствующие JSON файлы в папке `data/`.
@@ -242,11 +243,11 @@ data/combat_components.json
 Чтобы обновить все данные из Obsidian Vault:
 
 ```bash
-python parse_schools.py
-python parse_spells.py
-python parse_effects.py
-python parse_archetypes.py
-python parse_actions.py
+python scripts/parsing/parse_schools.py
+python scripts/parsing/parse_spells.py
+python scripts/parsing/parse_effects.py
+python scripts/parsing/parse_archetypes.py
+python scripts/parsing/parse_actions.py
 ```
 
 ### Требования

@@ -1843,7 +1843,7 @@ function sendDiceResultToDiscord(entry) {
           baseUrl = origin.replace(/\/+$/, '') + '/';
         }
       }
-      spellUrl = baseUrl + 'db.html?spell=' + encodeURIComponent(String(entry.contextSpell));
+      spellUrl = baseUrl + 'legacy/db.html?spell=' + encodeURIComponent(String(entry.contextSpell));
     } catch (e) {
       // В крайнем случае, если что-то пошло не так, просто не добавляем ссылку
       spellUrl = null;

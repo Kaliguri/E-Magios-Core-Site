@@ -901,7 +901,7 @@ function renderDice(report) {
 }
 
 async function loadReport() {
-  const response = await fetch('reports/data_report.json', { cache: 'no-store' });
+  const response = await fetch('../reports/data_report.json', { cache: 'no-store' });
   if (!response.ok) {
     throw new Error(`Не удалось загрузить отчет (${response.status})`);
   }

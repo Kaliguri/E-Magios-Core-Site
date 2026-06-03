@@ -899,20 +899,20 @@ function renderNews(spells, schools, effects, archetypes, actions, basics, skill
 
 document.addEventListener('DOMContentLoaded', function () {
   Promise.all([
-    loadJSON('./data/spells.json'),
-    loadJSON('./data/schools.json'),
-    loadJSON('./data/effects.json'),
-    loadJSON('./data/archetypes.json'),
-    loadJSON('./data/actions.json'),
-    loadJSON('./data/basics.json'),
-    loadJSON('./data/skills.json'),
-    loadJSON('./data/action_types.json'),
-    loadJSON('./data/combat_components.json'),
-    loadJSON('./data/craft_components.json'),
-    loadJSON('./data/craft_professions.json'),
-    loadJSON('./data/craft_specializations.json'),
-    loadJSON('./data/recipe_types.json'),
-    loadJSON('./data/recipes.json')
+    loadJSON('../data/spells.json'),
+    loadJSON('../data/schools.json'),
+    loadJSON('../data/effects.json'),
+    loadJSON('../data/archetypes.json'),
+    loadJSON('../data/actions.json'),
+    loadJSON('../data/basics.json'),
+    loadJSON('../data/skills.json'),
+    loadJSON('../data/action_types.json'),
+    loadJSON('../data/combat_components.json'),
+    loadJSON('../data/craft_components.json'),
+    loadJSON('../data/craft_professions.json'),
+    loadJSON('../data/craft_specializations.json'),
+    loadJSON('../data/recipe_types.json'),
+    loadJSON('../data/recipes.json')
   ])
     .then(function (results) {
       const spells = results[0];
