@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useCompendiumData } from '@/shared/cache/useCompendiumData';
 import {
@@ -9,38 +9,19 @@ import {
 } from '@/entities/compendium/config';
 import { useCompendiumFilters } from '@/features/db/useCompendiumFilters';
 import { useCompendiumSort } from '@/features/db/useCompendiumSort';
-import { useDetailModal } from '@/features/db/useDetailModal';
-import { useCompendiumIndex, type EntityRef } from '@/features/db/useCompendiumIndex';
+import { useCompendiumOverlay } from '@/shared/compendium/CompendiumOverlayContext';
 import { CompendiumTable } from '@/widgets/db-table/CompendiumTable';
 import { FilterPanel } from '@/widgets/db-table/FilterPanel';
-import { DetailModal } from '@/widgets/db-table/DetailModal';
 import { Button, Input, Spinner, Tabs } from '@/shared/ui';
-import type { CompendiumEntity } from '@/entities/compendium/types';
-import type { CompendiumEntityKey } from '@/entities/compendium/types';
+import type { CompendiumEntity, CompendiumEntityKey } from '@/entities/compendium/types';
 import styles from './DbPage.module.css';
 
 function TabContent({
   config,
-  detailRef,
-  detailOpen,
-  canGoBack,
-  canGoForward,
   onOpenDetail,
-  onNavigateTo,
-  onCloseDetail,
-  onBack,
-  onForward,
 }: {
   config: CompendiumConfig;
-  detailRef: EntityRef | null;
-  detailOpen: boolean;
-  canGoBack: boolean;
-  canGoForward: boolean;
-  onOpenDetail: (ref: EntityRef) => void;
-  onNavigateTo: (ref: EntityRef) => void;
-  onCloseDetail: () => void;
-  onBack: () => void;
-  onForward: () => void;
+  onOpenDetail: (id: string) => void;
 }) {
   const {
     data: items,
@@ -71,8 +52,6 @@ function TabContent({
       return '';
     }
   });
-  const datasets = useMemo(() => (items ? { [config.key]: items } : {}), [config.key, items]);
-  const compendiumIndex = useCompendiumIndex(datasets);
 
   useEffect(() => {
     try {
@@ -104,8 +83,6 @@ function TabContent({
       })
     : filtered;
   const sorted = sortItems(searched);
-  const detailEntity =
-    detailRef?.entityType === config.key ? compendiumIndex.resolve(detailRef) : null;
 
   return (
     <div className={styles.tabContent}>
@@ -134,7 +111,7 @@ function TabContent({
         columns={config.schema.columns}
         sort={sort}
         onSort={toggleSort}
-        onRowClick={(item) => onOpenDetail({ entityType: config.key, id: item.id })}
+        onRowClick={(item) => onOpenDetail(item.id)}
       />
 
       {config.schema.filters.length > 0 && (
@@ -151,19 +128,6 @@ function TabContent({
           getOptions={getOptions}
         />
       )}
-
-      <DetailModal
-        open={detailOpen && Boolean(detailEntity)}
-        entity={detailEntity}
-        entityType={detailRef?.entityType ?? ''}
-        canGoBack={canGoBack}
-        canGoForward={canGoForward}
-        onClose={onCloseDetail}
-        onBack={onBack}
-        onForward={onForward}
-        onNavigateTo={onNavigateTo}
-        resolveEntityByName={(name, entityType) => compendiumIndex.resolveByName(name, entityType)}
-      />
     </div>
   );
 }
@@ -175,74 +139,60 @@ function getInitialTab(searchParams: URLSearchParams): CompendiumEntityKey {
 
 export function DbPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const overlay = useCompendiumOverlay();
   const [activeTab, setActiveTabState] = useState<CompendiumEntityKey>(() =>
     getInitialTab(searchParams),
   );
-  const detailModal = useDetailModal();
-  const {
-    current: detailCurrent,
-    isOpen: detailIsOpen,
-    canGoBack,
-    canGoForward,
-    open: openModal,
-    close: closeModal,
-    goBack,
-    goForward,
-  } = detailModal;
   const activeConfig = COMPENDIUM_CONFIG_BY_KEY[activeTab];
-  const urlDetailId = searchParams.get('detail');
-  const visibleDetailRef =
-    detailCurrent ?? (urlDetailId ? { entityType: activeTab, id: urlDetailId } : null);
 
-  const setDbUrlState = useCallback(
-    (tab: CompendiumEntityKey, detail?: string | null) => {
-      const next = new URLSearchParams();
-      next.set('tab', tab);
-      if (detail) next.set('detail', detail);
-      setSearchParams(next, { replace: false });
-    },
-    [setSearchParams],
-  );
+  // Keep the active tab in sync with the URL (?tab=) — covers deep links and
+  // in-app navigation onto an already-mounted DB page.
+  useEffect(() => {
+    const tab = getInitialTab(searchParams);
+    setActiveTabState((prev) => (prev === tab ? prev : tab));
+  }, [searchParams]);
+
+  // Restore a deep-linked detail (?detail=) once, on mount. The shared overlay
+  // owns the modal; we just ask it to open.
+  useEffect(() => {
+    const detailId = searchParams.get('detail');
+    if (detailId) {
+      overlay.openEntity({ entityType: getInitialTab(searchParams), id: detailId });
+    }
+    // Mount-only restore — intentionally not re-running on param changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // When the overlay closes, drop the stale ?detail= so a refresh doesn't reopen it.
+  useEffect(() => {
+    if (!overlay.isOpen && searchParams.get('detail')) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('detail');
+      setSearchParams(next, { replace: true });
+    }
+  }, [overlay.isOpen, searchParams, setSearchParams]);
 
   const setActiveTab = useCallback(
     (tab: CompendiumEntityKey) => {
       setActiveTabState(tab);
-      setDbUrlState(tab, null);
+      overlay.close();
+      const next = new URLSearchParams();
+      next.set('tab', tab);
+      setSearchParams(next, { replace: false });
     },
-    [setDbUrlState],
+    [overlay, setSearchParams],
   );
 
   const openDetail = useCallback(
-    (ref: EntityRef) => {
-      setActiveTabState(ref.entityType);
-      openModal(ref);
-      setDbUrlState(ref.entityType, ref.id);
+    (id: string) => {
+      overlay.openEntity({ entityType: activeTab, id });
+      const next = new URLSearchParams();
+      next.set('tab', activeTab);
+      next.set('detail', id);
+      setSearchParams(next, { replace: false });
     },
-    [openModal, setDbUrlState],
+    [overlay, activeTab, setSearchParams],
   );
-
-  const closeDetail = useCallback(() => {
-    closeModal();
-    setDbUrlState(activeTab, null);
-  }, [activeTab, closeModal, setDbUrlState]);
-
-  useEffect(() => {
-    const tab = getInitialTab(searchParams);
-    const detailId = searchParams.get('detail');
-    setActiveTabState(tab);
-    if (detailId && (detailCurrent?.entityType !== tab || detailCurrent.id !== detailId)) {
-      openModal({ entityType: tab, id: detailId });
-    }
-  }, [detailCurrent, openModal, searchParams]);
-
-  useEffect(() => {
-    if (!detailIsOpen || !detailCurrent) return;
-    const { entityType, id } = detailCurrent;
-    setActiveTabState(entityType);
-    if (searchParams.get('tab') !== entityType || searchParams.get('detail') !== id) {
-      setDbUrlState(entityType, id);
-    }
-  }, [detailCurrent, detailIsOpen, searchParams, setDbUrlState]);
 
   return (
     <div className={styles.page}>
@@ -255,19 +205,7 @@ export function DbPage() {
         onChange={setActiveTab}
       />
 
-      <TabContent
-        key={activeTab}
-        config={activeConfig}
-        detailRef={visibleDetailRef}
-        detailOpen={detailIsOpen || Boolean(urlDetailId)}
-        canGoBack={canGoBack}
-        canGoForward={canGoForward}
-        onOpenDetail={openDetail}
-        onNavigateTo={openDetail}
-        onCloseDetail={closeDetail}
-        onBack={goBack}
-        onForward={goForward}
-      />
+      <TabContent key={activeTab} config={activeConfig} onOpenDetail={openDetail} />
     </div>
   );
 }

@@ -2,6 +2,10 @@ import { useCallback, Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import { useCompendiumData } from '@/shared/cache/useCompendiumData';
 import { ContentRepository } from '@/shared/repositories/ContentRepository';
+import {
+  useCompendiumOverlay,
+  parseEntityRoute,
+} from '@/shared/compendium/CompendiumOverlayContext';
 import { LegacyText } from '@/shared/ui/LegacyText';
 import type { NewsItem } from '@/entities/content/types';
 import styles from './NewsPage.module.css';
@@ -9,6 +13,28 @@ import styles from './NewsPage.module.css';
 /** Hash routes are baked as `#/db?...`; React Router Link wants the path. */
 function toPath(route: string): string {
   return route.startsWith('#') ? route.slice(1) : route;
+}
+
+/**
+ * A news link to a single DB entity (`#/db?tab=…&detail=…`) opens the shared
+ * overlay over the news page; anything else (book chapter, `/db` tab, profile)
+ * navigates as usual.
+ */
+function EntityRouteLink({ text, route }: { text: string; route: string }) {
+  const overlay = useCompendiumOverlay();
+  const ref = parseEntityRoute(route);
+  if (ref) {
+    return (
+      <button type="button" className={styles.link} onClick={() => overlay.openEntity(ref)}>
+        {text}
+      </button>
+    );
+  }
+  return (
+    <Link to={toPath(route)} className={styles.link}>
+      {text}
+    </Link>
+  );
 }
 
 function NewsEntry({ item, open }: { item: NewsItem; open: boolean }) {
@@ -46,9 +72,7 @@ function NewsEntry({ item, open }: { item: NewsItem; open: boolean }) {
                   {links.map((link, i) => (
                     <Fragment key={link.route + i}>
                       {i > 0 && ' · '}
-                      <Link to={toPath(link.route)} className={styles.link}>
-                        {link.text}
-                      </Link>
+                      <EntityRouteLink text={link.text} route={link.route} />
                     </Fragment>
                   ))}
                 </p>
@@ -69,9 +93,7 @@ function NewsEntry({ item, open }: { item: NewsItem; open: boolean }) {
                     group.items.map((obj, i) => (
                       <Fragment key={obj.route + i}>
                         {i > 0 && ', '}
-                        <Link to={toPath(obj.route)} className={styles.link}>
-                          {obj.name}
-                        </Link>
+                        <EntityRouteLink text={obj.name} route={obj.route} />
                       </Fragment>
                     ))
                   )}
