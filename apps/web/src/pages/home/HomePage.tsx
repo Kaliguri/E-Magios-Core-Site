@@ -17,6 +17,12 @@ const PRIMARY_CARDS = [
   },
   { to: '/news', icon: '📰', title: 'Новости', text: 'Последние обновления системы' },
   {
+    to: '/dashboard',
+    icon: '📈',
+    title: 'Дашборд',
+    text: 'Метрики контента и аналитика бросков кубов',
+  },
+  {
     to: '/profile',
     icon: '👤',
     title: 'Профиль',

@@ -411,15 +411,37 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
   );
 }
 
+// Known structured fields surfaced (in order) for entity types without a bespoke
+// detail layout — basics/combat (section, page), craft specializations
+// (profession), etc. Anything absent on the entity is skipped by Row.
+const GENERIC_META: [string, string][] = [
+  ['type', 'Тип'],
+  ['kind', 'Тип'],
+  ['actionType', 'Тип действия'],
+  ['section', 'Раздел'],
+  ['page', 'Страница'],
+  ['profession', 'Профессия'],
+  ['specialization', 'Специализация'],
+  ['rarity', 'Редкость'],
+];
+
 function GenericDetail({ entity }: { entity: CompendiumEntity }) {
   const rec = entity as unknown as Record<string, unknown>;
   const desc = typeof rec['description'] === 'string' ? rec['description'] : null;
+  const metaRows = GENERIC_META.filter(([key]) => rec[key] != null && rec[key] !== '');
   return (
     <div className={styles.detail}>
       <h2 className={styles.entityName}>{String(rec['name'] ?? '')}</h2>
+      {metaRows.length > 0 && (
+        <div className={styles.params}>
+          {metaRows.map(([key, label]) => (
+            <Row key={key} label={label} value={rec[key]} />
+          ))}
+        </div>
+      )}
       {desc && (
         <div className={styles.section}>
-          <HtmlBlock html={desc} />
+          <HtmlBlock html={desc} rollLabel={String(rec['name'] ?? '')} />
         </div>
       )}
     </div>
