@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { BOOKS, type Book } from '@/shared/nav/books';
 import { useAuth } from '@/features/auth';
@@ -37,6 +37,12 @@ export function Sidebar() {
   function toggle(key: string) {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   }
+
+  // Keep the active chapter visible in the (often long) sidebar — legacy parity.
+  const activeChapterRef = useRef<HTMLAnchorElement | null>(null);
+  useEffect(() => {
+    activeChapterRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [location.pathname]);
 
   const visibleTools = TOOLS.filter((tool) => tool.access !== 'editor' || isEditor);
 
@@ -101,6 +107,7 @@ export function Sidebar() {
                     <NavLink
                       key={ch.id}
                       to={path}
+                      ref={isActive ? activeChapterRef : undefined}
                       className={[styles.chapterLink, isActive ? styles.active : ''].join(' ')}
                     >
                       {ch.title}

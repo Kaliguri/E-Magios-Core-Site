@@ -55,7 +55,8 @@ export function Layout() {
             <button
               className={styles.resetAccessButton}
               type="button"
-              title="Reset protected content access"
+              title="Сбросить доступ к защищённым книгам"
+              aria-label="Сбросить доступ к защищённым книгам"
               onClick={resetBookAccess}
             >
               🔓

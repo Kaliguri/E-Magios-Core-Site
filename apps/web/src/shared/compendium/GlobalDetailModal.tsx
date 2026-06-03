@@ -22,6 +22,7 @@ export function GlobalDetailModal() {
       onForward={overlay.goForward}
       onNavigateTo={overlay.openEntity}
       resolveEntityByName={overlay.resolveByName}
+      ensureLoaded={overlay.ensureLoaded}
     />
   );
 }

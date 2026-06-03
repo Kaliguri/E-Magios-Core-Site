@@ -1,12 +1,20 @@
-import { type MouseEvent } from 'react';
+import { createContext, useContext, useEffect, type MouseEvent, type ReactNode } from 'react';
 import type { CompendiumEntity } from '@/entities/compendium/types';
 import type { Spell, School, Effect, Action, Skill, Recipe } from '@/entities/compendium/types';
 import type { CompendiumEntityKey } from '@/entities/compendium/types';
 import type { EntityRef } from '@/features/db/useCompendiumIndex';
+import {
+  linkifyKeywords,
+  KEYWORD_LINK_TYPES,
+  ENTITY_NAME_ATTR,
+  ENTITY_TYPE_ATTR,
+} from '@/features/db/linkifyEntities';
 import { useDice, linkifyDiceExpressions, DICE_ROLL_ATTR, type RollType } from '@/features/dice';
 import { Modal } from '@/shared/ui/Modal';
 import { Button } from '@/shared/ui/Button';
+import { Badge } from '@/shared/ui/Badge';
 import { LegacyText, renderLegacyTextHtml } from '@/shared/ui/LegacyText';
+import { isCompendiumKey } from '@/entities/compendium/config';
 import styles from './DetailModal.module.css';
 
 interface DetailModalProps {
@@ -20,15 +28,86 @@ interface DetailModalProps {
   onForward: () => void;
   onNavigateTo?: (ref: EntityRef) => void;
   resolveEntityByName?: (name: string, type: CompendiumEntityKey) => EntityRef | null;
+  /** Preload a collection so cross-links inside the detail resolve to buttons. */
+  ensureLoaded?: (entityType: CompendiumEntityKey) => void;
 }
 
-function Row({ label, value }: { label: string; value?: unknown }) {
+/**
+ * Shared link context so any nested value can turn a name into an overlay link
+ * without prop-drilling. Mirrors the legacy behaviour where nearly every
+ * parameter (school, action type, resource…) was a clickable cross-reference.
+ */
+interface DetailLinkValue {
+  onNavigateTo?: (ref: EntityRef) => void;
+  resolveEntityByName?: (name: string, type: CompendiumEntityKey) => EntityRef | null;
+  ensureLoaded?: (entityType: CompendiumEntityKey) => void;
+}
+const DetailLinkContext = createContext<DetailLinkValue>({});
+function useDetailLinks() {
+  return useContext(DetailLinkContext);
+}
+
+/** A single name rendered as an overlay link when it resolves, else plain text. */
+function EntityRefLink({ name, entityType }: { name: string; entityType: CompendiumEntityKey }) {
+  const { onNavigateTo, resolveEntityByName, ensureLoaded } = useDetailLinks();
+  useEffect(() => {
+    ensureLoaded?.(entityType);
+  }, [entityType, ensureLoaded]);
+  const ref = resolveEntityByName?.(name.trim(), entityType) ?? null;
+  if (!ref || !onNavigateTo) return <span>{name}</span>;
+  return (
+    <button type="button" className={styles.inlineLink} onClick={() => onNavigateTo(ref)}>
+      {name}
+    </button>
+  );
+}
+
+/** Render a comma/`;`-separated value as a row of {@link EntityRefLink}s. */
+function LinkedValue({
+  value,
+  entityType,
+}: {
+  value: string | string[];
+  entityType: CompendiumEntityKey;
+}) {
+  const parts = (Array.isArray(value) ? value : String(value).split(/[,;]/))
+    .map((p) => p.trim())
+    .filter(Boolean);
+  return (
+    <>
+      {parts.map((part, i) => (
+        <span key={`${part}-${i}`}>
+          {i > 0 ? ', ' : ''}
+          <EntityRefLink name={part} entityType={entityType} />
+        </span>
+      ))}
+    </>
+  );
+}
+
+function Row({
+  label,
+  value,
+  linkType,
+}: {
+  label: string;
+  value?: unknown;
+  /** When set, the value is split and rendered as overlay cross-links. */
+  linkType?: CompendiumEntityKey;
+}) {
   if (value == null || value === '' || (Array.isArray(value) && !value.length)) return null;
-  const display = Array.isArray(value) ? value.join(', ') : String(value);
   return (
     <div className={styles.row}>
       <span className={styles.label}>{label}:</span>
-      <span className={styles.value}>{display}</span>
+      <span className={styles.value}>
+        {linkType ? (
+          <LinkedValue value={value as string | string[]} entityType={linkType} />
+        ) : Array.isArray(value) ? (
+          value.join(', ')
+        ) : (
+          String(value)
+        )}
+      </span>
     </div>
   );
 }
@@ -53,15 +132,14 @@ function extractDbLinkRef(raw: string | null): EntityRef | null {
 
 function HtmlBlock({
   html,
-  onNavigateTo,
   rollLabel,
 }: {
   html: string;
-  onNavigateTo?: (ref: EntityRef) => void;
   /** Label used when a dice formula inside the text is clicked to roll. */
   rollLabel?: string;
 }) {
   const dice = useDice();
+  const { onNavigateTo, resolveEntityByName } = useDetailLinks();
 
   function handleClick(event: MouseEvent<HTMLDivElement>) {
     const target = event.target as HTMLElement | null;
@@ -76,6 +154,19 @@ function HtmlBlock({
       return;
     }
 
+    // An auto-linked keyword (Воля, Концентрация…) opens the named entity.
+    const kw = target?.closest(`[${ENTITY_NAME_ATTR}]`);
+    const kwName = kw?.getAttribute(ENTITY_NAME_ATTR);
+    const kwType = kw?.getAttribute(ENTITY_TYPE_ATTR) ?? null;
+    if (kwName && isCompendiumKey(kwType) && resolveEntityByName && onNavigateTo) {
+      const ref = resolveEntityByName(kwName, kwType);
+      if (ref) {
+        event.preventDefault();
+        onNavigateTo(ref);
+        return;
+      }
+    }
+
     const anchor = target?.closest('a');
     if (!anchor || !onNavigateTo) return;
     const ref = extractDbLinkRef(anchor.getAttribute('onclick') ?? anchor.getAttribute('href'));
@@ -84,26 +175,18 @@ function HtmlBlock({
     onNavigateTo(ref);
   }
 
+  const rendered = linkifyKeywords(linkifyDiceExpressions(renderLegacyTextHtml(html, true)));
   return (
     <div
       className={styles.htmlBlock}
       onClick={handleClick}
-      dangerouslySetInnerHTML={{ __html: linkifyDiceExpressions(renderLegacyTextHtml(html, true)) }}
+      dangerouslySetInnerHTML={{ __html: rendered }}
     />
   );
 }
 
-function NavigateTag({
-  label,
-  entityType,
-  resolveEntityByName,
-  onNavigateTo,
-}: {
-  label: string;
-  entityType: CompendiumEntityKey;
-  resolveEntityByName?: (name: string, type: CompendiumEntityKey) => EntityRef | null;
-  onNavigateTo?: (ref: EntityRef) => void;
-}) {
+function NavigateTag({ label, entityType }: { label: string; entityType: CompendiumEntityKey }) {
+  const { onNavigateTo, resolveEntityByName } = useDetailLinks();
   const target = resolveEntityByName?.(label, entityType) ?? null;
   if (!target || !onNavigateTo) {
     return <span className={styles.tag}>{label}</span>;
@@ -116,6 +199,16 @@ function NavigateTag({
     >
       {label}
     </button>
+  );
+}
+
+/** "Связи" footer: links back to related compendium/book entries (legacy parity). */
+function RelationsFooter({ children }: { children: ReactNode }) {
+  return (
+    <div className={styles.relations}>
+      <span className={styles.relationsLabel}>Связи:</span>
+      <span className={styles.relationsBody}>{children}</span>
+    </div>
   );
 }
 
@@ -168,30 +261,53 @@ function SpellRollFooter({ spell }: { spell: Spell }) {
   );
 }
 
-function SpellDetail({
-  spell,
-  onNavigateTo,
-}: {
-  spell: Spell;
-  onNavigateTo?: (ref: EntityRef) => void;
-}) {
+function SpellDetail({ spell }: { spell: Spell }) {
+  const { onNavigateTo } = useDetailLinks();
+  const damage =
+    spell.damageType != null
+      ? [Array.isArray(spell.damageType) ? spell.damageType.join(', ') : spell.damageType]
+          .filter(Boolean)
+          .map((d) => (spell.damageTypeNote ? `${d} (${spell.damageTypeNote})` : d))[0]
+      : undefined;
+
   return (
     <div className={styles.detail}>
-      <h2 className={styles.entityName}>{spell.name}</h2>
+      {spell.isSubSpell && (
+        <div className={styles.metaRow}>
+          <Badge tone="emerald">Подзаклинание</Badge>
+          {spell.parentName && (
+            <span className={styles.metaPart}>
+              Часть:{' '}
+              {spell.parentId && onNavigateTo ? (
+                <button
+                  type="button"
+                  className={styles.inlineLink}
+                  onClick={() => onNavigateTo({ entityType: 'spells', id: spell.parentId! })}
+                >
+                  {spell.parentName}
+                </button>
+              ) : (
+                spell.parentName
+              )}
+            </span>
+          )}
+        </div>
+      )}
+      <h3 className={styles.sectionHeading}>Параметры</h3>
       <div className={styles.params}>
         <Row label="Действия" value={spell.actions} />
-        <Row label="Ресурсы" value={spell.resources} />
-        <Row label="Дистанция" value={spell.range} />
-        <Row label="Цель" value={spell.target} />
+        <Row label="Ресурсы" value={spell.resources} linkType="combat" />
+        <Row label="Дистанция" value={spell.range} linkType="basics" />
+        <Row label="Цель/Область" value={spell.target} linkType="basics" />
         <Row label="Длительность" value={spell.duration} />
-        <Row label="Школа" value={spell.school} />
-        <Row label="Тип" value={spell.type} />
-        <Row label="Тип урона" value={spell.damageType} />
-        <Row label="Требуемый уровень" value={spell.requiredLevel} />
-        <Row label="Концентрация" value={spell.concentration} />
+        <Row label="Школа Магии" value={spell.school} linkType="schools" />
+        <Row label="Тип Действия" value={spell.type} linkType="action-types" />
+        <Row label="Тип урона" value={damage} />
+        <Row label="Требование к уровню" value={spell.requiredLevel} />
+        <Row label="Концентрация" value={spell.concentration} linkType="actions" />
         <Row label="Поддержание" value={spell.maintenance} />
         <Row label="Источник" value={spell.source} />
-        {spell.parentName && spell.parentId && onNavigateTo ? (
+        {!spell.isSubSpell && spell.parentName && spell.parentId && onNavigateTo ? (
           <div className={styles.row}>
             <span className={styles.label}>Родительское заклинание:</span>
             <button
@@ -203,12 +319,13 @@ function SpellDetail({
             </button>
           </div>
         ) : (
-          <Row label="Родительское заклинание" value={spell.parentName} />
+          !spell.isSubSpell && <Row label="Родительское заклинание" value={spell.parentName} />
         )}
       </div>
       {spell.description && (
         <div className={styles.section}>
-          <HtmlBlock html={spell.description} onNavigateTo={onNavigateTo} rollLabel={spell.name} />
+          <h3 className={styles.sectionHeading}>Описание</h3>
+          <HtmlBlock html={spell.description} rollLabel={spell.name} />
         </div>
       )}
       {spell.subSpells && spell.subSpells.length > 0 && (
@@ -241,18 +358,10 @@ function SpellDetail({
   );
 }
 
-function SchoolDetail({
-  school,
-  resolveEntityByName,
-  onNavigateTo,
-}: {
-  school: School;
-  resolveEntityByName?: (name: string, type: CompendiumEntityKey) => EntityRef | null;
-  onNavigateTo?: (ref: EntityRef) => void;
-}) {
+function SchoolDetail({ school }: { school: School }) {
   return (
     <div className={styles.detail}>
-      <h2 className={styles.entityName}>{school.name}</h2>
+      <h3 className={styles.sectionHeading}>Параметры</h3>
       <div className={styles.params}>
         <Row label="Редкость" value={school.rarity} />
         <Row
@@ -267,7 +376,8 @@ function SchoolDetail({
       </div>
       {school.description && (
         <div className={styles.section}>
-          <HtmlBlock html={school.description} onNavigateTo={onNavigateTo} />
+          <h3 className={styles.sectionHeading}>Описание</h3>
+          <HtmlBlock html={school.description} />
         </div>
       )}
       {school.principles && school.principles.length > 0 && (
@@ -300,7 +410,7 @@ function SchoolDetail({
           <ul className={styles.list}>
             {school.educationalSpells.map((s, i) => (
               <li key={i}>
-                <LegacyText text={s} />
+                <EntityRefLink name={s} entityType="spells" />
               </li>
             ))}
           </ul>
@@ -311,17 +421,32 @@ function SchoolDetail({
           <h4>Связанные школы</h4>
           <div className={styles.tags}>
             {school.relatedSchools.map((s, i) => (
-              <NavigateTag
-                key={i}
-                label={s}
-                entityType="schools"
-                resolveEntityByName={resolveEntityByName}
-                onNavigateTo={onNavigateTo}
-              />
+              <NavigateTag key={i} label={s} entityType="schools" />
             ))}
           </div>
         </div>
       )}
+      <RelationsFooter>
+        {school.relatedSchools && school.relatedSchools.length > 0 && (
+          <>
+            {school.relatedSchools.map((s, i) => (
+              <span key={s}>
+                {i > 0 ? ', ' : ''}
+                <EntityRefLink name={s} entityType="schools" />
+              </span>
+            ))}
+            {', '}
+          </>
+        )}
+        <a
+          className={styles.bookLink}
+          href={`${import.meta.env.BASE_URL}#/spellbook/schools`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Школы Магии
+        </a>
+      </RelationsFooter>
     </div>
   );
 }
@@ -329,12 +454,13 @@ function SchoolDetail({
 function EffectDetail({ effect }: { effect: Effect }) {
   return (
     <div className={styles.detail}>
-      <h2 className={styles.entityName}>{effect.name}</h2>
+      <h3 className={styles.sectionHeading}>Параметры</h3>
       <div className={styles.params}>
-        <Row label="Тип действия" value={effect.actionType} />
+        <Row label="Тип действия" value={effect.actionType} linkType="action-types" />
       </div>
       {effect.description && (
         <div className={styles.section}>
+          <h3 className={styles.sectionHeading}>Описание</h3>
           <HtmlBlock html={effect.description} />
         </div>
       )}
@@ -345,16 +471,17 @@ function EffectDetail({ effect }: { effect: Effect }) {
 function ActionDetail({ action }: { action: Action }) {
   return (
     <div className={styles.detail}>
-      <h2 className={styles.entityName}>{action.name}</h2>
+      <h3 className={styles.sectionHeading}>Параметры</h3>
       <div className={styles.params}>
         <Row label="Тип" value={action.kind} />
         <Row label="Действия" value={action.actions} />
-        <Row label="Дистанция" value={action.range} />
-        <Row label="Цель" value={action.target} />
+        <Row label="Дистанция" value={action.range} linkType="basics" />
+        <Row label="Цель/Область" value={action.target} linkType="basics" />
         <Row label="Длительность" value={action.duration} />
       </div>
       {action.description && (
         <div className={styles.section}>
+          <h3 className={styles.sectionHeading}>Описание</h3>
           <HtmlBlock html={action.description} />
         </div>
       )}
@@ -365,12 +492,13 @@ function ActionDetail({ action }: { action: Action }) {
 function SkillDetail({ skill }: { skill: Skill }) {
   return (
     <div className={styles.detail}>
-      <h2 className={styles.entityName}>{skill.name}</h2>
+      <h3 className={styles.sectionHeading}>Параметры</h3>
       <div className={styles.params}>
         <Row label="Тип" value={skill.type} />
       </div>
       {skill.description && (
         <div className={styles.section}>
+          <h3 className={styles.sectionHeading}>Описание</h3>
           <HtmlBlock html={skill.description} />
         </div>
       )}
@@ -381,14 +509,14 @@ function SkillDetail({ skill }: { skill: Skill }) {
 function RecipeDetail({ recipe }: { recipe: Recipe }) {
   return (
     <div className={styles.detail}>
-      <h2 className={styles.entityName}>{recipe.name}</h2>
+      <h3 className={styles.sectionHeading}>Параметры</h3>
       <div className={styles.params}>
-        <Row label="Профессия" value={recipe.profession} />
-        <Row label="Специализация" value={recipe.specialization} />
+        <Row label="Профессия" value={recipe.profession} linkType="craft-professions" />
+        <Row label="Специализация" value={recipe.specialization} linkType="craft-specializations" />
         <Row label="Уровень" value={recipe.recipeLevel} />
         <Row label="Редкость" value={recipe.recipeRarity} />
         <Row label="Стоимость" value={recipe.recipeCost} />
-        <Row label="Типы" value={recipe.recipeTypes} />
+        <Row label="Типы" value={recipe.recipeTypes} linkType="recipe-types" />
       </div>
       {recipe.steps && recipe.steps.length > 0 && (
         <div className={styles.section}>
@@ -404,6 +532,7 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
       )}
       {recipe.description && (
         <div className={styles.section}>
+          <h3 className={styles.sectionHeading}>Описание</h3>
           <HtmlBlock html={recipe.description} />
         </div>
       )}
@@ -414,14 +543,14 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
 // Known structured fields surfaced (in order) for entity types without a bespoke
 // detail layout — basics/combat (section, page), craft specializations
 // (profession), etc. Anything absent on the entity is skipped by Row.
-const GENERIC_META: [string, string][] = [
+const GENERIC_META: [string, string, CompendiumEntityKey?][] = [
   ['type', 'Тип'],
   ['kind', 'Тип'],
-  ['actionType', 'Тип действия'],
+  ['actionType', 'Тип действия', 'action-types'],
   ['section', 'Раздел'],
   ['page', 'Страница'],
-  ['profession', 'Профессия'],
-  ['specialization', 'Специализация'],
+  ['profession', 'Профессия', 'craft-professions'],
+  ['specialization', 'Специализация', 'craft-specializations'],
   ['rarity', 'Редкость'],
 ];
 
@@ -431,16 +560,19 @@ function GenericDetail({ entity }: { entity: CompendiumEntity }) {
   const metaRows = GENERIC_META.filter(([key]) => rec[key] != null && rec[key] !== '');
   return (
     <div className={styles.detail}>
-      <h2 className={styles.entityName}>{String(rec['name'] ?? '')}</h2>
       {metaRows.length > 0 && (
-        <div className={styles.params}>
-          {metaRows.map(([key, label]) => (
-            <Row key={key} label={label} value={rec[key]} />
-          ))}
-        </div>
+        <>
+          <h3 className={styles.sectionHeading}>Параметры</h3>
+          <div className={styles.params}>
+            {metaRows.map(([key, label, linkType]) => (
+              <Row key={key} label={label} value={rec[key]} linkType={linkType} />
+            ))}
+          </div>
+        </>
       )}
       {desc && (
         <div className={styles.section}>
+          <h3 className={styles.sectionHeading}>Описание</h3>
           <HtmlBlock html={desc} rollLabel={String(rec['name'] ?? '')} />
         </div>
       )}
@@ -448,28 +580,12 @@ function GenericDetail({ entity }: { entity: CompendiumEntity }) {
   );
 }
 
-function EntityDetail({
-  entity,
-  entityType,
-  resolveEntityByName,
-  onNavigateTo,
-}: {
-  entity: CompendiumEntity;
-  entityType: string;
-  resolveEntityByName?: (name: string, type: CompendiumEntityKey) => EntityRef | null;
-  onNavigateTo?: (ref: EntityRef) => void;
-}) {
+function EntityDetail({ entity, entityType }: { entity: CompendiumEntity; entityType: string }) {
   switch (entityType) {
     case 'spells':
-      return <SpellDetail spell={entity as Spell} onNavigateTo={onNavigateTo} />;
+      return <SpellDetail spell={entity as Spell} />;
     case 'schools':
-      return (
-        <SchoolDetail
-          school={entity as School}
-          resolveEntityByName={resolveEntityByName}
-          onNavigateTo={onNavigateTo}
-        />
-      );
+      return <SchoolDetail school={entity as School} />;
     case 'effects':
       return <EffectDetail effect={entity as Effect} />;
     case 'actions':
@@ -494,7 +610,15 @@ export function DetailModal({
   onForward,
   onNavigateTo,
   resolveEntityByName,
+  ensureLoaded,
 }: DetailModalProps) {
+  // Preload the collections that descriptions/keywords commonly cross-link into,
+  // so links resolve to buttons instead of plain text once the modal is open.
+  useEffect(() => {
+    if (!open || !ensureLoaded) return;
+    for (const type of KEYWORD_LINK_TYPES) ensureLoaded(type);
+  }, [open, entity, ensureLoaded]);
+
   const footer = (
     <>
       <Button variant="ghost" size="sm" onClick={onBack} disabled={!canGoBack}>
@@ -510,21 +634,16 @@ export function DetailModal({
   );
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      size="xl"
-      title={entity ? String((entity as unknown as Record<string, unknown>)['name'] ?? '') : ''}
-      footer={footer}
-    >
-      {entity && (
-        <EntityDetail
-          entity={entity}
-          entityType={entityType}
-          resolveEntityByName={resolveEntityByName}
-          onNavigateTo={onNavigateTo}
-        />
-      )}
-    </Modal>
+    <DetailLinkContext.Provider value={{ onNavigateTo, resolveEntityByName, ensureLoaded }}>
+      <Modal
+        open={open}
+        onClose={onClose}
+        size="xl"
+        title={entity ? String((entity as unknown as Record<string, unknown>)['name'] ?? '') : ''}
+        footer={footer}
+      >
+        {entity && <EntityDetail entity={entity} entityType={entityType} />}
+      </Modal>
+    </DetailLinkContext.Provider>
   );
 }

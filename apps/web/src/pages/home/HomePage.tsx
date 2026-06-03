@@ -2,7 +2,13 @@ import { NavLink } from 'react-router-dom';
 import { BOOKS, type Book } from '@/shared/nav/books';
 import styles from './HomePage.module.css';
 
-const PRIMARY_CARDS = [
+const TOOL_CARDS = [
+  {
+    to: '/character-editor',
+    icon: '⚔️',
+    title: 'Редактор Персонажей',
+    text: 'Создай, сохрани и развивай своего персонажа',
+  },
   {
     to: '/db',
     icon: '📚',
@@ -10,18 +16,15 @@ const PRIMARY_CARDS = [
     text: 'Заклинания, школы магии, эффекты и навыки',
   },
   {
-    to: '/character-editor',
-    icon: '⚔️',
-    title: 'Редактор Персонажей',
-    text: 'Создай, сохрани и развивай своего персонажа',
-  },
-  { to: '/news', icon: '📰', title: 'Новости', text: 'Последние обновления системы' },
-  {
     to: '/dashboard',
     icon: '📈',
     title: 'Дашборд',
     text: 'Метрики контента и аналитика бросков кубов',
   },
+];
+
+const SECTION_CARDS = [
+  { to: '/news', icon: '📰', title: 'Новости', text: 'Последние обновления системы' },
   {
     to: '/profile',
     icon: '👤',
@@ -32,7 +35,40 @@ const PRIMARY_CARDS = [
 
 const BOOK_KEYS = Object.keys(BOOKS);
 
+function BookCard({ bookKey }: { bookKey: string }) {
+  const book = BOOKS[bookKey] as Book;
+  const firstChapter = book.chapters[0];
+  if (!firstChapter) return null;
+  return (
+    <NavLink to={`/${bookKey}/${firstChapter.id}`} className={styles.card}>
+      <span className={styles.cardIcon}>{book.locked ? '🔒' : '📖'}</span>
+      <h3>{book.title}</h3>
+      <p>
+        {book.chapters.length} {book.chapters.length === 1 ? 'глава' : 'глав'}
+        {book.locked ? ' · защищено паролем' : ''}
+      </p>
+    </NavLink>
+  );
+}
+
+function Cards({ cards }: { cards: typeof TOOL_CARDS }) {
+  return (
+    <div className={styles.cards}>
+      {cards.map((card) => (
+        <NavLink key={card.to} to={card.to} className={styles.card}>
+          <span className={styles.cardIcon}>{card.icon}</span>
+          <h3>{card.title}</h3>
+          <p>{card.text}</p>
+        </NavLink>
+      ))}
+    </div>
+  );
+}
+
 export function HomePage() {
+  const availableBooks = BOOK_KEYS.filter((k) => !(BOOKS[k] as Book).locked);
+  const protectedBooks = BOOK_KEYS.filter((k) => (BOOKS[k] as Book).locked);
+
   return (
     <div className={styles.page}>
       <div className={styles.hero}>
@@ -41,37 +77,33 @@ export function HomePage() {
       </div>
 
       <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Инструменты</h2>
+        <Cards cards={TOOL_CARDS} />
+      </section>
+
+      <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Разделы</h2>
-        <div className={styles.cards}>
-          {PRIMARY_CARDS.map((card) => (
-            <NavLink key={card.to} to={card.to} className={styles.card}>
-              <span className={styles.cardIcon}>{card.icon}</span>
-              <h3>{card.title}</h3>
-              <p>{card.text}</p>
-            </NavLink>
-          ))}
-        </div>
+        <Cards cards={SECTION_CARDS} />
       </section>
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Книги правил</h2>
+        <h3 className={styles.subTitle}>Доступные</h3>
         <div className={styles.cards}>
-          {BOOK_KEYS.map((key) => {
-            const book = BOOKS[key] as Book;
-            const firstChapter = book.chapters[0];
-            if (!firstChapter) return null;
-            return (
-              <NavLink key={key} to={`/${key}/${firstChapter.id}`} className={styles.card}>
-                <span className={styles.cardIcon}>{book.locked ? '🔒' : '📖'}</span>
-                <h3>{book.title}</h3>
-                <p>
-                  {book.chapters.length} {book.chapters.length === 1 ? 'глава' : 'глав'}
-                  {book.locked ? ' · защищено паролем' : ''}
-                </p>
-              </NavLink>
-            );
-          })}
+          {availableBooks.map((key) => (
+            <BookCard key={key} bookKey={key} />
+          ))}
         </div>
+        {protectedBooks.length > 0 && (
+          <>
+            <h3 className={styles.subTitle}>На тестировании 🔒</h3>
+            <div className={styles.cards}>
+              {protectedBooks.map((key) => (
+                <BookCard key={key} bookKey={key} />
+              ))}
+            </div>
+          </>
+        )}
       </section>
     </div>
   );
