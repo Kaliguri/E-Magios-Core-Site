@@ -2,6 +2,10 @@ import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'reac
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { BOOKS, resolveBookLink } from '@/shared/nav/books';
 import { MASTER_PASSWORD, PASSWORD_KEY } from '@/shared/config/access';
+import {
+  useCompendiumOverlay,
+  parseEntityRoute,
+} from '@/shared/compendium/CompendiumOverlayContext';
 import { Button, Input, Modal, Spinner } from '@/shared/ui';
 import styles from './BookPage.module.css';
 
@@ -57,6 +61,7 @@ function scrollToAnchor(id: string) {
 export function BookPage() {
   const { bookKey = '', chapterId = '' } = useParams();
   const navigate = useNavigate();
+  const overlay = useCompendiumOverlay();
   const [searchParams] = useSearchParams();
   const book = BOOKS[bookKey];
   const chapter = book?.chapters.find((item) => item.id === chapterId);
@@ -118,6 +123,13 @@ export function BookPage() {
       const anchor = link.getAttribute('data-anchor');
       if (route) {
         event.preventDefault();
+        // A link to a single DB entity opens the shared overlay over the book
+        // page instead of navigating away to the DB tab.
+        const entityRef = parseEntityRoute(route);
+        if (entityRef) {
+          overlay.openEntity(entityRef);
+          return;
+        }
         const at = anchor
           ? `${route.includes('?') ? '&' : '?'}at=${encodeURIComponent(anchor)}`
           : '';
@@ -127,7 +139,7 @@ export function BookPage() {
         scrollToAnchor(anchor);
       }
     },
-    [navigate],
+    [navigate, overlay],
   );
 
   if (!book || !chapter) {
