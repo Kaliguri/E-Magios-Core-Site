@@ -171,3 +171,14 @@ section {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
+
+/* Clickable dice formulas inside rendered description HTML (see features/dice/linkifyDice). */
+.dice-roll-link {
+  color: var(--accent-emerald);
+  border-bottom: 1px dashed var(--accent-emerald);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dice-roll-link:hover {
+  background: rgba(16, 185, 129, 0.12);
+}

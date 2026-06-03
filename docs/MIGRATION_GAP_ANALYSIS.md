@@ -209,7 +209,7 @@ React = `node_modules/@e-magios/web/src` (Vite + React Router + FSD, Firebase 9 
 Источник: `apps/web/src` (symlink `node_modules/@e-magios/web`). Не редактируем через node_modules.
 После каждой фазы: `npm run check` (lint+format+typecheck+test) зелёный, коммит. Пуш в main по пайплайну dev→main (плумбинг-мерж, см. [[repo-deploy-workflow]]).
 
-**Фаза 1 — Глобальный оверлей объектов (фундамент).**
+**Фаза 1 — Глобальный оверлей объектов (фундамент). ✅ СДЕЛАНО (deploy 2026-06-03, commit `02bdc3f`).**
 - `shared/compendium/CompendiumOverlayProvider` (контекст): стек истории (логика из `useDetailModal`), ленивый загрузчик коллекций по `entityType` (через `CompendiumRepository` + idb), индекс `resolve`/`resolveByName` по загруженным коллекциям. API: `openEntity(ref)`, `close`, `goBack/goForward`.
 - Монтируем `<GlobalDetailModal/>` один раз в `Layout`.
 - `DbPage` переключаем на глобальный контекст (таблицы/вкладки остаются; клик по строке → `openEntity`).
