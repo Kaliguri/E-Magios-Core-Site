@@ -24,6 +24,25 @@
 
 ---
 
+<details open>
+<summary><b>Скриншоты</b></summary>
+
+<br>
+
+**Редактор персонажа** — лист персонажа с боевыми характеристиками и навыками магии/личности
+
+![Редактор персонажа](docs/screenshots/character-editor.png)
+
+**База данных** — компендиум с перекрёстными ссылками и структурированными попапами заклинаний
+
+![База данных](docs/screenshots/database.png)
+
+**Player's Handbook** — встроенные книги правил с навигацией по главам
+
+![Player's Handbook](docs/screenshots/players-handbook.png)
+
+</details>
+
 <details>
 <summary><b>Архитектура</b></summary>
 
