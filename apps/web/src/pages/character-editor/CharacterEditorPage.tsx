@@ -2,24 +2,27 @@ import { useEffect, useRef, useState } from 'react';
 import { useCharacterAuth } from '@/features/character-editor/useCharacterAuth';
 import { useCharacterState } from '@/features/character-editor/useCharacterState';
 import {
+  calculateStats,
   MAGIC_SKILLS,
   PERSONALITY_SKILLS,
 } from '@/features/character-editor/characterCalculations';
-import {
-  rollDice,
-  recordDiceRoll,
-  type DiceRollResult,
-  type RollContext,
-} from '@/features/character-editor/diceRoller';
+import { useDice, type RollType } from '@/features/dice';
+import { useCompendiumOverlay } from '@/shared/compendium/CompendiumOverlayContext';
 import { CharacterRepository } from '@/shared/repositories/CharacterRepository';
 import { CompendiumRepository } from '@/shared/repositories/CompendiumRepository';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
+import { Modal } from '@/shared/ui/Modal';
 import { Select } from '@/shared/ui/Select';
 import { Textarea } from '@/shared/ui/Textarea';
 import { Tabs, type TabItem } from '@/shared/ui/Tabs';
-import type { Character, CharacterBonus, CharacterSpell } from '@/entities/character/types';
-import type { School, Spell } from '@/entities/compendium/types';
+import type {
+  Character,
+  CharacterBonus,
+  CharacterSpell,
+  CharacterStats,
+} from '@/entities/character/types';
+import type { Recipe, School, Spell } from '@/entities/compendium/types';
 import styles from './CharacterEditorPage.module.css';
 
 type View = 'list' | 'editor';
@@ -200,34 +203,55 @@ function ResourceStepper({
   );
 }
 
-const CORE_ROLLS: { label: string; context: RollContext }[] = [
-  { label: 'Аркана', context: 'arcana' },
-  { label: 'Попадание', context: 'hit' },
-  { label: 'Наложение', context: 'apply' },
+const CORE_ROLLS: { label: string; rollType: RollType }[] = [
+  { label: 'Аркана', rollType: 'arcana' },
+  { label: 'Попадание', rollType: 'hit' },
+  { label: 'Наложение', rollType: 'apply' },
 ];
 
-function DiceRoller({ uid, characterId }: { uid: string | null; characterId: string | null }) {
-  const [last, setLast] = useState<DiceRollResult | null>(null);
+/**
+ * Editor-side dice controls that roll through the global widget, so the open
+ * character's bonuses, history, crit highlight and Discord all apply. Core rolls
+ * add the character bonus; the custom roll is literal.
+ */
+function DiceRoller({ characterId }: { characterId: string | null }) {
+  const dice = useDice();
   const [sides, setSides] = useState(6);
   const [count, setCount] = useState(1);
   const [modifier, setModifier] = useState(0);
 
-  function doRoll(rollSides: number, rollCount: number, rollMod: number, context: RollContext) {
-    const result = rollDice(rollSides, rollCount, rollMod, context);
-    recordDiceRoll(result, { uid, characterId });
-    setLast(result);
+  function customRoll() {
+    const mod = modifier ? (modifier > 0 ? `+${modifier}` : `${modifier}`) : '';
+    dice.roll({ expression: `${count}d${sides}${mod}`, characterId, applyCharacterBonus: false });
   }
+
+  const last = dice.last;
+  const lastRolls = last
+    ? last.parts.flatMap((part) => (part.kind === 'dice' ? part.rolls : []))
+    : [];
 
   return (
     <div className={styles.diceRoller}>
-      <h3>Броски кубов</h3>
+      <div className={styles.diceRollerHeader}>
+        <h3>Броски кубов</h3>
+        <Button variant="ghost" size="sm" onClick={() => dice.setOpen(true)}>
+          Открыть виджет
+        </Button>
+      </div>
       <div className={styles.diceCoreRow}>
         {CORE_ROLLS.map((roll) => (
           <Button
-            key={roll.context}
+            key={roll.rollType}
             variant="secondary"
             size="sm"
-            onClick={() => doRoll(12, 1, 0, roll.context)}
+            onClick={() =>
+              dice.roll({
+                expression: '1d12',
+                rollType: roll.rollType,
+                characterId,
+                label: roll.label,
+              })
+            }
           >
             {roll.label} (d12)
           </Button>
@@ -262,19 +286,15 @@ function DiceRoller({ uid, characterId }: { uid: string | null; characterId: str
             onChange={(e) => setModifier(Number(e.target.value))}
           />
         </label>
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => doRoll(sides, count, modifier, 'custom')}
-        >
+        <Button variant="primary" size="sm" onClick={customRoll}>
           Бросить
         </Button>
       </div>
       {last && (
         <div className={styles.diceResult}>
-          <span className={styles.diceExpression}>{last.expression}</span>
+          <span className={styles.diceExpression}>{last.label || last.expression}</span>
           <span className={styles.diceTotal}>{last.total}</span>
-          <span className={styles.diceBreakdown}>[{last.rolls.join(', ')}]</span>
+          <span className={styles.diceBreakdown}>[{lastRolls.join(', ')}]</span>
         </div>
       )}
     </div>
@@ -282,9 +302,13 @@ function DiceRoller({ uid, characterId }: { uid: string | null; characterId: str
 }
 
 function BonusesSection({
+  title,
+  emptyHint,
   bonuses,
   onChange,
 }: {
+  title: string;
+  emptyHint: string;
   bonuses: CharacterBonus[];
   onChange: (next: CharacterBonus[]) => void;
 }) {
@@ -304,7 +328,7 @@ function BonusesSection({
 
   return (
     <div className={styles.section}>
-      <h3>Временные Бонусы</h3>
+      <h3>{title}</h3>
       <div className={styles.bonusAddRow}>
         <Input
           placeholder="Название бонуса"
@@ -322,7 +346,7 @@ function BonusesSection({
         </Button>
       </div>
       {bonuses.length === 0 ? (
-        <p className={styles.emptyHint}>Нет активных бонусов</p>
+        <p className={styles.emptyHint}>{emptyHint}</p>
       ) : (
         <div className={styles.bonusList}>
           {bonuses.map((bonus) => (
@@ -356,17 +380,166 @@ function spellToCharacterSpell(spell: Spell): CharacterSpell {
   };
 }
 
+type StatKey = keyof Omit<CharacterStats, 'level'>;
+const STAT_FIELDS: { key: StatKey; label: string; signed?: boolean }[] = [
+  { key: 'arcana', label: 'Аркана' },
+  { key: 'health', label: 'Здоровье' },
+  { key: 'will', label: 'Воля' },
+  { key: 'speed', label: 'Скорость' },
+  { key: 'initiative', label: 'Инициатива' },
+  { key: 'hitBonus', label: 'Бонус к Попаданию', signed: true },
+  { key: 'effectBonus', label: 'Бонус к Наложению', signed: true },
+  { key: 'evasion', label: 'Уклонение' },
+  { key: 'fortitude', label: 'Стойкость' },
+  { key: 'actions', label: 'Действия' },
+  { key: 'reactions', label: 'Реакции' },
+];
+
+function formatStat(value: number, signed?: boolean): string {
+  return signed && value >= 0 ? `+${value}` : String(value);
+}
+
+/**
+ * Combat-stats grid where each card opens a breakdown modal: it shows the
+ * level-derived base, lists the level/temporary bonuses, and lets the value be
+ * manually overridden (with a reset back to the derived value).
+ */
+function StatsSection({
+  character,
+  onOverride,
+}: {
+  character: Character;
+  onOverride: (overrides: Character['statOverrides']) => void;
+}) {
+  const [editingKey, setEditingKey] = useState<StatKey | null>(null);
+  const [draft, setDraft] = useState('');
+  const base = calculateStats(character.level);
+  const overrides = character.statOverrides ?? {};
+  const editingField = STAT_FIELDS.find((f) => f.key === editingKey) ?? null;
+  const bonuses = [...(character.levelBonuses ?? []), ...(character.temporaryBonuses ?? [])];
+
+  function openEditor(key: StatKey) {
+    setEditingKey(key);
+    setDraft(String(overrides[key] ?? base[key]));
+  }
+
+  function applyOverride() {
+    if (!editingKey) return;
+    const next = { ...overrides };
+    const parsed = Number(draft);
+    if (draft.trim() === '' || Number.isNaN(parsed) || parsed === base[editingKey]) {
+      delete next[editingKey];
+    } else {
+      next[editingKey] = parsed;
+    }
+    onOverride(Object.keys(next).length ? next : undefined);
+    setEditingKey(null);
+  }
+
+  function resetOverride() {
+    if (!editingKey) return;
+    const next = { ...overrides };
+    delete next[editingKey];
+    onOverride(Object.keys(next).length ? next : undefined);
+    setEditingKey(null);
+  }
+
+  return (
+    <div className={styles.section}>
+      <h3>Боевые Характеристики</h3>
+      <div className={styles.statsGrid}>
+        {STAT_FIELDS.map((field) => {
+          const overridden = overrides[field.key] != null;
+          const value = overridden ? (overrides[field.key] as number) : base[field.key];
+          return (
+            <button
+              key={field.key}
+              type="button"
+              className={[styles.statCard, overridden ? styles.statCardOverridden : '']
+                .filter(Boolean)
+                .join(' ')}
+              onClick={() => openEditor(field.key)}
+              title="Показать разбор и переопределить"
+            >
+              <span className={styles.statValue}>{formatStat(value, field.signed)}</span>
+              <span className={styles.statLabel}>
+                {field.label}
+                {overridden ? ' ✎' : ''}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <Modal
+        open={editingKey != null}
+        onClose={() => setEditingKey(null)}
+        title={editingField ? `Характеристика: ${editingField.label}` : ''}
+        footer={
+          <>
+            <Button variant="ghost" size="sm" onClick={resetOverride}>
+              Сбросить к базовому
+            </Button>
+            <Button variant="primary" size="sm" onClick={applyOverride}>
+              Применить
+            </Button>
+          </>
+        }
+      >
+        {editingField && (
+          <div className={styles.statBreakdown}>
+            <div className={styles.statBreakdownRow}>
+              <span>База (уровень {character.level})</span>
+              <strong>{formatStat(base[editingField.key], editingField.signed)}</strong>
+            </div>
+            {bonuses.length > 0 && (
+              <div className={styles.statBreakdownBonuses}>
+                <span className={styles.statBreakdownHint}>
+                  Активные бонусы (не входят в значение автоматически — учитываются в бросках):
+                </span>
+                {bonuses.map((bonus) => (
+                  <div key={bonus.id} className={styles.statBreakdownRow}>
+                    <span>{bonus.name}</span>
+                    <span>{bonus.value >= 0 ? `+${bonus.value}` : bonus.value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <label className={styles.statOverrideField}>
+              <span>Переопределить значение</span>
+              <Input
+                type="number"
+                value={draft}
+                autoFocus
+                onChange={(event) => setDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') applyOverride();
+                }}
+              />
+            </label>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+}
+
 export function CharacterEditorPage() {
   const authHook = useCharacterAuth();
   const state = useCharacterState(authHook.auth.uid, authHook.refreshCharacters);
+  const dice = useDice();
+  const overlay = useCompendiumOverlay();
+  const { setSelectedCharacterId: setDiceCharacter } = dice;
   const [view, setView] = useState<View>('list');
   const [activeTab, setActiveTab] = useState<EditorTab>('stats');
   const [guestTestMode] = useState(isGuestTestModeEnabled);
   const [localCharacters, setLocalCharacters] = useState<Character[]>(readLocalCharacters);
   const [spells, setSpells] = useState<Spell[]>([]);
   const [schools, setSchools] = useState<School[]>([]);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [selectedSpellId, setSelectedSpellId] = useState('');
   const [selectedSchool, setSelectedSchool] = useState('');
+  const [selectedRecipeId, setSelectedRecipeId] = useState('');
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const isCloudMode = Boolean(authHook.auth.uid);
   const canEditCharacters = isCloudMode || guestTestMode;
@@ -379,21 +552,36 @@ export function CharacterEditorPage() {
   useEffect(() => {
     if (!canEditCharacters || view !== 'editor') return;
     let cancelled = false;
-    Promise.all([CompendiumRepository.getSpells(), CompendiumRepository.getSchools()])
-      .then(([spellItems, schoolItems]) => {
+    Promise.all([
+      CompendiumRepository.getSpells(),
+      CompendiumRepository.getSchools(),
+      CompendiumRepository.getRecipes(),
+    ])
+      .then(([spellItems, schoolItems, recipeItems]) => {
         if (cancelled) return;
         setSpells(spellItems as Spell[]);
         setSchools(schoolItems as School[]);
+        setRecipes(recipeItems as Recipe[]);
       })
       .catch(() => {
         if (cancelled) return;
         setSpells([]);
         setSchools([]);
+        setRecipes([]);
       });
     return () => {
       cancelled = true;
     };
   }, [canEditCharacters, view]);
+
+  // Make the character being edited the active one in the dice widget so its
+  // bonuses apply to rolls made from anywhere (cloud characters only — the
+  // widget loads its roster from Firestore).
+  useEffect(() => {
+    if (view === 'editor' && isCloudMode) {
+      setDiceCharacter(state.character.id);
+    }
+  }, [view, isCloudMode, state.character.id, setDiceCharacter]);
 
   function handleNew() {
     if (!canEditCharacters) return;
@@ -634,42 +822,33 @@ export function CharacterEditorPage() {
               />
             </label>
           </div>
-          <DiceRoller uid={authHook.auth.uid} characterId={character.id} />
+          <DiceRoller characterId={character.id} />
         </div>
       )}
 
       {activeTab === 'bonuses' && (
-        <BonusesSection
-          bonuses={character.temporaryBonuses ?? []}
-          onChange={(next) => updateField('temporaryBonuses', next)}
-        />
+        <>
+          <BonusesSection
+            title="Бонусы Уровня"
+            emptyHint="Нет бонусов уровня"
+            bonuses={character.levelBonuses ?? []}
+            onChange={(next) => updateField('levelBonuses', next)}
+          />
+          <BonusesSection
+            title="Временные Бонусы"
+            emptyHint="Нет активных бонусов"
+            bonuses={character.temporaryBonuses ?? []}
+            onChange={(next) => updateField('temporaryBonuses', next)}
+          />
+        </>
       )}
 
       {activeTab === 'stats' && (
         <>
-          <div className={styles.section}>
-            <h3>Боевые Характеристики</h3>
-            <div className={styles.statsGrid}>
-              {[
-                { label: 'Аркана', value: stats.arcana },
-                { label: 'Здоровье', value: stats.health },
-                { label: 'Воля', value: stats.will },
-                { label: 'Скорость', value: stats.speed },
-                { label: 'Инициатива', value: stats.initiative },
-                { label: 'Бонус к Попаданию', value: `+${stats.hitBonus}` },
-                { label: 'Бонус к Наложению', value: `+${stats.effectBonus}` },
-                { label: 'Уклонение', value: stats.evasion },
-                { label: 'Стойкость', value: stats.fortitude },
-                { label: 'Действия', value: stats.actions },
-                { label: 'Реакции', value: stats.reactions },
-              ].map((s) => (
-                <div key={s.label} className={styles.statCard}>
-                  <span className={styles.statValue}>{s.value}</span>
-                  <span className={styles.statLabel}>{s.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <StatsSection
+            character={character}
+            onOverride={(overrides) => updateField('statOverrides', overrides)}
+          />
 
           <div className={styles.skillsSection}>
             <div className={styles.skillGroup}>
@@ -737,6 +916,14 @@ export function CharacterEditorPage() {
                     : 'В спонтанные'}
               </Button>
             ))}
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={!selectedSpellId}
+              onClick={() => overlay.openEntity({ entityType: 'spells', id: selectedSpellId })}
+            >
+              Просмотр
+            </Button>
           </div>
 
           {(
@@ -761,7 +948,14 @@ export function CharacterEditorPage() {
               )}
               {character[key].map((spell) => (
                 <div key={spell.id} className={styles.spellRow}>
-                  <span>{spell.name}</span>
+                  <button
+                    type="button"
+                    className={styles.spellRowLink}
+                    onClick={() => overlay.openEntity({ entityType: 'spells', id: spell.id })}
+                    title="Открыть описание"
+                  >
+                    {spell.name}
+                  </button>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -840,6 +1034,79 @@ export function CharacterEditorPage() {
       {activeTab === 'craft' && (
         <div className={styles.section}>
           <h3>Ремесло</h3>
+
+          <label className={styles.fieldLabel}>Рецепты из базы</label>
+          <div className={styles.pickerRow}>
+            <Select
+              value={selectedRecipeId}
+              onChange={(event) => setSelectedRecipeId(event.target.value)}
+            >
+              <option value="">Выберите рецепт из БД</option>
+              {recipes.map((recipe) => (
+                <option key={recipe.id} value={recipe.id}>
+                  {recipe.name}
+                </option>
+              ))}
+            </Select>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={
+                !selectedRecipeId ||
+                (character.craftRecipes ?? []).some((r) => r.id === selectedRecipeId)
+              }
+              onClick={() => {
+                const recipe = recipes.find((item) => item.id === selectedRecipeId);
+                if (!recipe) return;
+                updateField('craftRecipes', [
+                  ...(character.craftRecipes ?? []),
+                  { id: recipe.id, name: recipe.name },
+                ]);
+                setSelectedRecipeId('');
+              }}
+            >
+              Добавить
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={!selectedRecipeId}
+              onClick={() => overlay.openEntity({ entityType: 'recipes', id: selectedRecipeId })}
+            >
+              Просмотр
+            </Button>
+          </div>
+          {(character.craftRecipes ?? []).length === 0 ? (
+            <span className={styles.emptyHint}>Нет добавленных рецептов</span>
+          ) : (
+            <div className={styles.spellGroup}>
+              {(character.craftRecipes ?? []).map((recipe) => (
+                <div key={recipe.id} className={styles.spellRow}>
+                  <button
+                    type="button"
+                    className={styles.spellRowLink}
+                    onClick={() => overlay.openEntity({ entityType: 'recipes', id: recipe.id })}
+                    title="Открыть описание"
+                  >
+                    {recipe.name}
+                  </button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      updateField(
+                        'craftRecipes',
+                        (character.craftRecipes ?? []).filter((r) => r.id !== recipe.id),
+                      )
+                    }
+                  >
+                    ✕
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <label className={styles.fieldLabel}>Профессии</label>
           <Textarea
             placeholder="Профессии и специализации..."
@@ -847,12 +1114,12 @@ export function CharacterEditorPage() {
             onChange={(e) => updateField('professions', e.target.value)}
             rows={4}
           />
-          <label className={styles.fieldLabel}>Рецепты</label>
+          <label className={styles.fieldLabel}>Заметки по рецептам</label>
           <Textarea
-            placeholder="Известные рецепты..."
+            placeholder="Произвольные заметки по рецептам..."
             value={character.recipes ?? ''}
             onChange={(e) => updateField('recipes', e.target.value)}
-            rows={6}
+            rows={4}
           />
         </div>
       )}

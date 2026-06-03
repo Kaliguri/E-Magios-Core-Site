@@ -1,8 +1,9 @@
-import { useState, type MouseEvent } from 'react';
+import { type MouseEvent } from 'react';
 import type { CompendiumEntity } from '@/entities/compendium/types';
 import type { Spell, School, Effect, Action, Skill, Recipe } from '@/entities/compendium/types';
 import type { CompendiumEntityKey } from '@/entities/compendium/types';
 import type { EntityRef } from '@/features/db/useCompendiumIndex';
+import { useDice, linkifyDiceExpressions, DICE_ROLL_ATTR, type RollType } from '@/features/dice';
 import { Modal } from '@/shared/ui/Modal';
 import { Button } from '@/shared/ui/Button';
 import { LegacyText, renderLegacyTextHtml } from '@/shared/ui/LegacyText';
@@ -53,18 +54,32 @@ function extractDbLinkRef(raw: string | null): EntityRef | null {
 function HtmlBlock({
   html,
   onNavigateTo,
+  rollLabel,
 }: {
   html: string;
   onNavigateTo?: (ref: EntityRef) => void;
+  /** Label used when a dice formula inside the text is clicked to roll. */
+  rollLabel?: string;
 }) {
+  const dice = useDice();
+
   function handleClick(event: MouseEvent<HTMLDivElement>) {
     const target = event.target as HTMLElement | null;
+
+    // A clicked dice formula rolls it literally (damage formulas don't take a
+    // character bonus) in the global widget.
+    const diceEl = target?.closest(`[${DICE_ROLL_ATTR}]`);
+    const expression = diceEl?.getAttribute(DICE_ROLL_ATTR);
+    if (expression) {
+      event.preventDefault();
+      dice.roll({ expression, label: rollLabel ?? null, applyCharacterBonus: false });
+      return;
+    }
+
     const anchor = target?.closest('a');
     if (!anchor || !onNavigateTo) return;
-
     const ref = extractDbLinkRef(anchor.getAttribute('onclick') ?? anchor.getAttribute('href'));
     if (!ref) return;
-
     event.preventDefault();
     onNavigateTo(ref);
   }
@@ -73,7 +88,7 @@ function HtmlBlock({
     <div
       className={styles.htmlBlock}
       onClick={handleClick}
-      dangerouslySetInnerHTML={{ __html: renderLegacyTextHtml(html, true) }}
+      dangerouslySetInnerHTML={{ __html: linkifyDiceExpressions(renderLegacyTextHtml(html, true)) }}
     />
   );
 }
@@ -114,19 +129,19 @@ function extractSpellRollBonus(description: string | undefined, label: string): 
   return match?.[1] ? Number(match[1]) : null;
 }
 
+/**
+ * Arcana / Hit / Apply quick rolls for a spell. They roll 1d12 (plus the
+ * spell's own bonus from the description) in the global widget, which then
+ * layers on the selected character's bonus, history, crit highlight and Discord.
+ */
 function SpellRollFooter({ spell }: { spell: Spell }) {
-  const [result, setResult] = useState<string | null>(null);
+  const dice = useDice();
   const hitBonus = extractSpellRollBonus(spell.description, 'Бросок на Попадание');
   const applyBonus = extractSpellRollBonus(spell.description, 'Бросок на Наложение');
-  const rolls = [
-    { key: 'arcana', label: 'Бросок на Аркану', bonus: 0, enabled: true },
-    { key: 'hit', label: 'Бросок на Попадание', bonus: hitBonus ?? 0, enabled: hitBonus !== null },
-    {
-      key: 'apply',
-      label: 'Бросок на Наложение',
-      bonus: applyBonus ?? 0,
-      enabled: applyBonus !== null,
-    },
+  const rolls: { key: RollType; label: string; mod: number }[] = [
+    { key: 'arcana', label: 'Аркана', mod: 0 },
+    { key: 'hit', label: 'Попадание', mod: hitBonus ?? 0 },
+    { key: 'apply', label: 'Наложение', mod: applyBonus ?? 0 },
   ];
 
   return (
@@ -136,17 +151,19 @@ function SpellRollFooter({ spell }: { spell: Spell }) {
           key={roll.key}
           type="button"
           className={styles.rollButton}
-          disabled={!roll.enabled}
-          onClick={() => {
-            const d20 = Math.floor(Math.random() * 20) + 1;
-            const total = d20 + roll.bonus;
-            setResult(`${roll.label} ${formatBonus(roll.bonus)}: d20=${d20}, итог ${total}`);
-          }}
+          onClick={() =>
+            dice.roll({
+              expression: roll.mod ? `1d12${formatBonus(roll.mod)}` : '1d12',
+              rollType: roll.key,
+              label: `${spell.name} — ${roll.label}`,
+              spellId: spell.id,
+            })
+          }
         >
-          {roll.label} ({formatBonus(roll.bonus)})
+          {roll.label}
+          {roll.mod ? ` (${formatBonus(roll.mod)})` : ''}
         </button>
       ))}
-      {result && <span className={styles.rollResult}>{result}</span>}
     </div>
   );
 }
@@ -191,7 +208,7 @@ function SpellDetail({
       </div>
       {spell.description && (
         <div className={styles.section}>
-          <HtmlBlock html={spell.description} onNavigateTo={onNavigateTo} />
+          <HtmlBlock html={spell.description} onNavigateTo={onNavigateTo} rollLabel={spell.name} />
         </div>
       )}
       {spell.subSpells && spell.subSpells.length > 0 && (
@@ -394,15 +411,37 @@ function RecipeDetail({ recipe }: { recipe: Recipe }) {
   );
 }
 
+// Known structured fields surfaced (in order) for entity types without a bespoke
+// detail layout — basics/combat (section, page), craft specializations
+// (profession), etc. Anything absent on the entity is skipped by Row.
+const GENERIC_META: [string, string][] = [
+  ['type', 'Тип'],
+  ['kind', 'Тип'],
+  ['actionType', 'Тип действия'],
+  ['section', 'Раздел'],
+  ['page', 'Страница'],
+  ['profession', 'Профессия'],
+  ['specialization', 'Специализация'],
+  ['rarity', 'Редкость'],
+];
+
 function GenericDetail({ entity }: { entity: CompendiumEntity }) {
   const rec = entity as unknown as Record<string, unknown>;
   const desc = typeof rec['description'] === 'string' ? rec['description'] : null;
+  const metaRows = GENERIC_META.filter(([key]) => rec[key] != null && rec[key] !== '');
   return (
     <div className={styles.detail}>
       <h2 className={styles.entityName}>{String(rec['name'] ?? '')}</h2>
+      {metaRows.length > 0 && (
+        <div className={styles.params}>
+          {metaRows.map(([key, label]) => (
+            <Row key={key} label={label} value={rec[key]} />
+          ))}
+        </div>
+      )}
       {desc && (
         <div className={styles.section}>
-          <HtmlBlock html={desc} />
+          <HtmlBlock html={desc} rollLabel={String(rec['name'] ?? '')} />
         </div>
       )}
     </div>

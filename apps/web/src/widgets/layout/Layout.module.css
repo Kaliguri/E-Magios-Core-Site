@@ -21,6 +21,33 @@
   z-index: 900;
 }
 
+/* Bottom-left so it never collides with the dice widget (bottom-right). */
+.scrollTop {
+  position: fixed;
+  left: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 850;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    transform 0.12s;
+}
+
+.scrollTop:hover {
+  color: var(--accent-emerald);
+  border-color: var(--accent-emerald);
+  transform: translateY(-2px);
+}
+
 .resetAccessButton {
   position: absolute;
   top: 12px;
