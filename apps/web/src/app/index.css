@@ -182,3 +182,14 @@ section {
 .dice-roll-link:hover {
   background: rgba(16, 185, 129, 0.12);
 }
+
+/* Auto-linked game terms inside description HTML (see features/db/linkifyEntities). */
+.entity-keyword-link {
+  color: var(--accent-emerald);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--accent-emerald);
+  cursor: pointer;
+}
+.entity-keyword-link:hover {
+  background: rgba(16, 185, 129, 0.12);
+}

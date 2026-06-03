@@ -273,3 +273,172 @@
   color: #ef4444;
   font-weight: 700;
 }
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.settingsWrap {
+  position: relative;
+}
+
+.iconButton {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.15rem 0.25rem;
+  border-radius: var(--radius-sm);
+}
+
+.iconButton:hover {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+.settingsMenu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  z-index: 10;
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.6rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.settingsItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.settingsClear {
+  margin-top: 0.2rem;
+  padding: 0.3rem;
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.settingsClear:hover {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.characterBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.comboWrap {
+  position: relative;
+}
+
+.comboButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.comboButton:hover {
+  border-color: var(--accent-emerald);
+}
+
+.comboValue {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comboArrow {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+
+.comboPanel {
+  position: absolute;
+  top: calc(100% + 0.3rem);
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  padding: 0.4rem;
+  gap: 0.3rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.comboSearch {
+  padding: 0.35rem 0.45rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+.comboOptions {
+  display: flex;
+  flex-direction: column;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.comboOption {
+  text-align: left;
+  padding: 0.35rem 0.45rem;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.comboOption:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.comboOptionActive {
+  color: var(--accent-emerald);
+}
+
+.comboEmpty {
+  padding: 0.35rem 0.45rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.detailLine {
+  line-height: 1.4;
+}

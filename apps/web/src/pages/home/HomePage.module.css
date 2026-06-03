@@ -29,6 +29,13 @@
   color: var(--text-secondary);
 }
 
+.subTitle {
+  font-size: 1rem;
+  margin: var(--spacing-md) 0 var(--spacing-sm);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));

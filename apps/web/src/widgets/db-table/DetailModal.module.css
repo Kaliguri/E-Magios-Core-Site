@@ -161,3 +161,52 @@
   color: var(--text-secondary);
   font-size: 0.85rem;
 }
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: var(--spacing-xs);
+}
+
+.metaPart {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.sectionHeading {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin: var(--spacing-xs) 0 0;
+}
+
+.relations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: baseline;
+  padding-top: var(--spacing-sm);
+  margin-top: var(--spacing-xs);
+  border-top: 1px solid var(--border-color);
+  font-size: 0.85rem;
+}
+
+.relationsLabel {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.relationsBody {
+  color: var(--text-secondary);
+}
+
+.bookLink {
+  color: var(--accent-emerald);
+  text-decoration: none;
+}
+
+.bookLink:hover {
+  text-decoration: underline;
+}

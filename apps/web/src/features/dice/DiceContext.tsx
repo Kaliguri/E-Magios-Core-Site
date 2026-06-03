@@ -32,12 +32,15 @@ interface DiceSettings {
   sendToDiscord: boolean;
   rollFromCharacter: boolean;
   selectedCharacterId: string | null;
+  /** Verbose roll breakdown in history (legacy "Подробный режим"). */
+  detailed: boolean;
 }
 
 const DEFAULT_SETTINGS: DiceSettings = {
   sendToDiscord: true,
   rollFromCharacter: true,
   selectedCharacterId: null,
+  detailed: false,
 };
 
 interface DiceContextValue {
@@ -56,6 +59,8 @@ interface DiceContextValue {
   setRollFromCharacter: (value: boolean) => void;
   sendToDiscord: boolean;
   setSendToDiscord: (value: boolean) => void;
+  detailed: boolean;
+  setDetailed: (value: boolean) => void;
   discordConfigured: boolean;
 }
 
@@ -251,6 +256,10 @@ export function DiceProvider({ children }: { children: ReactNode }) {
     (value: boolean) => setSettings((prev) => ({ ...prev, sendToDiscord: value })),
     [],
   );
+  const setDetailed = useCallback(
+    (value: boolean) => setSettings((prev) => ({ ...prev, detailed: value })),
+    [],
+  );
 
   const value = useMemo<DiceContextValue>(
     () => ({
@@ -269,6 +278,8 @@ export function DiceProvider({ children }: { children: ReactNode }) {
       setRollFromCharacter,
       sendToDiscord: settings.sendToDiscord,
       setSendToDiscord,
+      detailed: settings.detailed,
+      setDetailed,
       discordConfigured: Boolean(discord),
     }),
     [
@@ -283,6 +294,7 @@ export function DiceProvider({ children }: { children: ReactNode }) {
       setSelectedCharacterId,
       setRollFromCharacter,
       setSendToDiscord,
+      setDetailed,
       discord,
     ],
   );
