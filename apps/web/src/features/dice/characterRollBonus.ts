@@ -36,7 +36,7 @@ export function buildCharacterBonus(character: Character, rollType: RollType): B
     items.push({ label: 'Бонус к Наложению', value: stats.effectBonus });
   }
 
-  for (const bonus of character.temporaryBonuses ?? []) {
+  for (const bonus of [...(character.levelBonuses ?? []), ...(character.temporaryBonuses ?? [])]) {
     if (bonus.value) {
       items.push({ label: bonus.name?.trim() || 'Бонус', value: bonus.value });
     }

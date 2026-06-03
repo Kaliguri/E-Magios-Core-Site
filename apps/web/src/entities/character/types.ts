@@ -55,11 +55,18 @@ export interface Character {
   notes?: string;
   // Temporary bonuses (tab "Бонусы")
   temporaryBonuses?: CharacterBonus[];
+  // Permanent bonuses gained from leveling (tab "Бонусы")
+  levelBonuses?: CharacterBonus[];
+  // Manual overrides of derived combat stats (tab "Характеристики").
+  // Keyed by CharacterStats field; absent keys use the level-derived value.
+  statOverrides?: Partial<Record<keyof Omit<CharacterStats, 'level'>, number>>;
   // Inventory (tab "Инвентарь")
   inventory?: string;
   // Crafting (tab "Ремесло")
   professions?: string;
   recipes?: string;
+  // Recipes picked from the DB (tab "Ремесло")
+  craftRecipes?: CharacterSpell[];
   // Description (tab "Описание")
   alignment?: string;
   gender?: string;

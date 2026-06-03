@@ -24,33 +24,36 @@ interface UseCharacterAuthResult {
  * Character-ownership view over the shared auth context: exposes the current
  * user plus that user's saved characters (loaded from Firestore).
  */
+function sortByUpdated(chars: Character[]): Character[] {
+  return [...chars].sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''));
+}
+
 export function useCharacterAuth(): UseCharacterAuthResult {
   const { uid, displayName, email, photoURL, loading, signIn, signOutUser } = useAuth();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [charactersLoading, setCharactersLoading] = useState(false);
-  const [refreshTick, setRefreshTick] = useState(0);
 
+  // Live subscription so the list reflects saves from this or other tabs/devices.
   useEffect(() => {
     if (!uid) {
       setCharacters([]);
+      setCharactersLoading(false);
       return;
     }
     setCharactersLoading(true);
-    CharacterRepository.getUserCharacters(uid)
-      .then((chars) => {
-        setCharacters(
-          chars.sort((a, b) => {
-            const aTime = a.updatedAt ?? '';
-            const bTime = b.updatedAt ?? '';
-            return bTime.localeCompare(aTime);
-          }),
-        );
-      })
-      .catch(() => {
+    const unsubscribe = CharacterRepository.subscribeUserCharacters(
+      uid,
+      (chars) => {
+        setCharacters(sortByUpdated(chars));
+        setCharactersLoading(false);
+      },
+      () => {
         setCharacters([]);
-      })
-      .finally(() => setCharactersLoading(false));
-  }, [uid, refreshTick]);
+        setCharactersLoading(false);
+      },
+    );
+    return unsubscribe;
+  }, [uid]);
 
   return {
     auth: { uid, displayName, email, photoURL, loading },
@@ -58,6 +61,7 @@ export function useCharacterAuth(): UseCharacterAuthResult {
     charactersLoading,
     signIn,
     signOutUser,
-    refreshCharacters: () => setRefreshTick((t) => t + 1),
+    // With a live subscription the list refreshes itself; kept for API stability.
+    refreshCharacters: () => {},
   };
 }

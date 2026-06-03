@@ -1,4 +1,12 @@
-import { collection, doc, getDocs, setDoc, deleteDoc, Timestamp } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDocs,
+  onSnapshot,
+  setDoc,
+  deleteDoc,
+  Timestamp,
+} from 'firebase/firestore';
 import { db } from '@/shared/firebase/client';
 import type { Character } from '@/entities/character/types';
 
@@ -15,6 +23,25 @@ export const CharacterRepository = {
     const col = collection(db, 'users', uid, 'characters');
     const snap = await getDocs(col);
     return snap.docs.map((d) => characterFromDto(d.id, d.data() as Record<string, unknown>));
+  },
+
+  /**
+   * Live subscription to a user's characters. Returns an unsubscribe function so
+   * the editor and dice widget reflect saves from other tabs/devices instantly.
+   */
+  subscribeUserCharacters(
+    uid: string,
+    onChange: (characters: Character[]) => void,
+    onError?: (error: unknown) => void,
+  ): () => void {
+    const col = collection(db, 'users', uid, 'characters');
+    return onSnapshot(
+      col,
+      (snap) => {
+        onChange(snap.docs.map((d) => characterFromDto(d.id, d.data() as Record<string, unknown>)));
+      },
+      (error) => onError?.(error),
+    );
   },
 
   async saveCharacter(uid: string, character: Character): Promise<void> {

@@ -236,6 +236,17 @@
   border-radius: var(--radius-md);
   text-align: center;
   gap: 0.25rem;
+  cursor: pointer;
+  font: inherit;
+  width: 100%;
+}
+
+.statCard:hover {
+  border-color: var(--accent-emerald);
+}
+
+.statCardOverridden {
+  border-color: var(--accent-emerald);
 }
 
 .statValue {
@@ -584,4 +595,57 @@
   .skillsSection {
     grid-template-columns: 1fr;
   }
+}
+
+.diceRollerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.spellRowLink {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent-emerald);
+  cursor: pointer;
+  text-align: left;
+}
+
+.spellRowLink:hover {
+  text-decoration: underline;
+}
+
+.statBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.statBreakdownRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.statBreakdownBonuses {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: var(--spacing-sm);
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+}
+
+.statBreakdownHint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.statOverrideField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
