@@ -1,103 +1,203 @@
-# E'Magios Core Site
+<!-- ============================================================
+     README.md — один файл, только русский.
+     Левое выравнивание. Без упоминаний AI.
+     ============================================================ -->
 
-Официальный сайт и инженерный контур проекта E'Magios Core.
+<a id="top"></a>
 
-Live: [https://kaliguri.github.io/E-Magios-Core-Site/](https://kaliguri.github.io/E-Magios-Core-Site/)
+# E'Magios Core — Companion Site
 
-## Текущее состояние и целевая архитектура
+> Веб-приложение авторской настольной ролевой системы **E'Magios Core**: редактор персонажа, компендиум мира и глобальный виджет бросков кубов. Дипломный проект на React + Feature-Sliced Design.
 
-Проект развивается как гибрид:
+<p>
+  <a href="https://reactjs.org/"><img alt="React 18" src="https://img.shields.io/badge/React_18-20232a?style=flat-square&logo=react&logoColor=61dafb"/></a>
+  <a href="https://www.typescriptlang.org/"><img alt="TypeScript 5" src="https://img.shields.io/badge/TypeScript_5-3178c6?style=flat-square&logo=typescript&logoColor=white"/></a>
+  <a href="https://vitejs.dev/"><img alt="Vite 5" src="https://img.shields.io/badge/Vite_5-646cff?style=flat-square&logo=vite&logoColor=white"/></a>
+  <a href="https://firebase.google.com/"><img alt="Firebase" src="https://img.shields.io/badge/Firebase-ffca28?style=flat-square&logo=firebase&logoColor=black"/></a>
+  <img alt="Feature-Sliced Design" src="https://img.shields.io/badge/Feature--Sliced_Design-8957e5?style=flat-square"/>
+  <a href="https://pages.github.com/"><img alt="GitHub Pages" src="https://img.shields.io/badge/GitHub_Pages-222222?style=flat-square&logo=githubpages&logoColor=white"/></a>
+  <a href="https://github.com/Kaliguri/E-Magios-Core-Site/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/Kaliguri/E-Magios-Core-Site/ci.yml?branch=main&style=flat-square&label=CI&logo=githubactions&logoColor=white"/></a>
+  <img alt="License" src="https://img.shields.io/badge/License-All_Rights_Reserved-red?style=flat-square"/>
+</p>
 
-- legacy-контент в корне репозитория (статические книги);
-- SPA на React в `apps/web`;
-- контентный контур импорта в `scripts/import-content`;
-- backend через Firebase Auth + Firestore;
-- публикация через GitHub Pages.
+|                      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Frontend**         | <a href="https://reactjs.org/"><img alt="React" src="https://img.shields.io/badge/React_18-1f6feb?style=flat-square"/></a> <a href="https://www.typescriptlang.org/"><img alt="TypeScript" src="https://img.shields.io/badge/TypeScript_5-1f6feb?style=flat-square"/></a> <a href="https://vitejs.dev/"><img alt="Vite" src="https://img.shields.io/badge/Vite_5-1f6feb?style=flat-square"/></a> <a href="https://reactrouter.com/"><img alt="React Router" src="https://img.shields.io/badge/React_Router_6-1f6feb?style=flat-square"/></a>   |
+| **Архитектура**      | <img alt="Feature-Sliced Design" src="https://img.shields.io/badge/Feature--Sliced_Design-8957e5?style=flat-square"/> <img alt="Content as Data" src="https://img.shields.io/badge/Content_as_Data-8957e5?style=flat-square"/> <img alt="Status Workflow" src="https://img.shields.io/badge/Status_Workflow-8957e5?style=flat-square"/>                                                                                                                                                                                                        |
+| **Backend**          | <a href="https://firebase.google.com/docs/auth"><img alt="Firebase Auth" src="https://img.shields.io/badge/Firebase_Auth-1f6feb?style=flat-square"/></a> <a href="https://firebase.google.com/docs/firestore"><img alt="Cloud Firestore" src="https://img.shields.io/badge/Cloud_Firestore-1f6feb?style=flat-square"/></a> <a href="https://github.com/jakearchibald/idb"><img alt="IndexedDB (idb)" src="https://img.shields.io/badge/IndexedDB_(idb)-1f6feb?style=flat-square"/></a>                                                         |
+| **Контент-пайплайн** | <a href="https://github.com/privatenumber/tsx"><img alt="tsx" src="https://img.shields.io/badge/tsx-1f6feb?style=flat-square"/></a> <a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/Python-1f6feb?style=flat-square"/></a>                                                                                                                                                                                                                                                                               |
+| **Инструменты**      | <a href="https://eslint.org/"><img alt="ESLint" src="https://img.shields.io/badge/ESLint_9-1f6feb?style=flat-square"/></a> <a href="https://prettier.io/"><img alt="Prettier" src="https://img.shields.io/badge/Prettier_3-1f6feb?style=flat-square"/></a> <a href="https://vitest.dev/"><img alt="Vitest" src="https://img.shields.io/badge/Vitest_2-1f6feb?style=flat-square"/></a> <a href="https://github.com/features/actions"><img alt="GitHub Actions" src="https://img.shields.io/badge/GitHub_Actions-1f6feb?style=flat-square"/></a> |
+
+<p>
+  <a href="https://kaliguri.github.io/E-Magios-Core-Site/"><b>▶ Открыть сайт</b></a>
+</p>
+
+---
+
+<details>
+<summary><b>Скриншоты</b></summary>
+
+<details>
+<summary>Редактор персонажа</summary>
+
+![Редактор персонажа](docs/screenshots/character-editor.png)
+
+</details>
+
+<details>
+<summary>Компендиум и виджет бросков</summary>
+
+![Компендиум](docs/screenshots/compendium.png)
+
+</details>
+
+<details>
+<summary>Новости</summary>
+
+![Новости](docs/screenshots/news.png)
+
+</details>
+
+<details>
+<summary>Профиль и интеграция с Discord</summary>
+
+![Профиль](docs/screenshots/profile-discord.png)
+
+</details>
+
+</details>
+
+---
+
+## О проекте
+
+**E'Magios Core** — авторская настольная ролевая система. Этот репозиторий — её цифровой контур: веб-приложение игрока на React + Feature-Sliced Design и инженерный конвейер публикации контента. Выполнен как выпускная квалификационная работа.
+
+> **Что демонстрирует проект:** Feature-Sliced Design в боевом масштабе, конвейер «контент как данные» с аудитом и версионированием, ролевую модель доступа поверх Firestore, офлайн-кэш в IndexedDB и zero-cost деплой под защитой CI quality gate.
+
+### Ключевые возможности
+
+| Возможность             | Описание                                                                                 |
+| ----------------------- | ---------------------------------------------------------------------------------------- |
+| **Редактор персонажа**  | Полнофункциональный лист персонажа с расчётами, экипировкой и навыками                   |
+| **Компендиум**          | База данных мира: заклинания, существа, предметы, школы магии — с перекрёстными ссылками |
+| **Броски кубов**        | Глобальный виджет дайсов с историей бросков и настройками                                |
+| **Контентный workflow** | Статусная модель публикации с аудитом и версионированием                                 |
+| **Observability MVP**   | Бесплатный контур телеметрии: page views, ошибки UI, метрики загрузок, страница `/ops`   |
+| **Ролевой доступ**      | `author / editor / admin` поверх Firestore Security Rules                                |
+
+---
+
+<details id="for-developers">
+<summary><b>Для разработчиков</b></summary>
+
+<br>
+
+### Архитектура
 
 ```mermaid
 flowchart TD
-  ContentSource[MarkdownAndJsonSources] --> ImportScripts[ImportScripts]
-  ImportScripts --> DraftDocs[StatusDraft]
-  DraftDocs --> ReviewDocs[StatusReview]
-  ReviewDocs --> PublishedDocs[StatusPublished]
-  PublishedDocs --> FirestoreRuntime[FirestoreRuntime]
-  FirestoreRuntime --> WebApp[ReactWebApp]
-  WebApp --> IndexedDBCache[IndexedDBCache]
-  WebApp --> OpsMetrics[OpsMetricsPage]
-  DevPush[DeveloperPushOrPR] --> CIQualityGate[CIQualityGate]
-  CIQualityGate --> DeployPages[DeployGitHubPages]
+  ContentSource[Markdown и JSON источники] --> ImportScripts[Import scripts]
+  ImportScripts --> DraftDocs[status: draft]
+  DraftDocs --> ReviewDocs[status: review]
+  ReviewDocs --> PublishedDocs[status: published]
+  PublishedDocs --> FirestoreRuntime[Firestore runtime]
+  FirestoreRuntime --> WebApp[React Web App]
+  WebApp --> IndexedDBCache[IndexedDB cache]
+  WebApp --> OpsMetrics[Ops / Observability]
+  DevPush[Push или PR] --> CIQualityGate[CI Quality Gate]
+  CIQualityGate --> DeployPages[Deploy GitHub Pages]
 ```
 
-## Репозиторная структура
+Проект устроен как гибрид трёх контуров:
+
+- **Контентный конвейер** (`scripts/data-pipeline`, `scripts/import-content`) — нормализация и валидация источников, статусный workflow `draft → review → published → archived`, версионирование и аудит публикаций.
+- **Backend без сервера** — Firebase Auth + Firestore с ролевой моделью доступа в `firestore.rules`; приложение читает только опубликованные документы.
+- **Веб-приложение** (`apps/web`) — React + TypeScript + Vite на архитектуре Feature-Sliced Design, с офлайн-кэшем в IndexedDB и собственным контуром наблюдаемости.
+
+### Технический стек
+
+|                      |                                                 |
+| -------------------- | ----------------------------------------------- |
+| **Frontend**         | React 18, TypeScript 5, Vite 5, React Router 6  |
+| **Архитектура**      | Feature-Sliced Design                           |
+| **Backend**          | Firebase Auth + Cloud Firestore                 |
+| **Кэш / офлайн**     | IndexedDB (через `idb`)                         |
+| **Контент-пайплайн** | TypeScript (`tsx`) + Python                     |
+| **Качество**         | ESLint 9, Prettier 3, Vitest 2, Testing Library |
+| **CI/CD**            | GitHub Actions + GitHub Pages                   |
+
+### Структура репозитория
 
 ```text
 E-Magios-Core-Site/
-├── apps/web/                    # React + TypeScript + Vite
-├── scripts/import-content/      # import + workflow + smoke checks
-├── scripts/data-pipeline/       # normalize/validate/relations/report
-├── data/                        # source JSON for import scripts
-├── reports/                     # generated validation/data reports
-├── dashboard.html               # legacy dashboard page
-├── dashboard.js                 # legacy dashboard logic
-├── .github/workflows/           # CI and deploy workflows
-├── firestore.rules              # access model and roles
-├── firestore.indexes.json       # firestore indexes
-└── README.md
+├── apps/web/                    # React + TypeScript + Vite (Feature-Sliced Design)
+├── scripts/import-content/      # импорт в Firestore + workflow + smoke-проверки
+├── scripts/data-pipeline/       # normalize / validate / relations / report
+├── data/                        # исходный JSON для импорта
+├── reports/                     # сгенерированные отчёты валидации и данных
+├── docs/                        # проектная документация и UX-аудит
+├── .github/workflows/           # CI и деплой
+├── firestore.rules              # ролевая модель доступа
+└── firestore.indexes.json       # индексы Firestore
 ```
 
-## Quality Gate
+### Локальный запуск
+
+**Веб-приложение:**
+
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
+**Import scripts:**
+
+```bash
+cd scripts/import-content
+npm install
+npm run check
+```
+
+**Data processing:**
+
+```bash
+python scripts/data-pipeline/process_data.py --no-fail-on-errors
+```
+
+> Для импорта в Firestore нужен `scripts/import-content/service-account.json`.
+
+### Quality Gate
 
 `apps/web`:
 
-- `npm run lint`
-- `npm run format:check`
-- `npm run typecheck`
-- `npm run test`
-- `npm run check` (агрегатор)
+```bash
+npm run lint
+npm run format:check
+npm run typecheck
+npm run test
+npm run check    # агрегатор
+```
 
 `scripts/import-content`:
 
-- `npm run typecheck`
-- `npm run smoke`
-- `npm run check` (агрегатор)
+```bash
+npm run typecheck
+npm run smoke
+npm run check    # агрегатор
+```
 
-`scripts/data-pipeline`:
+### CI/CD
 
-- `python scripts/data-pipeline/process_data.py`
-- `python scripts/data-pipeline/process_data.py --include-normalize`
-- `python scripts/data-pipeline/process_data.py --strict`
+| Workflow                       | Триггер                             | Назначение                                                                                                                        |
+| ------------------------------ | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `.github/workflows/ci.yml`     | `pull_request`, `push` в `main/dev` | Установка зависимостей, `check` + `build` для `apps/web` и `import-content`, генерация отчётов data-pipeline, проверка артефактов |
+| `.github/workflows/deploy.yml` | `push` в `main`                     | Сборка `apps/web` → публикация `dist-react` в GitHub Pages                                                                        |
 
-## CI/CD
+### Контентный workflow
 
-### CI (`.github/workflows/ci.yml`)
-
-На `pull_request` и `push` в `main/dev`:
-
-1. Установка зависимостей `apps/web` и `scripts/import-content`.
-2. `apps/web`: `npm run check`, `npm run build`.
-3. `scripts/import-content`: `npm run check`.
-4. `scripts/data-pipeline`: генерация `reports/validation_report.json` и `reports/data_report.json`.
-5. Проверка существования report-артефактов.
-
-### CD (`.github/workflows/deploy.yml`)
-
-На `push` в `main`:
-
-1. Build `apps/web`.
-2. Публикация `dist-react` в GitHub Pages.
-
-## Контентный workflow
-
-Поддерживаемые статусы:
-
-- `draft`
-- `review`
-- `published`
-- `archived`
-
-Переходы выполняются через `scripts/import-content/content-workflow.ts`.
-
-Готовые команды:
+Поддерживаемые статусы: `draft`, `review`, `published`, `archived`. Переходы выполняются через `scripts/import-content/content-workflow.ts`, аудит пишется в `content_publication_log`.
 
 ```bash
 cd scripts/import-content
@@ -106,151 +206,39 @@ npm run workflow:publish
 npm run workflow:archive
 ```
 
-Кастомный запуск:
-
-```bash
-npx tsx content-workflow.ts --from=draft --to=review --role=author --actorId=<id> --collection=spells --changeSummary="Batch update"
-```
-
-Аудит переходов пишется в `content_publication_log`.
-
-## Версионирование контента
-
-Версионирование реализовано в import-скриптах:
+### Версионирование контента
 
 - `doc.version` увеличивается только при реальном изменении payload;
-- неизмененные документы сохраняют прежнюю версию;
-- манифест `contentManifest/production` обновляет:
-  - `collections.<name>.version`
-  - `contentRevision`
-  - `release.version`
-  - `release.tag`
-  - `release.changedCollections`
-  - `release.changedDocs`
+- неизменённые документы сохраняют прежнюю версию;
+- манифест `contentManifest/production` обновляет `collections.<name>.version`, `contentRevision`, `release.version`, `release.tag`, `release.changedCollections`, `release.changedDocs`.
 
-По умолчанию импорт выставляет `status=draft`. Можно переопределить:
-
-```bash
-IMPORT_STATUS=published npm run import:compendium
-```
-
-## Legacy data-processing и dashboard
-
-Data-processing pipeline:
-
-```bash
-python scripts/data-pipeline/process_data.py
-```
-
-Pipeline создает:
-
-- `reports/validation_report.json`
-- `reports/data_report.json`
-- `reports/data_report.html`
-
-Схема отчета зафиксирована в `scripts/data-pipeline/report_schema.md` (`schemaVersion: 1.0.0`).
-
-Legacy dashboard:
-
-- страница: `dashboard.html`
-- источник метрик качества/контента: `reports/data_report.json`
-- источник метрик бросков:
-  - при наличии localStorage событий: `diceRollEventsLegacy`
-  - иначе fallback на блок `dice` в `reports/data_report.json`
-
-Формат локального dice-события:
-
-```json
-{
-  "eventId": "uuid",
-  "userId": "uid_or_anonymous",
-  "characterId": "optional",
-  "diceType": "d12",
-  "sides": 12,
-  "result": 9,
-  "modifier": 0,
-  "total": 11,
-  "context": "arcana|hit|apply|other",
-  "sessionId": "session-id",
-  "createdAt": 1717330000000,
-  "appVersion": "legacy-site"
-}
-```
-
-## Observability MVP
+### Observability MVP
 
 Бесплатный контур наблюдаемости:
 
 - `ErrorBoundary` фиксирует UI-сбои в `client_telemetry`;
-- роутинг пишет `page_view` telemetry;
+- роутинг пишет `page_view`;
 - загрузки данных пишут `cache_hit`, `data_fetch_success`, `data_fetch_error`;
-- служебная страница `/ops` показывает:
-  - последние telemetry события;
-  - последние публикационные логи;
-  - агрегированную сводку по типам telemetry событий.
+- страница `/ops` показывает последние события телеметрии, публикационные логи и агрегированную сводку.
 
-## Безопасность и роли
+### Безопасность и роли
 
-`firestore.rules` поддерживают роли:
+`firestore.rules` поддерживают роли `author`, `editor`, `admin`. Для контентных коллекций:
 
-- `author`
-- `editor`
-- `admin`
-
-Для контентных коллекций:
-
-- публичное чтение только `status == "published"`;
+- публичное чтение только при `status == "published"`;
 - create/update ограничены ролью и допустимыми переходами статусов;
 - `content_publication_log` и `client_telemetry` читаются только `editor/admin`;
 - `client_telemetry` допускает `create` только для авторизованных пользователей.
 
-## Локальный запуск
+</details>
 
-Web:
+---
 
-```bash
-cd apps/web
-npm install
-npm run dev
-```
+## Лицензия
 
-Import scripts:
+© 2026 Гайдарь М.Д. (Max Gaida). Все права защищены.
 
-```bash
-cd scripts/import-content
-npm install
-npm run check
-```
+Репозиторий опубликован в открытом доступе исключительно для демонстрации в портфолио и code review.
+Использование, копирование, распространение или создание производных работ без письменного разрешения автора запрещено.
 
-Data processing:
-
-```bash
-python scripts/data-pipeline/process_data.py --no-fail-on-errors
-```
-
-Legacy static preview:
-
-```bash
-python -m http.server 8000
-```
-
-Открыть:
-
-- `http://localhost:8000/dashboard.html`
-- `http://localhost:8000/reports/data_report.html`
-
-Для импорта в Firestore нужен `scripts/import-content/service-account.json`.
-
-## Roadmap (следующий этап)
-
-1. Добавить отдельный admin UI для ручного управления переходами статусов.
-2. Вынести часть контентного workflow в server-side функции.
-3. Добавить тесты для `content-workflow.ts` и versioning-логики import scripts.
-4. Расширить Ops-дэшборд до метрик периодов (DAU/WAU/MAU и publish lead time).
-
-## Референсы
-
-Для архитектурных паттернов и организационных решений использовались:
-
-- [Posleslovie](https://github.com/Kaliguri/Posleslovie)
-- [Guildmaster-Autobattler](https://github.com/Kaliguri/Guildmaster-Autobattler)
+Подробнее — [LICENSE.md](LICENSE.md).
