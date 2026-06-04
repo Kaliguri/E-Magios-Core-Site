@@ -234,11 +234,12 @@ npm run workflow:archive
 
 ---
 
-## Лицензия
+## License
 
-© 2026 Гайдарь М.Д. (Max Gaida). Все права защищены.
+© 2026 Гайдарь М.Д. (Max Gaida). All rights reserved.
 
-Репозиторий опубликован в открытом доступе исключительно для демонстрации в портфолио и code review.
-Использование, копирование, распространение или создание производных работ без письменного разрешения автора запрещено.
+This repository is public for portfolio and demonstration purposes only.
+No license is granted to use, copy, modify, or distribute any part of it
+without prior written permission from the author.
 
-Подробнее — [LICENSE.md](LICENSE.md).
+See [LICENSE.md](LICENSE.md) for details.
