@@ -10,13 +10,8 @@
 > Веб-приложение авторской настольной ролевой системы **E'Magios Core**: редактор персонажа, компендиум мира и глобальный виджет бросков кубов. Дипломный проект на React + Feature-Sliced Design.
 
 <p>
-  <a href="https://reactjs.org/"><img alt="React 18" src="https://img.shields.io/badge/React_18-20232a?style=flat-square&logo=react&logoColor=61dafb"/></a>
-  <a href="https://www.typescriptlang.org/"><img alt="TypeScript 5" src="https://img.shields.io/badge/TypeScript_5-3178c6?style=flat-square&logo=typescript&logoColor=white"/></a>
-  <a href="https://vitejs.dev/"><img alt="Vite 5" src="https://img.shields.io/badge/Vite_5-646cff?style=flat-square&logo=vite&logoColor=white"/></a>
-  <a href="https://firebase.google.com/"><img alt="Firebase" src="https://img.shields.io/badge/Firebase-ffca28?style=flat-square&logo=firebase&logoColor=black"/></a>
-  <img alt="Feature-Sliced Design" src="https://img.shields.io/badge/Feature--Sliced_Design-8957e5?style=flat-square"/>
-  <a href="https://pages.github.com/"><img alt="GitHub Pages" src="https://img.shields.io/badge/GitHub_Pages-222222?style=flat-square&logo=githubpages&logoColor=white"/></a>
-  <a href="https://github.com/Kaliguri/E-Magios-Core-Site/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/Kaliguri/E-Magios-Core-Site/ci.yml?branch=main&style=flat-square&label=CI&logo=githubactions&logoColor=white"/></a>
+  <a href="https://github.com/Kaliguri/E-Magios-Core-Site/actions"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/Kaliguri/E-Magios-Core-Site/ci.yml?branch=main&style=flat-square&label=Build&logo=githubactions&logoColor=white"/></a>
+  <a href="https://kaliguri.github.io/E-Magios-Core-Site/"><img alt="Status: live" src="https://img.shields.io/badge/Status-live-2ea043?style=flat-square"/></a>
   <img alt="License" src="https://img.shields.io/badge/License-All_Rights_Reserved-red?style=flat-square"/>
 </p>
 
