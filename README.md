@@ -1,63 +1,72 @@
 <!-- ============================================================
-     README.md — один файл, только русский.
-     Левое выравнивание. Без упоминаний AI.
+     README.md — single file, two languages.
+     English block first (canonical), Русский below, anchor switcher.
+     Left-aligned. No AI mentions.
      ============================================================ -->
 
 <a id="top"></a>
 
+<p>
+  <a href="#english"><b>English</b></a>
+  &nbsp;·&nbsp;
+  <a href="#русский"><b>Русский</b></a>
+</p>
+
 # E'Magios Core — Companion Site
 
-> Веб-приложение авторской настольной ролевой системы **E'Magios Core**: редактор персонажа, компендиум мира и глобальный виджет бросков кубов. Дипломный проект на React + Feature-Sliced Design.
+> Companion web app for the original **E'Magios Core** tabletop RPG: character editor, world compendium, and a global dice-roller widget. A diploma project built on React + Feature-Sliced Design.
 
 <p>
   <a href="https://github.com/Kaliguri/E-Magios-Core-Site/actions"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/Kaliguri/E-Magios-Core-Site/ci.yml?branch=main&style=flat-square&label=Build&logo=githubactions&logoColor=white"/></a>
   <a href="https://kaliguri.github.io/E-Magios-Core-Site/"><img alt="Status: live" src="https://img.shields.io/badge/Status-live-2ea043?style=flat-square"/></a>
-  <img alt="License" src="https://img.shields.io/badge/License-All_Rights_Reserved-red?style=flat-square"/>
+  <img alt="License: All rights reserved" src="https://img.shields.io/badge/License-All_rights_reserved-red?style=flat-square"/>
 </p>
 
-|                      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|                      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Frontend**         | <a href="https://react.dev/"><img alt="React 18" src="https://img.shields.io/badge/React_18-20232A?style=flat-square&logo=react&logoColor=61DAFB"/></a> <a href="https://www.typescriptlang.org/"><img alt="TypeScript 5" src="https://img.shields.io/badge/TypeScript_5-3178C6?style=flat-square&logo=typescript&logoColor=white"/></a> <a href="https://vitejs.dev/"><img alt="Vite 5" src="https://img.shields.io/badge/Vite_5-646CFF?style=flat-square&logo=vite&logoColor=white"/></a> <a href="https://reactrouter.com/"><img alt="React Router 6" src="https://img.shields.io/badge/React_Router_6-CA4245?style=flat-square&logo=reactrouter&logoColor=white"/></a> |
-| **Бэкенд и данные**  | <a href="https://firebase.google.com/docs/auth"><img alt="Firebase Auth" src="https://img.shields.io/badge/Firebase_Auth-FFCA28?style=flat-square&logo=firebase&logoColor=black"/></a> <a href="https://firebase.google.com/docs/firestore"><img alt="Cloud Firestore" src="https://img.shields.io/badge/Cloud_Firestore-FFA000?style=flat-square&logo=firebase&logoColor=white"/></a> <a href="https://github.com/jakearchibald/idb"><img alt="IndexedDB" src="https://img.shields.io/badge/IndexedDB-1F6FEB?style=flat-square"/></a> |
-| **Хостинг**          | <a href="https://pages.github.com/"><img alt="GitHub Pages" src="https://img.shields.io/badge/GitHub_Pages-222222?style=flat-square&logo=githubpages&logoColor=white"/></a> <a href="https://github.com/features/actions"><img alt="GitHub Actions" src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white"/></a> <img alt="Static export" src="https://img.shields.io/badge/Static_export-8957E5?style=flat-square"/> |
-| **Контент-пайплайн** | <a href="https://github.com/privatenumber/tsx"><img alt="tsx" src="https://img.shields.io/badge/tsx-1F6FEB?style=flat-square"/></a> <a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white"/></a> <img alt="JSON content" src="https://img.shields.io/badge/JSON_content-8957E5?style=flat-square"/> |
-| **Инструменты**      | <a href="https://eslint.org/"><img alt="ESLint 9" src="https://img.shields.io/badge/ESLint_9-4B32C3?style=flat-square&logo=eslint&logoColor=white"/></a> <a href="https://prettier.io/"><img alt="Prettier 3" src="https://img.shields.io/badge/Prettier_3-F7B93E?style=flat-square&logo=prettier&logoColor=black"/></a> <a href="https://vitest.dev/"><img alt="Vitest 2" src="https://img.shields.io/badge/Vitest_2-6E9F18?style=flat-square&logo=vitest&logoColor=white"/></a> |
-| **Архитектура**      | <img alt="Feature-Sliced Design" src="https://img.shields.io/badge/Feature--Sliced_Design-8957E5?style=flat-square"/> <img alt="Content as Data" src="https://img.shields.io/badge/Content_as_Data-8957E5?style=flat-square"/> <img alt="Status Workflow" src="https://img.shields.io/badge/Status_Workflow-8957E5?style=flat-square"/> |
+| **Backend & data**   | <a href="https://firebase.google.com/docs/auth"><img alt="Firebase Auth" src="https://img.shields.io/badge/Firebase_Auth-FFCA28?style=flat-square&logo=firebase&logoColor=black"/></a> <a href="https://firebase.google.com/docs/firestore"><img alt="Cloud Firestore" src="https://img.shields.io/badge/Cloud_Firestore-FFA000?style=flat-square&logo=firebase&logoColor=white"/></a> <a href="https://github.com/jakearchibald/idb"><img alt="IndexedDB" src="https://img.shields.io/badge/IndexedDB-1F6FEB?style=flat-square"/></a>                                                                                                                                     |
+| **Hosting**          | <a href="https://pages.github.com/"><img alt="GitHub Pages" src="https://img.shields.io/badge/GitHub_Pages-222222?style=flat-square&logo=githubpages&logoColor=white"/></a> <a href="https://github.com/features/actions"><img alt="GitHub Actions" src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white"/></a> <img alt="Static export" src="https://img.shields.io/badge/Static_export-8957E5?style=flat-square"/>                                                                                                                                                                                               |
+| **Content pipeline** | <a href="https://github.com/privatenumber/tsx"><img alt="tsx" src="https://img.shields.io/badge/tsx-1F6FEB?style=flat-square"/></a> <a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white"/></a> <img alt="JSON content" src="https://img.shields.io/badge/JSON_content-8957E5?style=flat-square"/>                                                                                                                                                                                                                                                                            |
+| **Tooling**          | <a href="https://eslint.org/"><img alt="ESLint 9" src="https://img.shields.io/badge/ESLint_9-4B32C3?style=flat-square&logo=eslint&logoColor=white"/></a> <a href="https://prettier.io/"><img alt="Prettier 3" src="https://img.shields.io/badge/Prettier_3-F7B93E?style=flat-square&logo=prettier&logoColor=black"/></a> <a href="https://vitest.dev/"><img alt="Vitest 2" src="https://img.shields.io/badge/Vitest_2-6E9F18?style=flat-square&logo=vitest&logoColor=white"/></a>                                                                                                                                                                                          |
+| **Architecture**     | <img alt="Feature-Sliced Design" src="https://img.shields.io/badge/Feature--Sliced_Design-8957E5?style=flat-square"/> <img alt="Content as Data" src="https://img.shields.io/badge/Content_as_Data-8957E5?style=flat-square"/> <img alt="Status Workflow" src="https://img.shields.io/badge/Status_Workflow-8957E5?style=flat-square"/>                                                                                                                                                                                                                                                                                                                                    |
 
 <p>
-  <a href="https://kaliguri.github.io/E-Magios-Core-Site/"><b>▶ Открыть сайт</b></a>
+  <a href="https://kaliguri.github.io/E-Magios-Core-Site/"><b>▶ Open the site</b></a>
 </p>
 
 ---
 
 <details>
-<summary><b>Скриншоты</b></summary>
+<summary><b>Screenshots</b></summary>
+
+<br>
 
 <details>
-<summary>Редактор персонажа</summary>
+<summary>Character editor</summary>
 
-![Редактор персонажа](docs/screenshots/character-editor.png)
+![Character editor](docs/screenshots/character-editor.png)
 
 </details>
 
 <details>
-<summary>Компендиум и виджет бросков</summary>
+<summary>Compendium & dice widget</summary>
 
-![Компендиум](docs/screenshots/compendium.png)
-
-</details>
-
-<details>
-<summary>Новости</summary>
-
-![Новости](docs/screenshots/news.png)
+![Compendium](docs/screenshots/compendium.png)
 
 </details>
 
 <details>
-<summary>Профиль и интеграция с Discord</summary>
+<summary>News</summary>
 
-![Профиль](docs/screenshots/profile-discord.png)
+![News](docs/screenshots/news.png)
+
+</details>
+
+<details>
+<summary>Profile & Discord integration</summary>
+
+![Profile](docs/screenshots/profile-discord.png)
 
 </details>
 
@@ -65,7 +74,32 @@
 
 ---
 
-## О проекте
+## English
+
+<a href="#top"><b>[↑ Back to top]</b></a>
+
+**E'Magios Core is an original tabletop RPG.** This repository is its digital layer: a player-facing web app built on React + Feature-Sliced Design, paired with an engineering pipeline for publishing world content. It was built as a final qualification (diploma) project.
+
+> **What this project demonstrates:** Feature-Sliced Design at real scale, a content-as-data pipeline with audit and versioning, a role-based access model on top of Firestore, an offline cache in IndexedDB, and a zero-cost deploy guarded by a CI quality gate.
+
+### Key features
+
+| Feature               | Description                                                                        |
+| --------------------- | ---------------------------------------------------------------------------------- |
+| **Character editor**  | Full-featured character sheet with calculations, equipment, and skills             |
+| **Compendium**        | World database: spells, creatures, items, schools of magic — with cross-references |
+| **Dice roller**       | Global dice widget with roll history and settings                                  |
+| **Content workflow**  | Status-based publication model with audit and versioning                           |
+| **Observability MVP** | Free telemetry loop: page views, UI errors, load metrics, an `/ops` page           |
+| **Role-based access** | `author / editor / admin` on top of Firestore Security Rules                       |
+
+---
+
+## Русский
+
+<a href="#top"><b>[↑ Наверх]</b></a>
+
+> Веб-приложение авторской настольной ролевой системы **E'Magios Core**: редактор персонажа, компендиум мира и глобальный виджет бросков кубов. Дипломный проект на React + Feature-Sliced Design.
 
 **E'Magios Core** — авторская настольная ролевая система. Этот репозиторий — её цифровой контур: веб-приложение игрока на React + Feature-Sliced Design и инженерный конвейер публикации контента. Выполнен как выпускная квалификационная работа.
 
@@ -85,15 +119,15 @@
 ---
 
 <details id="for-developers">
-<summary><b>Для разработчиков</b></summary>
+<summary><b>For developers</b></summary>
 
 <br>
 
-### Архитектура
+### Architecture
 
 ```mermaid
 flowchart TD
-  ContentSource[Markdown и JSON источники] --> ImportScripts[Import scripts]
+  ContentSource[Markdown & JSON sources] --> ImportScripts[Import scripts]
   ImportScripts --> DraftDocs[status: draft]
   DraftDocs --> ReviewDocs[status: review]
   ReviewDocs --> PublishedDocs[status: published]
@@ -101,46 +135,46 @@ flowchart TD
   FirestoreRuntime --> WebApp[React Web App]
   WebApp --> IndexedDBCache[IndexedDB cache]
   WebApp --> OpsMetrics[Ops / Observability]
-  DevPush[Push или PR] --> CIQualityGate[CI Quality Gate]
+  DevPush[Push or PR] --> CIQualityGate[CI Quality Gate]
   CIQualityGate --> DeployPages[Deploy GitHub Pages]
 ```
 
-Проект устроен как гибрид трёх контуров:
+The project is structured as a hybrid of three layers:
 
-- **Контентный конвейер** (`scripts/data-pipeline`, `scripts/import-content`) — нормализация и валидация источников, статусный workflow `draft → review → published → archived`, версионирование и аудит публикаций.
-- **Backend без сервера** — Firebase Auth + Firestore с ролевой моделью доступа в `firestore.rules`; приложение читает только опубликованные документы.
-- **Веб-приложение** (`apps/web`) — React + TypeScript + Vite на архитектуре Feature-Sliced Design, с офлайн-кэшем в IndexedDB и собственным контуром наблюдаемости.
+- **Content pipeline** (`scripts/data-pipeline`, `scripts/import-content`) — normalization and validation of sources, a `draft → review → published → archived` status workflow, content versioning, and a publication audit.
+- **Serverless backend** — Firebase Auth + Firestore with a role-based access model in `firestore.rules`; the app reads published documents only.
+- **Web app** (`apps/web`) — React + TypeScript + Vite on a Feature-Sliced Design architecture, with an offline cache in IndexedDB and its own observability loop.
 
-### Технический стек
+### Tech stack
 
 |                      |                                                 |
 | -------------------- | ----------------------------------------------- |
 | **Frontend**         | React 18, TypeScript 5, Vite 5, React Router 6  |
-| **Архитектура**      | Feature-Sliced Design                           |
+| **Architecture**     | Feature-Sliced Design                           |
 | **Backend**          | Firebase Auth + Cloud Firestore                 |
-| **Кэш / офлайн**     | IndexedDB (через `idb`)                         |
-| **Контент-пайплайн** | TypeScript (`tsx`) + Python                     |
-| **Качество**         | ESLint 9, Prettier 3, Vitest 2, Testing Library |
+| **Cache / offline**  | IndexedDB (via `idb`)                           |
+| **Content pipeline** | TypeScript (`tsx`) + Python                     |
+| **Quality**          | ESLint 9, Prettier 3, Vitest 2, Testing Library |
 | **CI/CD**            | GitHub Actions + GitHub Pages                   |
 
-### Структура репозитория
+### Repository layout
 
 ```text
 E-Magios-Core-Site/
 ├── apps/web/                    # React + TypeScript + Vite (Feature-Sliced Design)
-├── scripts/import-content/      # импорт в Firestore + workflow + smoke-проверки
+├── scripts/import-content/      # Firestore import + workflow + smoke checks
 ├── scripts/data-pipeline/       # normalize / validate / relations / report
-├── data/                        # исходный JSON для импорта
-├── reports/                     # сгенерированные отчёты валидации и данных
-├── docs/                        # проектная документация и UX-аудит
-├── .github/workflows/           # CI и деплой
-├── firestore.rules              # ролевая модель доступа
-└── firestore.indexes.json       # индексы Firestore
+├── data/                        # source JSON for import
+├── reports/                     # generated validation and data reports
+├── docs/                        # project documentation and UX audit
+├── .github/workflows/           # CI and deploy
+├── firestore.rules              # role-based access model
+└── firestore.indexes.json       # Firestore indexes
 ```
 
-### Локальный запуск
+### Local development
 
-**Веб-приложение:**
+**Web app:**
 
 ```bash
 cd apps/web
@@ -162,9 +196,9 @@ npm run check
 python scripts/data-pipeline/process_data.py --no-fail-on-errors
 ```
 
-> Для импорта в Firestore нужен `scripts/import-content/service-account.json`.
+> Importing into Firestore requires `scripts/import-content/service-account.json`.
 
-### Quality Gate
+### Quality gate
 
 `apps/web`:
 
@@ -173,7 +207,7 @@ npm run lint
 npm run format:check
 npm run typecheck
 npm run test
-npm run check    # агрегатор
+npm run check    # aggregator
 ```
 
 `scripts/import-content`:
@@ -181,19 +215,19 @@ npm run check    # агрегатор
 ```bash
 npm run typecheck
 npm run smoke
-npm run check    # агрегатор
+npm run check    # aggregator
 ```
 
 ### CI/CD
 
-| Workflow                       | Триггер                             | Назначение                                                                                                                        |
-| ------------------------------ | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `.github/workflows/ci.yml`     | `pull_request`, `push` в `main/dev` | Установка зависимостей, `check` + `build` для `apps/web` и `import-content`, генерация отчётов data-pipeline, проверка артефактов |
-| `.github/workflows/deploy.yml` | `push` в `main`                     | Сборка `apps/web` → публикация `dist-react` в GitHub Pages                                                                        |
+| Workflow                       | Trigger                              | Purpose                                                                                                                           |
+| ------------------------------ | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| `.github/workflows/ci.yml`     | `pull_request`, `push` to `main/dev` | Install dependencies, run `check` + `build` for `apps/web` and `import-content`, generate data-pipeline reports, verify artifacts |
+| `.github/workflows/deploy.yml` | `push` to `main`                     | Build `apps/web` → publish `dist-react` to GitHub Pages                                                                           |
 
-### Контентный workflow
+### Content workflow
 
-Поддерживаемые статусы: `draft`, `review`, `published`, `archived`. Переходы выполняются через `scripts/import-content/content-workflow.ts`, аудит пишется в `content_publication_log`.
+Supported statuses: `draft`, `review`, `published`, `archived`. Transitions run through `scripts/import-content/content-workflow.ts`; the audit trail is written to `content_publication_log`.
 
 ```bash
 cd scripts/import-content
@@ -202,29 +236,29 @@ npm run workflow:publish
 npm run workflow:archive
 ```
 
-### Версионирование контента
+### Content versioning
 
-- `doc.version` увеличивается только при реальном изменении payload;
-- неизменённые документы сохраняют прежнюю версию;
-- манифест `contentManifest/production` обновляет `collections.<name>.version`, `contentRevision`, `release.version`, `release.tag`, `release.changedCollections`, `release.changedDocs`.
+- `doc.version` is incremented only on a real payload change;
+- unchanged documents keep their previous version;
+- the `contentManifest/production` manifest updates `collections.<name>.version`, `contentRevision`, `release.version`, `release.tag`, `release.changedCollections`, and `release.changedDocs`.
 
 ### Observability MVP
 
-Бесплатный контур наблюдаемости:
+A free observability loop:
 
-- `ErrorBoundary` фиксирует UI-сбои в `client_telemetry`;
-- роутинг пишет `page_view`;
-- загрузки данных пишут `cache_hit`, `data_fetch_success`, `data_fetch_error`;
-- страница `/ops` показывает последние события телеметрии, публикационные логи и агрегированную сводку.
+- `ErrorBoundary` records UI failures to `client_telemetry`;
+- routing writes `page_view`;
+- data loads write `cache_hit`, `data_fetch_success`, `data_fetch_error`;
+- the `/ops` page shows recent telemetry events, publication logs, and an aggregated summary.
 
-### Безопасность и роли
+### Security & roles
 
-`firestore.rules` поддерживают роли `author`, `editor`, `admin`. Для контентных коллекций:
+`firestore.rules` support the `author`, `editor`, and `admin` roles. For content collections:
 
-- публичное чтение только при `status == "published"`;
-- create/update ограничены ролью и допустимыми переходами статусов;
-- `content_publication_log` и `client_telemetry` читаются только `editor/admin`;
-- `client_telemetry` допускает `create` только для авторизованных пользователей.
+- public read only when `status == "published"`;
+- create/update are restricted by role and by allowed status transitions;
+- `content_publication_log` and `client_telemetry` are readable only by `editor/admin`;
+- `client_telemetry` allows `create` only for authenticated users.
 
 </details>
 
