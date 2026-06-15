@@ -1,0 +1,6 @@
+digraph G { rankdir=TB; bgcolor="white"; node [fontname="Arial", fontsize=11, color="black"]; edge [fontname="Arial", fontsize=10, color="black"];
+node [shape=box, style="rounded,filled", fillcolor="#f2f2f2"];
+App -> Layout; Layout -> Sidebar; Layout -> "Контент (Outlet)"; Layout -> "Виджет кубов";
+"Контент (Outlet)" -> DbPage; "Контент (Outlet)" -> "CharacterEditorPage";
+DbPage -> CompendiumTable; DbPage -> FilterPanel; DbPage -> DetailModal;
+edge [style=dashed]; CompendiumTable -> "строки (props)" [dir=back]; }

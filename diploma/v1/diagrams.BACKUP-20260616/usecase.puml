@@ -1,0 +1,78 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 14
+skinparam dpi 150
+skinparam packageStyle rectangle
+skinparam usecaseBackgroundColor white
+skinparam rectangleBackgroundColor white
+skinparam actorBackgroundColor white
+skinparam ArrowColor black
+left to right direction
+
+actor "Гость" as Guest
+actor "Авторизованный\nпользователь" as User
+actor "Администратор\nконтента" as Admin
+
+rectangle "E'Magios Core Site" {
+  usecase "Зайти на сайт" as UC_enter
+  usecase "Читать книги" as UC_books
+  usecase "Смотреть новости" as UC_news
+  usecase "Войти через Google" as UC_login
+  usecase "Пользоваться БД" as UC_db
+  usecase "Искать /\nфильтровать записи" as UC_search
+  usecase "Открывать\nкарточки записей" as UC_card
+
+  usecase "Открыть профиль" as UC_profile
+  usecase "Работать с редактором\nперсонажей" as UC_editor
+  usecase "Создать персонажа" as UC_cr
+  usecase "Редактировать\nперсонажа" as UC_ed
+  usecase "Сохранить персонажа" as UC_sv
+  usecase "Загрузить персонажа" as UC_ld
+  usecase "Удалить персонажа" as UC_del
+  usecase "Экспортировать\nперсонажа" as UC_exp
+  usecase "Импортировать\nперсонажа" as UC_impc
+
+  usecase "Импортировать данные\nв Cloud Firestore" as UC_import
+  usecase "Подготовить JSON\nиз Obsidian Vault" as UC_json
+}
+
+actor "Google Auth\n(внешняя система)" as GAuth
+actor "Cloud Firestore\n(внешняя система)" as FS
+actor "Obsidian Vault\n(внешняя система)" as OV
+
+Guest --> UC_enter
+Guest --> UC_books
+Guest --> UC_news
+Guest --> UC_login
+Guest --> UC_db
+
+User --> UC_profile
+User --> UC_editor
+
+Admin --> UC_import
+Admin --> UC_json
+
+UC_db ..> UC_search : <<include>>
+UC_db ..> UC_card : <<include>>
+
+UC_editor ..> UC_cr : <<include>>
+UC_editor ..> UC_ed : <<include>>
+UC_editor ..> UC_sv : <<include>>
+UC_editor ..> UC_ld : <<include>>
+UC_editor ..> UC_del : <<include>>
+UC_editor ..> UC_exp : <<include>>
+UC_editor ..> UC_impc : <<include>>
+
+' второй столбец операций редактора (сжимаем высоту)
+UC_cr -[hidden]-> UC_del
+UC_ed -[hidden]-> UC_exp
+UC_sv -[hidden]-> UC_impc
+
+UC_login --> GAuth
+UC_card ..> FS
+UC_editor ..> FS
+UC_import --> FS
+UC_json --> OV
+@enduml

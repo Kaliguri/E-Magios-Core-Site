@@ -1,0 +1,54 @@
+digraph DFD {
+  rankdir=TB; bgcolor="white"; nodesep=0.35; ranksep=0.7;
+  node [fontname="Arial", fontsize=11, color="black"];
+  edge [fontname="Arial", fontsize=9, color="black"];
+
+  // Внешние сущности
+  node [shape=box, style="filled", fillcolor="white"];
+  player  [label="Игрок"];
+  editor  [label="Редактор /\nавтор"];
+  author  [label="Автор контента\n(Obsidian)"];
+  discord [label="Discord"];
+
+  // Процессы
+  node [shape=ellipse, style="filled", fillcolor="white"];
+  p1 [label="1. Просмотр\nсправочника\nи книг"];
+  p2 [label="2. Редактор\nперсонажей"];
+  p3 [label="3. Броски\nкубов"];
+  p4 [label="4. Публикация\nконтента"];
+  p5 [label="5. Конвейер\nподготовки\nконтента"];
+
+  // Хранилища данных
+  node [shape=cylinder, style="filled", fillcolor="white"];
+  d1 [label="Firestore:\nкомпендиум"];
+  d2 [label="Firestore:\nперсонажи"];
+  d3 [label="IndexedDB:\nкэш + версии"];
+  d4 [label="Статические\nассеты книг"];
+  d5 [label="Манифест\nверсий"];
+
+  // Потоки данных
+  player -> p1 [label="запрос"];
+  p1 -> d3 [label="чтение кэша"];
+  d3 -> p1 [label="данные"];
+  p1 -> d5 [label="сверка версий"];
+  d1 -> p1 [label="published"];
+  d4 -> p1 [label="главы книг"];
+  p1 -> player [label="контент"];
+
+  player -> p2 [label="правка"];
+  p2 -> d2 [label="сохранение"];
+  d2 -> p2 [label="персонаж"];
+  d1 -> p2 [label="заклинания"];
+
+  player -> p3 [label="бросок"];
+  p3 -> discord [label="результат"];
+  d2 -> p3 [label="характеристики"];
+
+  editor -> p4 [label="смена статуса"];
+  p4 -> d1 [label="draft / review /\npublished"];
+
+  author -> p5 [label="Markdown"];
+  p5 -> d1 [label="импорт"];
+  p5 -> d4 [label="публикация"];
+  p5 -> d5 [label="версии"];
+}

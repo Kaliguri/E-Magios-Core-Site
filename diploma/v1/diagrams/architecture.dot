@@ -1,0 +1,52 @@
+digraph arch {
+  graph [rankdir=TB, fontname="Arial", fontsize=16, nodesep=0.55, ranksep=0.7,
+         splines=ortho, bgcolor="white", pad=0.25];
+  node  [shape=box, fontname="Arial", fontsize=16, color=black, fontcolor=black,
+         penwidth=1.5, width=2.4, height=0.85];
+  edge  [fontname="Arial", fontsize=14, color=black, fontcolor=black, penwidth=1.3,
+         arrowsize=0.9];
+
+  // --- Конвейер генерации контента (серпантин 2x2) ---
+  ov   [label="Obsidian Vault\n(Markdown)"];
+  pars [label="Python-парсеры\n(Markdown → JSON)"];
+  json [label="JSON-файлы"];
+  imp  [label="Import-скрипт\n(Firebase Admin SDK)"];
+
+  subgraph cluster_pipe {
+    label="Подготовка контента (офлайн)";
+    fontname="Arial"; fontsize=15; color=black; penwidth=1.4; style=rounded;
+    { rank=same; ov; pars; }
+    { rank=same; imp; json; }
+    ov  -> pars;            // верхний ряд: слева направо
+    pars -> json;           // правая колонка вниз
+    json -> imp;            // нижний ряд: справа налево
+    ov -> imp [style=invis]; // выравнивание левой колонки (imp под ov)
+  }
+
+  // --- Облако ---
+  fs   [label="Cloud Firestore\n(справочник, новости, профили,\nперсонажи, манифест версий)",
+        shape=cylinder, height=1.3, width=3.0];
+
+  // --- Клиентское приложение ---
+  repo [label="Repository Layer\n(доступ к данным,\nфильтр по статусу)"];
+  idb  [label="IndexedDB\n(кэш справочника)", shape=cylinder, height=1.0];
+  ui   [label="React UI\n(книги, база, редактор)"];
+  auth [label="Firebase\nAuthentication"];
+  user [label="Пользователь"];
+
+  subgraph cluster_app {
+    label="Клиент: React + TypeScript + Vite";
+    fontname="Arial"; fontsize=15; color=black; penwidth=1.4; style=rounded;
+    { rank=same; idb; ui; }
+    repo; idb; ui;
+  }
+
+  imp -> fs   [label="импорт"];
+  fs  -> repo [label="чтение"];
+  repo -> idb [label="кэш"];
+  repo -> ui  [label="данные"];
+
+  { rank=same; auth; user; }
+  auth -> ui   [label="вход через Google", style=dashed];
+  user -> ui   [label="работа с сайтом"];
+}

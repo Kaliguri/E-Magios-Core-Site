@@ -1,0 +1,9 @@
+digraph G { rankdir=TB; bgcolor="white"; node [fontname="Arial", fontsize=11, color="black"]; edge [fontname="Arial", fontsize=10, color="black"]; nodesep=0.3;
+node [shape=box, style="filled", fillcolor="white"];
+subgraph cluster_p { label="pages"; style=filled; fillcolor="white"; "pages/db"; "pages/character-editor"; "pages/dashboard"; }
+subgraph cluster_w { label="widgets"; style=filled; fillcolor="white"; "widgets/layout"; "widgets/db-table"; "widgets/sidebar"; }
+subgraph cluster_f { label="features"; style=filled; fillcolor="white"; "features/db"; "features/character-editor"; "features/dice"; "features/auth"; }
+subgraph cluster_e { label="entities"; style=filled; fillcolor="white"; "entities/compendium"; "entities/character"; "entities/user"; }
+subgraph cluster_s { label="shared"; style=filled; fillcolor="white"; "shared/ui"; "shared/repositories"; "shared/cache"; "shared/firebase"; }
+"pages/db" -> "widgets/db-table" -> "features/db" -> "entities/compendium" -> "shared/repositories";
+"pages/character-editor" -> "features/character-editor" -> "entities/character" -> "shared/cache"; }

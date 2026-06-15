@@ -1,0 +1,43 @@
+digraph DFD {
+  // Диаграмма потоков данных (DFD, нотация Gane–Sarson, уровень 1)
+  rankdir=LR;
+  bgcolor="white";
+  nodesep=0.40; ranksep=0.75;
+  splines=polyline;
+  node [fontname="Arial", fontsize=14, color=black, fontcolor=black, penwidth=1.4];
+  edge [fontname="Arial", fontsize=12, color=black, fontcolor=black, penwidth=1.2, arrowsize=0.8];
+
+  // ── Внешние сущности (прямоугольники) ──────────────────────────
+  obs   [shape=box, label="Obsidian Vault\n(источник контента)", width=1.8, height=0.8];
+  user  [shape=box, label="Пользователь", width=1.8, height=0.8];
+  gauth [shape=box, label="Google\nAuthentication", width=1.8, height=0.8];
+
+  // ── Процессы (скруглённые прямоугольники, нумерованные) ─────────
+  p1 [shape=box, style=rounded, label="1\nПодготовка и импорт\nконтента\n(Python-парсеры,\nFirebase Admin SDK)", width=2.2, height=1.1];
+  p2 [shape=box, style=rounded, label="2\nАутентификация\nи авторизация\n(Firebase Auth,\nроли author/editor/admin)", width=2.2, height=1.1];
+  p3 [shape=box, style=rounded, label="3\nКлиентское приложение\nReact + TypeScript + Vite\n(Feature-Sliced Design):\nсправочник, редактор\nперсонажей, броски кубов", width=2.6, height=1.3];
+
+  // ── Хранилища данных (открытый прямоугольник: D1 | имя) ─────────
+  d1 [shape=record, label="{D1|Cloud Firestore\n(справочник, новости, профили,\nперсонажи, манифест версий)\n— Firestore Security Rules:\nдоступ по ролям и статусам}", height=1.5];
+  d2 [shape=record, label="{D2|IndexedDB\n(офлайн-кэш\nсправочника)}", height=0.9];
+
+  // ── Потоки данных (поименованные стрелки) ──────────────────────
+  obs  -> p1 [label="Markdown"];
+  p1   -> d1 [label="импорт\nдокументов"];
+
+  user -> p2 [label="учётные\nданные"];
+  p2   -> gauth [label="OAuth 2.0"];
+  gauth-> p2 [label="токен +\nclaim role"];
+  p2   -> p3 [label="сессия, роль"];
+
+  d1   -> p3 [label="published-данные,\nпользовательские данные,\nверсии манифеста"];
+  p3   -> d1 [label="запросы справочника,\nзапись персонажей и бросков\n(только владельцу)"];
+  p3   -> d2 [label="запись кэша"];
+  d2   -> p3 [label="чтение кэша"];
+  p3   -> user [label="страницы: книги,\nбаза, новости"];
+  user -> p3 [label="действия в интерфейсе"];
+
+  // подсказки компоновки
+  { rank=same; obs; user; gauth; }
+  { rank=same; d1; d2; }
+}

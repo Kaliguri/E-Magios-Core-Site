@@ -1,0 +1,175 @@
+@startuml
+' ── ER-диаграмма базы данных (Cloud Firestore) ───────────────────
+' Классическая нотация «вороньей лапки», монохром, без заливок.
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 14
+skinparam dpi 200
+skinparam linetype ortho
+skinparam nodesep 18
+skinparam ranksep 42
+skinparam entityBackgroundColor White
+skinparam classBackgroundColor White
+skinparam noteBackgroundColor White
+skinparam noteFontSize 12
+hide circle
+top to bottom direction
+
+' ===== Блок 1. Справочник правил (публичное чтение published) =====
+package "Справочник правил  ·  публичное чтение (status = published)" as PK_REF {
+
+  entity "schools — школы магии" as schools {
+    * id : string  <<PK>>
+    --
+    name : string
+    rarity, difficulty
+    properties[], principles[]
+    signatureSpells[], educationalSpells[]
+    relatedSchools[] : FK schools
+    status, version
+  }
+
+  entity "spells — заклинания" as spells {
+    * id : string  <<PK>>
+    --
+    name : string
+    school : FK schools
+    actionType : FK action_types
+    requiredLevel, damageType
+    range, target, duration
+    concentration, maintenance
+    parentId : FK spells (саб-заклинания)
+    status [draft|review|published|archived]
+    version
+  }
+
+  entity "action_types — типы действий" as atypes {
+    * id : string  <<PK>>
+    --
+    name, description, status
+  }
+
+  entity "recipes — рецепты" as recipes {
+    * id : string  <<PK>>
+    --
+    name : string
+    profession : FK craft_professions
+    specialization : FK craft_specializations
+    recipeTypes[] : FK recipe_types
+    components[] : FK craft_components
+    steps[] : { name, progress }
+    recipeLevel, recipeRarity, recipeCost
+    status, version
+  }
+
+  entity "craft_professions" as prof {
+    * id : string  <<PK>>
+    --
+    name, description
+  }
+
+  entity "craft_specializations" as spec {
+    * id : string  <<PK>>
+    --
+    name : string
+    profession : FK craft_professions
+  }
+
+  note bottom of recipes
+    Полный справочник — 14 коллекций. Также:
+    effects, actions, skills, archetypes, basics,
+    combat_components, craft_components, recipe_types.
+    Версии всех коллекций отслеживает contentManifest;
+    workflow статусов: draft → review → published → archived
+    (роли author / editor / admin).
+  end note
+}
+
+' ===== Блок 2. Пользовательские данные (доступ только владельцу) =====
+package "Пользовательские данные  ·  доступ только владельцу (uid)" as PK_USER {
+
+  entity "users/{uid} — профиль" as users {
+    * uid : string  <<PK>>
+    --
+    displayName, email, photoURL
+    discordUsername, discordColor
+    diceColor
+    rollHistory[] : { formula, result, timestamp }
+    role (custom claim): author|editor|admin
+  }
+
+  entity "characters — персонажи" as chars {
+    * id : string  <<PK>>
+    --
+    name, level, description
+    stats : { level, arcana, health, will,
+      speed, initiative, hitBonus, effectBonus,
+      evasion, fortitude, actions, reactions }
+    magicSkills[], personalitySkills[]
+    studySpells[], signatureSpells[],
+    spontaneousSpells[] : FK spells
+    schools[] : FK schools
+    archetypes[] : FK archetypes
+    craftRecipes[] : FK recipes
+    temporaryBonuses[], levelBonuses[]
+    statOverrides, inventory, equipment
+    updatedAt, version
+  }
+
+  entity "diceRolls — броски кубов" as rolls {
+    * id : string  <<PK>>
+    --
+    formula, result
+    timestamp
+  }
+}
+
+' ===== Блок 3. Публикация и системные коллекции =====
+package "Публикация и система" as PK_SYS {
+
+  entity "contentManifest/{env}" as manifest {
+    * environment : string  <<PK>>
+    --
+    contentRevision : number
+    publishedAt
+    release : { version, tag,
+      changedCollections, changedDocs }
+    collections : { <коллекция> →
+      { version, updatedAt } }
+  }
+
+  entity "news — новости" as news {
+    * id : string  <<PK>>
+    --
+    date, title, brief
+    features[], links[]
+    objectGroups[], stats[]
+    status, version, publishedAt
+  }
+
+  entity "client_telemetry" as tele {
+    * id : string  <<PK>>
+    --
+    eventName, route, level
+    payload, createdAt
+  }
+}
+
+' ── связи (воронья лапка) ────────────────────────────────────────
+schools ||--o{ spells
+atypes  ||--o{ spells
+spells  ||--o{ spells
+prof    ||--o{ recipes
+prof    ||--o{ spec
+spec    ||--o{ recipes
+
+users   ||--o{ chars
+users   ||--o{ rolls
+chars   }o--o{ spells
+
+' ── скрытые рёбра для альбомной компоновки ───────────────────────
+' Верхний ряд: Пользовательские + Система рядом; Справочник — ниже,
+' притягивается связью characters → spells.
+PK_USER -[hidden]right- PK_SYS
+@enduml

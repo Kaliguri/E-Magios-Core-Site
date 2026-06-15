@@ -1,0 +1,9 @@
+# Scratch render / unpack artifacts (regenerable, large) — not source
+v1/_render*/
+v1/_check*/
+v1/_chk*/
+v1/_cmp*/
+v1/_unpacked*/
+
+# Office lock files
+~$*

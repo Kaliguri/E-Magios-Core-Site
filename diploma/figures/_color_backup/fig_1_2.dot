@@ -1,0 +1,3 @@
+digraph G { rankdir=TB; bgcolor="white"; node [fontname="Arial", fontsize=11, color="black"]; edge [fontname="Arial", fontsize=10, color="black"];
+node [shape=box, style="filled", fillcolor="#f2f2f2", width=3.4];
+pages -> widgets -> features -> entities -> shared [label="импорт «вниз»"]; }

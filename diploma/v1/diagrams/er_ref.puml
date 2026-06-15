@@ -1,0 +1,76 @@
+@startuml
+' ── Логическая модель данных Firestore — справочник правил ───────
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 22
+skinparam dpi 150
+skinparam linetype ortho
+skinparam nodesep 34
+skinparam ranksep 72
+skinparam entityBackgroundColor White
+skinparam classBackgroundColor White
+skinparam noteBackgroundColor White
+skinparam noteFontSize 17
+hide circle
+top to bottom direction
+
+entity "schools — школы магии" as schools {
+  * id : string  <<PK>>
+  --
+  name
+  rarity, difficulty
+  status
+}
+
+entity "spells — заклинания" as spells {
+  * id : string  <<PK>>
+  --
+  name
+  school : FK
+  actionType : FK
+  parentId : FK (саб-заклинания)
+  status
+}
+
+entity "action_types — типы действий" as atypes {
+  * id : string  <<PK>>
+  --
+  name
+}
+
+entity "craft_professions — профессии" as prof {
+  * id : string  <<PK>>
+  --
+  name
+}
+
+entity "craft_specializations — специализации" as spec {
+  * id : string  <<PK>>
+  --
+  name
+  profession : FK
+}
+
+entity "recipes — рецепты" as recipes {
+  * id : string  <<PK>>
+  --
+  name
+  profession : FK
+  specialization : FK
+  status
+}
+
+schools ||--o{ spells
+atypes  ||--o{ spells
+spells  ||--o{ spells
+prof    ||--o{ recipes
+prof    ||--o{ spec
+spec    ||--o{ recipes
+
+note bottom of recipes
+  Справочник правил — 14 коллекций,
+  публичное чтение при status = published.
+  Workflow: draft → review → published → archived.
+end note
+@enduml

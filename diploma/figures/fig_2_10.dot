@@ -1,0 +1,18 @@
+digraph G { rankdir=LR; bgcolor="white"; node [fontname="Arial", fontsize=11, color="black"]; edge [fontname="Arial", fontsize=10, color="black"];
+node [shape=box, style="filled", fillcolor="white"];
+"Obsidian Vault
+(Markdown)" -> "Python-скрипты
+(parse_*, convert_md,
+link_resolver)";
+"Python-скрипты
+(parse_*, convert_md,
+link_resolver)" -> "Cloud Firestore
+(справочные данные)";
+"Python-скрипты
+(parse_*, convert_md,
+link_resolver)" -> "Статические ассеты
+(книги правил)";
+"Cloud Firestore
+(справочные данные)" -> "React-приложение";
+"Статические ассеты
+(книги правил)" -> "React-приложение"; }

@@ -1,0 +1,9 @@
+digraph G { rankdir=LR; bgcolor="white"; node [fontname="Arial", fontsize=11, color="black"]; edge [fontname="Arial", fontsize=10, color="black"];
+node [shape=box, style="rounded,filled", fillcolor="white"];
+draft [label="draft
+(черновик)"]; review [label="review
+(на проверке)"]; published [label="published
+(опубликован)"]; archived [label="archived
+(архив)"];
+draft -> review [label="автор"]; review -> draft [label="редактор"]; review -> published [label="редактор"]; published -> archived [label="редактор"];
+draft -> published [label="админ", style=dashed]; archived -> published [label="админ", style=dashed]; }

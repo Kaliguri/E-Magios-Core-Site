@@ -1,0 +1,57 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam handwritten false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam backgroundColor white
+skinparam ArrowColor black
+skinparam actorBorderColor black
+skinparam actorBackgroundColor white
+skinparam usecaseBorderColor black
+skinparam usecaseBackgroundColor white
+skinparam rectangleBorderColor black
+skinparam rectangleBackgroundColor white
+left to right direction
+
+actor "Гость" as guest
+actor "Авторизованный\nпользователь" as user
+actor "Администратор\nконтента" as admin
+
+actor "Google\nAuthentication" as gauth
+actor "Cloud Firestore" as fs
+actor "Obsidian Vault" as obs
+
+user --|> guest
+
+rectangle "E'Magios Core" {
+  usecase "Просматривать\nкниги правил" as UC1
+  usecase "Просматривать\nновости" as UC2
+  usecase "Просматривать\nбазу данных" as UC3
+  usecase "Искать и\nфильтровать" as UC4
+  usecase "Входить\nчерез Google" as UC5
+  usecase "Управлять\nпрофилем" as UC6
+  usecase "Редактировать\nперсонажей" as UC7
+  usecase "Выполнять\nброски кубов" as UC8
+  usecase "Готовить контент\nв Obsidian" as UC9
+  usecase "Импортировать\nданные в облако" as UC10
+}
+
+guest -- UC1
+guest -- UC2
+guest -- UC3
+guest -- UC4
+guest -- UC5
+user -- UC6
+user -- UC7
+user -- UC8
+admin -- UC9
+admin -- UC10
+
+UC5 --> gauth
+UC3 ..> fs
+UC7 ..> fs
+UC8 ..> fs
+UC9 ..> obs
+UC10 --> fs
+@enduml

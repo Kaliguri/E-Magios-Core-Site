@@ -1,0 +1,21 @@
+%%{init: {'theme':'base','themeVariables':{'fontFamily':'Arial','primaryColor':'#ffffff','primaryBorderColor':'#000000','primaryTextColor':'#000000','lineColor':'#000000','actorBkg':'#ffffff','actorBorder':'#000000','actorTextColor':'#000000','signalColor':'#000000','signalTextColor':'#000000','labelBoxBkgColor':'#ffffff','labelBoxBorderColor':'#000000','labelTextColor':'#000000','noteBkgColor':'#ffffff','noteTextColor':'#000000','noteBorderColor':'#000000','altBackground':'#ffffff','sequenceNumberColor':'#000000'}}}%%
+sequenceDiagram
+    participant C as Компонент
+    participant H as useCompendiumData
+    participant I as IndexedDB (кэш)
+    participant M as Манифест версий
+    participant F as Cloud Firestore
+    C->>H: запрос данных
+    H->>I: чтение кэша
+    I-->>H: данные + версия
+    H-->>C: показать кэш (сразу)
+    H->>M: версия коллекции
+    M-->>H: manifestVersion
+    alt кэш устарел или пуст
+        H->>F: загрузка свежих данных
+        F-->>H: документы (published)
+        H->>I: обновить кэш + версию
+        H-->>C: показать свежие данные
+    else версия актуальна
+        H-->>C: сеть не запрашивается
+    end

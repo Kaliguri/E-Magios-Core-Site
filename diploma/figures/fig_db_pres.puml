@@ -1,0 +1,74 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam backgroundColor white
+skinparam classBackgroundColor white
+skinparam classBorderColor black
+skinparam packageBackgroundColor white
+skinparam packageBorderColor black
+skinparam ArrowColor black
+hide circle
+hide methods
+
+package "Служебные документы" {
+  class manifest {
+    collection : string
+    version : number
+  }
+}
+
+package "Справочник (публичное чтение published)" {
+  class spells {
+    name : string
+    school : ref schools
+    actionType : ref action_types
+    distance, target, duration
+    damageType, requiredLevel
+    status : draft / review /
+    published / archived
+  }
+  class schools {
+    name : string
+    rarity, difficulty
+    relatedSchools : ref[]
+    status
+  }
+  class recipes {
+    name : string
+    profession : ref craft_professions
+    specialization : ref craft_specializations
+    components : ref[] craft_components
+    status
+  }
+  note bottom of recipes
+    + ещё 11 категорий: effects, actions,
+    skills, archetypes, basics, action_types,
+    combat_components, craft_components,
+    craft_professions, craft_specializations,
+    recipe_types
+  end note
+}
+
+package "Пользовательские данные (доступ только владельцу)" {
+  class "users/{uid}" as users {
+    uid : string
+    role : author / editor / admin
+    profile, settings
+  }
+  class "users/{uid}/characters" as characters {
+    id : string
+    name, level
+    stats, knownSpells
+  }
+}
+
+spells --> schools : принадлежит
+users *-- characters : 1..*
+
+' компоновка: стопкой, чтобы диаграмма была выше и уже
+manifest -[hidden]down-> spells
+schools -[hidden]down-> recipes
+spells -[hidden]right-> users
+@enduml

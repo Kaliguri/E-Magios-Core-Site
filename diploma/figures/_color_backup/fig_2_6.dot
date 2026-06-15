@@ -1,0 +1,6 @@
+digraph G { rankdir=LR; bgcolor="white"; node [fontname="Arial", fontsize=11, color="black"]; edge [fontname="Arial", fontsize=10, color="black"];
+node [shape=box, style="filled", fillcolor="#f2f2f2"];
+Layout [shape=box, style="rounded,filled", fillcolor="#e0e0e0"];
+Layout -> "Главная"; Layout -> "Новости"; Layout -> "База данных"; Layout -> "Книги правил"; Layout -> "Редактор персонажей"; Layout -> "Профиль";
+Layout -> "Дашборд
+(editor/admin)"; Layout -> "Виджет кубов" [style=dashed, label="сквозной"]; Layout -> "Оверлей карточки" [style=dashed, label="сквозной"]; }

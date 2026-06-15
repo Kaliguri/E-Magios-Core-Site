@@ -1,0 +1,82 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 15
+skinparam dpi 200
+skinparam linetype ortho
+skinparam entityBackgroundColor White
+skinparam classBackgroundColor White
+skinparam noteBackgroundColor White
+hide circle
+
+entity "schools\n(школы магии)" as schools {
+  * name : string
+  --
+  rarity, difficulty
+  status
+}
+
+entity "action_types\n(типы действий)" as atypes {
+  * name : string
+}
+
+entity "spells\n(заклинания)" as spells {
+  * name : string
+  --
+  school : FK schools
+  actionType : FK action_types
+  damageType, requiredLevel
+  status
+}
+
+entity "craft_professions\n(профессии)" as prof {
+  * name : string
+}
+
+entity "craft_components\n(компоненты)" as comp {
+  * name : string
+}
+
+entity "recipes\n(рецепты)" as recipes {
+  * name : string
+  --
+  profession : FK craft_professions
+  status
+}
+
+entity "users\n{uid}" as users {
+  * uid : string
+  --
+  role : author / editor / admin
+  profile, settings
+}
+
+entity "characters\n(персонажи)" as chars {
+  * id : string
+  --
+  name, level
+  stats, knownSpells
+}
+
+entity "manifest\n(версии коллекций)" as manifest {
+  * collection : string
+  version : number
+}
+
+schools  ||--o{ spells
+atypes   ||--o{ spells
+prof     ||--o{ recipes
+recipes  }o--o{ comp
+users    ||--o{ chars
+chars    }o--o{ spells
+
+note bottom of recipes
+  Полный справочник — 14 коллекций:
+  spells, schools, action_types, effects,
+  actions, skills, archetypes, basics,
+  combat_components, craft_components,
+  craft_professions, craft_specializations,
+  recipes, recipe_types
+end note
+@enduml

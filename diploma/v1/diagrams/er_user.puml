@@ -1,0 +1,80 @@
+@startuml
+' ── Логическая модель данных Firestore — пользователи и система ──
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 22
+skinparam dpi 150
+skinparam linetype ortho
+skinparam nodesep 34
+skinparam ranksep 72
+skinparam entityBackgroundColor White
+skinparam classBackgroundColor White
+skinparam noteBackgroundColor White
+skinparam noteFontSize 17
+hide circle
+top to bottom direction
+
+entity "users/{uid} — профиль" as users {
+  * uid : string  <<PK>>
+  --
+  displayName, email
+  diceColor
+  role (claim): author | editor | admin
+}
+
+entity "characters — персонажи" as chars {
+  * id : string  <<PK>>
+  --
+  name, level
+  stats { 12 боевых параметров }
+  spells[], skills[] : FK справочник
+  updatedAt, version
+}
+
+entity "diceRolls — броски кубов" as rolls {
+  * id : string  <<PK>>
+  --
+  formula, result, timestamp
+}
+
+entity "contentManifest/{env} — манифест" as manifest {
+  * environment : string  <<PK>>
+  --
+  contentRevision
+  release { version, изменения }
+  collections { версии коллекций }
+}
+
+entity "news — новости" as news {
+  * id : string  <<PK>>
+  --
+  date, title
+  status, publishedAt
+}
+
+entity "client_telemetry — телеметрия" as tele {
+  * id : string  <<PK>>
+  --
+  eventName, route, createdAt
+}
+
+users ||--o{ chars
+users ||--o{ rolls
+
+' ── компоновка: системные коллекции — колонкой справа ──
+users    -[hidden]right- manifest
+manifest -[hidden]down-  news
+news     -[hidden]down-  tele
+
+note bottom of chars
+  Персонаж ссылается на коллекции
+  справочника по id.
+end note
+
+note bottom of manifest
+  Данные пользователя — только владельцу (uid).
+  Манифест и новости — публичное чтение,
+  запись только сервером.
+end note
+@enduml

@@ -1,0 +1,36 @@
+digraph ARCH {
+  rankdir=TB; bgcolor="white"; nodesep=0.4; ranksep=0.55;
+  node [shape=box, style="filled", fillcolor="white", color="black",
+        fontname="Arial", fontsize=12];
+  edge [color="black", fontname="Arial", fontsize=10];
+
+  // Конвейер подготовки контента (верхний ряд)
+  obs    [label="Obsidian Vault\n(Markdown)"];
+  py     [label="Python-парсеры\n(Markdown в JSON)"];
+  json   [label="JSON-файлы"];
+  imp    [label="Import-скрипт\n(Firebase Admin SDK)"];
+  { rank=same; obs -> py -> json -> imp; }
+
+  // Облако
+  fs     [shape=cylinder, label="Cloud Firestore\n(справочник, новости,\nпрофили, персонажи,\nманифест версий)"];
+  imp -> fs [label="импорт"];
+
+  // Клиентское приложение
+  subgraph cluster_app {
+    label="React + TypeScript + Vite"; labelloc="t";
+    fontname="Arial"; fontsize=12; color="black"; style="solid";
+    ui   [label="React UI\n(книги, база, редактор)"];
+    repo [label="Repository Layer\n(доступ к данным,\nфильтр по статусу)"];
+    idb  [shape=cylinder, label="IndexedDB\n(кэш справочника)"];
+    repo -> ui [label="данные"];
+    repo -> idb [label="кэш", dir=both];
+  }
+
+  gauth  [label="Firebase\nAuthentication"];
+  user   [style="filled,bold", label="Пользователь"];
+
+  fs -> repo [label="чтение"];
+  gauth -> ui [label="вход через Google", style=dashed];
+  user -> ui [label="работа с сайтом"];
+  { rank=same; gauth; user; }
+}
